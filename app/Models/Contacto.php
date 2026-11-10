@@ -37,6 +37,7 @@ class Contacto extends Model
     {
         return [
             'inicio_utc' => 'datetime',
+            'rechazado_por_contraparte_at' => 'datetime',
             'fin_utc' => 'datetime',
             'frecuencia_mhz' => 'float',
             'potencia_w' => 'float',

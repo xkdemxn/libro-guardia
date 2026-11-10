@@ -106,4 +106,51 @@ Alpine.data('formularioContacto', (tiposPorModo, modoInicial, bandas, frecuencia
     },
 }));
 
+/**
+ * Descarga la tarjeta QSL (SVG en la página) como imagen PNG al doble de resolución.
+ *
+ * @param {string} nombreArchivo  sin extensión
+ */
+Alpine.data('tarjetaQsl', (nombreArchivo) => ({
+    generando: false,
+    error: '',
+    async descargarPng() {
+        this.generando = true;
+        this.error = '';
+
+        try {
+            const svg = this.$refs.tarjeta.querySelector('svg').cloneNode(true);
+            svg.setAttribute('width', '1400');
+            svg.setAttribute('height', '900');
+
+            const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml;charset=utf-8' }));
+            const imagen = new Image();
+            await new Promise((resolver, rechazar) => {
+                imagen.onload = resolver;
+                imagen.onerror = rechazar;
+                imagen.src = url;
+            });
+
+            const lienzo = document.createElement('canvas');
+            lienzo.width = 2800;
+            lienzo.height = 1800;
+            const contexto = lienzo.getContext('2d');
+            contexto.scale(2, 2);
+            contexto.drawImage(imagen, 0, 0, 1400, 900);
+            URL.revokeObjectURL(url);
+
+            const png = await new Promise((resolver) => lienzo.toBlob(resolver, 'image/png'));
+            const enlace = document.createElement('a');
+            enlace.href = URL.createObjectURL(png);
+            enlace.download = `${nombreArchivo}.png`;
+            enlace.click();
+            URL.revokeObjectURL(enlace.href);
+        } catch {
+            this.error = 'No se pudo generar la imagen. Prueba con «Descargar SVG».';
+        } finally {
+            this.generando = false;
+        }
+    },
+}));
+
 Alpine.start();

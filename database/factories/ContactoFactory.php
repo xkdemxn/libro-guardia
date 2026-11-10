@@ -8,6 +8,7 @@ use App\Models\Contacto;
 use App\Models\Modo;
 use App\Models\PrefijoPais;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -33,7 +34,9 @@ class ContactoFactory extends Factory
             'user_id' => User::factory(),
             'estacion_llamada' => $estacion,
             'inicio_utc' => $inicio,
-            'fin_utc' => (clone $inicio)->modify('+'.fake()->numberBetween(1, 15).' minutes'),
+            // Se calcula desde la hora de inicio final, aunque la prueba la cambie.
+            'fin_utc' => fn (array $atributos): CarbonImmutable => CarbonImmutable::parse($atributos['inicio_utc'], 'UTC')
+                ->addMinutes(fake()->numberBetween(1, 15)),
             'frecuencia_mhz' => round(fake()->randomFloat(4, $banda->frecuencia_min_mhz, $banda->frecuencia_max_mhz), 3),
             'banda_id' => $banda->id,
             'modo_id' => $modo->id,

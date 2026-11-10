@@ -3,11 +3,13 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\TipoQsl;
 use App\Rules\IndicativoValido;
 use App\Services\Maidenhead;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -126,5 +128,22 @@ class User extends Authenticatable
     public function contactos(): HasMany
     {
         return $this->hasMany(Contacto::class);
+    }
+
+    /**
+     * Solicitudes de confirmación: contactos que otros operadores registraron con este indicativo
+     * y que este operador todavía no tiene en su libro (ni rechazó).
+     *
+     * Si ya los tuviera, estarían confirmados con una QSL interna (ver ConfirmadorQsl).
+     *
+     * @return Builder<Contacto>
+     */
+    public function solicitudesPendientes(): Builder
+    {
+        return Contacto::query()
+            ->where('estacion_llamada', $this->indicativo)
+            ->where('user_id', '!=', $this->id)
+            ->whereNull('rechazado_por_contraparte_at')
+            ->whereDoesntHave('confirmacionesQsl', fn (Builder $query) => $query->where('tipo', TipoQsl::Interna));
     }
 }

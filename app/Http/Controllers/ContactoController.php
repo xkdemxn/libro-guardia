@@ -131,6 +131,8 @@ class ContactoController extends Controller
         }
 
         $contraparteAnterior = $this->confirmador->buscarContraparte($contactoEncontrado);
+        // Si la otra estación lo había rechazado, al corregirlo vuelve a aparecerle como solicitud.
+        $contactoEncontrado->rechazado_por_contraparte_at = null;
         $contactoEncontrado->update($request->datosContacto());
         $confirmado = $this->confirmador->sincronizar($contactoEncontrado, $contraparteAnterior);
 

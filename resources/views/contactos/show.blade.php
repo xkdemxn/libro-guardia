@@ -13,6 +13,7 @@
                         <a href="{{ route('perfil-publico.show', $contacto->estacion_llamada) }}" class="rounded-full bg-acento-400/10 px-4 py-2 text-sm font-medium text-acento-300 ring-1 ring-acento-400/25 transition hover:bg-acento-400/20">Ver perfil</a>
                     @endif
                     <x-estado-qsl :estado="$contacto->estadoQsl()" />
+                    <a href="{{ route('contactos.tarjeta', $contacto) }}" class="rounded-full bg-gradient-to-b from-acento-400 to-acento-600 px-4 py-2 text-sm font-semibold text-white shadow-boton transition hover:brightness-110">Tarjeta QSL</a>
                     <a href="{{ route('contactos.edit', $contacto) }}" class="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/10">Editar</a>
                 </div>
             </div>
@@ -55,6 +56,13 @@
 
         <x-panel ceja="Confirmación QSL">
             <p class="-mt-2 mb-5 text-center text-xs text-slate-500">Marca por separado si enviaste y si recibiste la confirmación. La fecha no puede ser anterior al contacto ({{ $contacto->inicio_utc->format('Y-m-d') }}).</p>
+
+            @if ($contacto->rechazado_por_contraparte_at)
+                <div class="mb-5 flex items-center gap-3 rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                    <span class="punto h-2 w-2 bg-rose-400"></span>
+                    {{ $contacto->estacion_llamada }} indicó el {{ $contacto->rechazado_por_contraparte_at->format('Y-m-d') }} que no reconoce este contacto. Revisa la fecha, la hora y la banda.
+                </div>
+            @endif
 
             @if ($confirmaciones->has(\App\Enums\TipoQsl::Interna->value))
                 <div class="mb-5 flex items-center gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">

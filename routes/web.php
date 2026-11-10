@@ -8,6 +8,8 @@ use App\Http\Controllers\FichaIndicativoController;
 use App\Http\Controllers\ImportacionController;
 use App\Http\Controllers\PerfilPublicoController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SolicitudConfirmacionController;
+use App\Http\Controllers\TarjetaQslController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -35,8 +37,14 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('contactos', ContactoController::class);
     Route::put('contactos/{contacto}/qsl', [ConfirmacionQslController::class, 'update'])->name('contactos.qsl.update');
+    Route::get('contactos/{contacto}/tarjeta', [TarjetaQslController::class, 'show'])->name('contactos.tarjeta');
+    Route::get('contactos/{contacto}/tarjeta.svg', [TarjetaQslController::class, 'svg'])->name('contactos.tarjeta.svg');
 
     Route::get('estadisticas', EstadisticasController::class)->name('estadisticas');
+
+    Route::get('solicitudes', [SolicitudConfirmacionController::class, 'index'])->name('solicitudes.index');
+    Route::post('solicitudes/{contacto}/aceptar', [SolicitudConfirmacionController::class, 'aceptar'])->name('solicitudes.aceptar');
+    Route::post('solicitudes/{contacto}/rechazar', [SolicitudConfirmacionController::class, 'rechazar'])->name('solicitudes.rechazar');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -25,6 +25,18 @@
     </x-slot>
 
     <div x-data="{ eliminar: { url: '', texto: '' } }" class="mx-auto max-w-7xl space-y-6 px-4 pt-8 sm:px-6 lg:px-8">
+        @if ($solicitudesPendientes)
+            <a href="{{ route('solicitudes.index') }}" class="vidrio flex items-center gap-4 !rounded-2xl border-rose-400/20 px-5 py-4 transition hover:bg-white/[0.06]">
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-500/15 font-display font-semibold text-rose-200 ring-1 ring-rose-400/25">{{ $solicitudesPendientes }}</span>
+                <span class="flex-1 text-sm text-slate-200">
+                    {{ $solicitudesPendientes === 1
+                        ? 'Otra estación registró un contacto contigo que no está en tu libro.'
+                        : 'Otras estaciones registraron '.$solicitudesPendientes.' contactos contigo que no están en tu libro.' }}
+                    <span class="text-slate-400">Revísalo y confírmalo con un clic.</span>
+                </span>
+                <span class="text-sm font-medium text-acento-300">Ver &rsaquo;</span>
+            </a>
+        @endif
 
         @if ($tieneContactos)
             {{-- Resumen --}}
