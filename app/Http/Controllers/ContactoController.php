@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ContactoRequest;
+use App\Http\Requests\FiltroContactosRequest;
 use App\Models\Banda;
 use App\Models\Contacto;
 use App\Models\Modo;
+use App\Models\User;
+use App\Services\ConfirmadorQsl;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,21 +22,18 @@ class ContactoController extends Controller
 {
     private const CONTACTOS_POR_PAGINA = 25;
 
+    public function __construct(private ConfirmadorQsl $confirmador) {}
+
     /**
      * Listado paginado con búsqueda y filtros (US-06, US-09).
      */
     public function index(Request $request): View
     {
-        $validator = Validator::make($request->query(), [
-            'indicativo' => ['nullable', 'string', 'max:20'],
-            'desde' => ['nullable', 'date_format:Y-m-d'],
-            'hasta' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:desde'],
-            'banda_id' => ['nullable', 'integer', 'exists:bandas,id'],
-            'modo_id' => ['nullable', 'integer', 'exists:modos,id'],
-            'qsl' => ['nullable', 'in:confirmado,enviada,pendiente'],
-        ], [
-            'hasta.after_or_equal' => 'La fecha de inicio no puede ser mayor que la fecha de fin.',
-        ]);
+        $validator = Validator::make(
+            $request->query(),
+            FiltroContactosRequest::reglas(),
+            FiltroContactosRequest::mensajes(),
+        );
 
         $filtros = $validator->fails() ? [] : $validator->validated();
 
@@ -75,10 +75,31 @@ class ContactoController extends Controller
     public function store(ContactoRequest $request): RedirectResponse
     {
         $contacto = $request->user()->contactos()->create($request->datosContacto());
+        $confirmado = $this->confirmador->sincronizar($contacto);
 
         return redirect()
             ->route('contactos.index')
-            ->with('status', "Contacto con {$contacto->estacion_llamada} guardado.");
+            ->with('status', $this->mensajeGuardado($contacto, 'guardado', $confirmado));
+    }
+
+    /**
+     * Detalle del contacto con el panel de confirmaciones QSL (US-10).
+     */
+    public function show(Request $request, string $contacto): View|RedirectResponse
+    {
+        $contactoEncontrado = $this->buscarContactoPropio($request, $contacto);
+
+        if ($contactoEncontrado === null) {
+            return $this->contactoInexistente();
+        }
+
+        $contactoEncontrado->load(['user', 'banda', 'modo', 'prefijoPais', 'confirmacionesQsl']);
+
+        return view('contactos.show', [
+            'contacto' => $contactoEncontrado,
+            'esUsuario' => User::query()->where('indicativo', $contactoEncontrado->estacion_llamada)->exists(),
+            'confirmaciones' => $contactoEncontrado->confirmacionesQsl->keyBy(fn ($confirmacion) => $confirmacion->tipo->value),
+        ]);
     }
 
     /**
@@ -109,11 +130,13 @@ class ContactoController extends Controller
             return $this->contactoInexistente();
         }
 
+        $contraparteAnterior = $this->confirmador->buscarContraparte($contactoEncontrado);
         $contactoEncontrado->update($request->datosContacto());
+        $confirmado = $this->confirmador->sincronizar($contactoEncontrado, $contraparteAnterior);
 
         return redirect()
             ->route('contactos.index')
-            ->with('status', "Contacto con {$contactoEncontrado->estacion_llamada} actualizado.");
+            ->with('status', $this->mensajeGuardado($contactoEncontrado, 'actualizado', $confirmado));
     }
 
     /**
@@ -127,11 +150,21 @@ class ContactoController extends Controller
             return $this->contactoInexistente();
         }
 
+        $this->confirmador->desvincular($contactoEncontrado);
         $contactoEncontrado->delete();
 
         return redirect()
             ->route('contactos.index')
             ->with('status', "Contacto con {$contactoEncontrado->estacion_llamada} eliminado.");
+    }
+
+    private function mensajeGuardado(Contacto $contacto, string $accion, bool $confirmado): string
+    {
+        $mensaje = "Contacto con {$contacto->estacion_llamada} {$accion}.";
+
+        return $confirmado
+            ? $mensaje." {$contacto->estacion_llamada} también lo registró en su libro: quedó confirmado automáticamente."
+            : $mensaje;
     }
 
     /**

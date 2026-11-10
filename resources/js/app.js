@@ -38,9 +38,48 @@ Alpine.data('relojUtc', () => ({
  * @param {Array<{nombre: string, min: number, max: number}>} bandas
  * @param {string} frecuenciaInicial
  */
-Alpine.data('formularioContacto', (tiposPorModo, modoInicial, bandas, frecuenciaInicial) => ({
+Alpine.data('formularioContacto', (tiposPorModo, modoInicial, bandas, frecuenciaInicial, urlFicha, indicativoInicial) => ({
     modoId: modoInicial,
     frecuencia: frecuenciaInicial ?? '',
+    indicativo: indicativoInicial ?? '',
+    ficha: null,
+    buscandoFicha: false,
+    init() {
+        if (this.indicativo) {
+            this.buscarFicha();
+        }
+    },
+    /**
+     * Innovación 3: al escribir el indicativo se muestra el país, los contactos previos
+     * y el perfil público de la estación, si está registrada.
+     */
+    async buscarFicha() {
+        const indicativo = this.indicativo.replace(/\s+/g, '').toUpperCase();
+
+        if (indicativo.length < 3) {
+            this.ficha = null;
+
+            return;
+        }
+
+        this.buscandoFicha = true;
+
+        try {
+            const respuesta = await fetch(`${urlFicha}?indicativo=${encodeURIComponent(indicativo)}`, {
+                headers: { Accept: 'application/json' },
+            });
+            const ficha = await respuesta.json();
+
+            // Si el usuario siguió escribiendo, descartamos la respuesta vieja.
+            if (ficha.indicativo === this.indicativo.replace(/\s+/g, '').toUpperCase()) {
+                this.ficha = ficha.valido ? ficha : null;
+            }
+        } catch {
+            this.ficha = null;
+        } finally {
+            this.buscandoFicha = false;
+        }
+    },
     get tipo() {
         return tiposPorModo[this.modoId]?.tipo ?? '';
     },

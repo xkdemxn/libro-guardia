@@ -7,10 +7,20 @@
                 </p>
                 <h1 class="mt-2 font-display text-3xl font-semibold text-white sm:text-4xl">Mis contactos</h1>
             </div>
+            <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('importacion.create') }}" class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-slate-100 transition hover:bg-white/10">
+                Importar
+            </a>
+            @if ($tieneContactos)
+                <a href="{{ route('exportacion.create') }}" class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-slate-100 transition hover:bg-white/10">
+                    Exportar
+                </a>
+            @endif
             <a href="{{ route('contactos.create') }}" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-acento-400 to-acento-600 px-5 py-2.5 text-sm font-semibold text-white shadow-boton transition hover:brightness-110 active:scale-[0.97]">
                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
                 Nuevo contacto
             </a>
+            </div>
         </div>
     </x-slot>
 
@@ -157,7 +167,7 @@
                                             <p class="font-mono text-xs text-slate-500">{{ $contacto->inicio_utc->format('H:i') }}{{ $contacto->fin_utc ? ' → '.$contacto->fin_utc->format('H:i') : '' }}</p>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-3.5">
-                                            <p class="font-mono text-[15px] font-semibold tracking-wide text-white">{{ $contacto->estacion_llamada }}</p>
+                                            <a href="{{ route('contactos.show', $contacto) }}" class="font-mono text-[15px] font-semibold tracking-wide text-white transition hover:text-acento-300">{{ $contacto->estacion_llamada }}</a>
                                             <p class="text-xs text-slate-500">{{ $contacto->prefijoPais?->pais ?? 'País desconocido' }}</p>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-3.5 text-right font-mono tabular-nums text-acento-300">{{ number_format($contacto->frecuencia_mhz, 3) }}</td>
@@ -188,7 +198,7 @@
                             <li class="rounded-2xl border border-white/5 bg-white/[0.03] p-4">
                                 <div class="flex items-start justify-between gap-3">
                                     <div>
-                                        <p class="font-mono text-lg font-semibold text-white">{{ $contacto->estacion_llamada }}</p>
+                                        <a href="{{ route('contactos.show', $contacto) }}" class="font-mono text-lg font-semibold text-white">{{ $contacto->estacion_llamada }}</a>
                                         <p class="text-xs text-slate-500">{{ $contacto->prefijoPais?->pais ?? 'País desconocido' }}</p>
                                     </div>
                                     <x-estado-qsl :estado="$contacto->estadoQsl()" />

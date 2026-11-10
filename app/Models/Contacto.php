@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Rules\IndicativoValido;
+use App\Services\Maidenhead;
 use Carbon\CarbonInterface;
 use Database\Factories\ContactoFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -90,6 +91,41 @@ class Contacto extends Model
     public function confirmacionesQsl(): HasMany
     {
         return $this->hasMany(ConfirmacionQsl::class);
+    }
+
+    /**
+     * Ubicación de la otra estación: su grid locator si se anotó; si no, el país de su prefijo.
+     *
+     * @return array{lat: float, lon: float, precision: string}|null
+     */
+    public function coordenadas(): ?array
+    {
+        $porGrid = Maidenhead::aCoordenadas($this->grid_locator);
+
+        if ($porGrid !== null) {
+            return [...$porGrid, 'precision' => 'grid'];
+        }
+
+        if ($this->prefijoPais?->latitud === null) {
+            return null;
+        }
+
+        return ['lat' => $this->prefijoPais->latitud, 'lon' => $this->prefijoPais->longitud, 'precision' => 'pais'];
+    }
+
+    /**
+     * Distancia aproximada en km entre la estación del operador y la contactada.
+     */
+    public function distanciaKm(): ?int
+    {
+        $origen = $this->user->coordenadas();
+        $destino = $this->coordenadas();
+
+        if ($origen === null || $destino === null) {
+            return null;
+        }
+
+        return (int) round(Maidenhead::distanciaKm($origen['lat'], $origen['lon'], $destino['lat'], $destino['lon']));
     }
 
     /**

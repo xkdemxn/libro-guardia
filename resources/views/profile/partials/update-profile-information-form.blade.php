@@ -1,76 +1,120 @@
-<section>
-    <header>
-        <h2 class="font-display text-lg font-semibold text-white">
-            {{ __('Profile Information') }}
-        </h2>
+{{-- Perfil del operador: foto, datos, estación y visibilidad pública (US-13). --}}
+@php($visibilidad = $user->visibilidad)
 
-        <p class="mt-1 text-sm text-slate-400">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
+<form id="send-verification" method="post" action="{{ route('verification.send') }}">
+    @csrf
+</form>
 
-    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
-        @csrf
-    </form>
+<form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="space-y-8"
+      x-data="{ vistaPrevia: @js($user->foto_url), quitar: false }">
+    @csrf
+    @method('patch')
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
-        @csrf
-        @method('patch')
-
-        <div>
-            <x-input-label for="indicativo" value="Indicativo" />
-            <x-text-input id="indicativo" type="text" class="font-mono" :value="$user->indicativo" disabled />
-            <p class="mt-1 text-xs text-slate-500">El indicativo no se puede cambiar.</p>
+    {{-- Foto e indicativo --}}
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-center">
+        <div class="relative h-24 w-24 shrink-0 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-600 to-slate-800 ring-1 ring-white/10">
+            <template x-if="vistaPrevia && ! quitar">
+                <img :src="vistaPrevia" alt="Foto de perfil" class="h-full w-full object-cover">
+            </template>
+            <span x-show="! vistaPrevia || quitar" class="grid h-full w-full place-items-center font-display text-2xl font-semibold text-white">
+                {{ mb_substr($user->nombres, 0, 1) }}{{ mb_substr($user->apellidos, 0, 1) }}
+            </span>
         </div>
+        <div class="flex-1">
+            <p class="font-mono text-2xl font-semibold tracking-wide text-white">{{ $user->indicativo }}</p>
+            <p class="text-xs text-slate-500">El indicativo no se puede cambiar.</p>
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+                <label class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10">
+                    Cambiar foto
+                    <input type="file" name="foto" accept="image/jpeg,image/png,image/webp" class="sr-only"
+                           x-on:change="const f = $event.target.files[0]; if (f) { vistaPrevia = URL.createObjectURL(f); quitar = false; }">
+                </label>
+                @if ($user->foto_path)
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-400">
+                        <input type="checkbox" name="quitar_foto" value="1" x-model="quitar" class="h-4 w-4 rounded border-white/20 bg-white/5 text-rose-500 focus:ring-rose-400/30 focus:ring-offset-0">
+                        Quitar foto
+                    </label>
+                @endif
+                <span class="text-xs text-slate-500">JPG, PNG o WEBP · máx. 2 MB</span>
+            </div>
+            <x-input-error :messages="$errors->get('foto')" />
+        </div>
+    </div>
 
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
             <x-input-label for="nombres" value="Nombres" />
-            <x-text-input id="nombres" name="nombres" type="text" class="mt-1 block w-full" :value="old('nombres', $user->nombres)" required autofocus autocomplete="given-name" />
-            <x-input-error class="mt-2" :messages="$errors->get('nombres')" />
+            <x-text-input id="nombres" name="nombres" type="text" :value="old('nombres', $user->nombres)" required autocomplete="given-name" />
+            <x-input-error :messages="$errors->get('nombres')" />
         </div>
-
         <div>
             <x-input-label for="apellidos" value="Apellidos" />
-            <x-text-input id="apellidos" name="apellidos" type="text" class="mt-1 block w-full" :value="old('apellidos', $user->apellidos)" required autocomplete="family-name" />
-            <x-input-error class="mt-2" :messages="$errors->get('apellidos')" />
+            <x-text-input id="apellidos" name="apellidos" type="text" :value="old('apellidos', $user->apellidos)" required autocomplete="family-name" />
+            <x-input-error :messages="$errors->get('apellidos')" />
         </div>
-
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+        <div class="sm:col-span-2">
+            <x-input-label for="email" value="Correo electrónico" />
+            <x-text-input id="email" name="email" type="email" :value="old('email', $user->email)" required autocomplete="username" />
+            <p class="mt-1.5 text-xs text-slate-500">Nunca se muestra en tu perfil público.</p>
+            <x-input-error :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-slate-200">
-                        {{ __('Your email address is unverified.') }}
-
-                        <button form="send-verification" class="underline text-sm text-acento-300 hover:text-acento-200 no-underline">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
-
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-emerald-400">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
+                <p class="mt-2 text-sm text-slate-300">
+                    Tu correo no está verificado.
+                    <button form="send-verification" class="text-acento-300 hover:text-acento-200">Reenviar el enlace de verificación</button>
+                </p>
             @endif
         </div>
-
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
-
-            @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-slate-400"
-                >{{ __('Saved.') }}</p>
-            @endif
+        <div>
+            <x-input-label for="pais" value="País" />
+            <x-text-input id="pais" name="pais" type="text" :value="old('pais', $user->pais)" autocomplete="country-name" />
+            <x-input-error :messages="$errors->get('pais')" />
         </div>
-    </form>
-</section>
+        <div>
+            <x-input-label for="ciudad" value="Ciudad" />
+            <x-text-input id="ciudad" name="ciudad" type="text" :value="old('ciudad', $user->ciudad)" autocomplete="address-level2" />
+            <x-input-error :messages="$errors->get('ciudad')" />
+        </div>
+    </div>
+
+    <div>
+        <x-ceja class="mb-5">Mi estación</x-ceja>
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div>
+                <x-input-label for="grid_locator" value="Grid locator" />
+                <x-text-input id="grid_locator" name="grid_locator" type="text" class="font-mono uppercase" :value="old('grid_locator', $user->grid_locator)" maxlength="6" placeholder="FI09" />
+                <x-input-error :messages="$errors->get('grid_locator')" />
+            </div>
+            <div>
+                <x-input-label for="equipo_radio" value="Equipo de radio" />
+                <x-text-input id="equipo_radio" name="equipo_radio" type="text" :value="old('equipo_radio', $user->equipo_radio)" placeholder="Yaesu FT-991A" />
+                <x-input-error :messages="$errors->get('equipo_radio')" />
+            </div>
+            <div>
+                <x-input-label for="antena" value="Antena" />
+                <x-text-input id="antena" name="antena" type="text" :value="old('antena', $user->antena)" placeholder="Dipolo 40 m" />
+                <x-input-error :messages="$errors->get('antena')" />
+            </div>
+            <div class="sm:col-span-3">
+                <x-input-label for="biografia" value="Biografía" />
+                <textarea id="biografia" name="biografia" rows="4" maxlength="1000" class="campo" placeholder="Cuéntale a otros operadores sobre ti y tu estación.">{{ old('biografia', $user->biografia) }}</textarea>
+                <x-input-error :messages="$errors->get('biografia')" />
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <x-ceja class="mb-2">¿Qué ven los demás?</x-ceja>
+        <p class="mb-2 text-center text-xs text-slate-500">Tu indicativo y tu país siempre son visibles. Tu correo y tus contactos nunca lo son.</p>
+        <div class="divide-y divide-white/5">
+            <x-interruptor name="mostrar_nombre" :checked="old('mostrar_nombre', $visibilidad->mostrar_nombre)" etiqueta="Nombre y apellidos" />
+            <x-interruptor name="mostrar_pais_ciudad" :checked="old('mostrar_pais_ciudad', $visibilidad->mostrar_pais_ciudad)" etiqueta="Ciudad" />
+            <x-interruptor name="mostrar_equipo" :checked="old('mostrar_equipo', $visibilidad->mostrar_equipo)" etiqueta="Equipo y antena" />
+            <x-interruptor name="mostrar_biografia_foto" :checked="old('mostrar_biografia_foto', $visibilidad->mostrar_biografia_foto)" etiqueta="Biografía y foto" />
+        </div>
+    </div>
+
+    <div class="flex justify-end">
+        <x-primary-button class="!px-7">Guardar perfil</x-primary-button>
+    </div>
+</form>

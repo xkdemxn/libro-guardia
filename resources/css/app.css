@@ -80,3 +80,28 @@
         @apply inline-block h-1.5 w-1.5 shrink-0 rounded-full;
     }
 }
+
+/* Mapa (Leaflet) con el tema oscuro. leaflet.css se carga después y pone un fondo gris claro: lo anulamos. */
+.leaflet-container {
+    @apply !bg-noche-950 font-sans;
+}
+
+.leaflet-tooltip {
+    @apply rounded-xl border border-white/10 bg-noche-800/95 px-3 py-2 text-xs leading-relaxed text-slate-200 shadow-vidrio-lg;
+}
+
+.leaflet-tooltip-top::before {
+    @apply border-t-noche-800;
+}
+
+.leaflet-control-attribution {
+    @apply !bg-noche-950/70 !text-[10px] !text-slate-500;
+}
+
+.leaflet-control-attribution a {
+    @apply !text-slate-400;
+}
+
+.leaflet-bar a {
+    @apply !border-white/10 !bg-noche-800 !text-slate-200;
+}

@@ -11,6 +11,8 @@ use Illuminate\View\View;
 
 class PasswordResetLinkController extends Controller
 {
+    public const MENSAJE_NEUTRO = 'Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña. El enlace caduca en 60 minutos.';
+
     /**
      * Display the password reset link request view.
      */
@@ -30,16 +32,9 @@ class PasswordResetLinkController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        Password::sendResetLink($request->only('email'));
 
-        return $status == Password::RESET_LINK_SENT
-                    ? back()->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+        // Mensaje neutro (US-18): no revela si el correo está registrado o no.
+        return back()->with('status', self::MENSAJE_NEUTRO);
     }
 }

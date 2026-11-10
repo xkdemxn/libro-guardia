@@ -37,7 +37,8 @@ class ContactoFactory extends Factory
             'frecuencia_mhz' => round(fake()->randomFloat(4, $banda->frecuencia_min_mhz, $banda->frecuencia_max_mhz), 3),
             'banda_id' => $banda->id,
             'modo_id' => $modo->id,
-            'prefijo_pais_id' => PrefijoPais::paraIndicativo($estacion)?->id,
+            // Se calcula con el indicativo final, aunque la prueba lo cambie.
+            'prefijo_pais_id' => fn (array $atributos): ?int => PrefijoPais::paraIndicativo($atributos['estacion_llamada'])?->id,
             'reporte_enviado' => $this->reporteDeEjemplo($modo->tipo_reporte),
             'reporte_recibido' => $this->reporteDeEjemplo($modo->tipo_reporte),
             'potencia_w' => fake()->randomElement([5, 10, 50, 100]),

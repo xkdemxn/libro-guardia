@@ -15,7 +15,7 @@
 @endphp
 
 <div
-    x-data="formularioContacto(@js($tiposPorModo), @js((string) old('modo_id', $contacto->modo_id)), @js($rangosBandas), @js((string) old('frecuencia_mhz', $contacto->frecuencia_mhz)))"
+    x-data="formularioContacto(@js($tiposPorModo), @js((string) old('modo_id', $contacto->modo_id)), @js($rangosBandas), @js((string) old('frecuencia_mhz', $contacto->frecuencia_mhz)), @js(route('contactos.ficha')), @js((string) old('estacion_llamada', $contacto->estacion_llamada)))"
     class="space-y-6"
 >
     @if ($errors->has('duplicado'))
@@ -39,12 +39,47 @@
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-6">
             <div class="sm:col-span-3">
                 <x-input-label for="estacion_llamada" value="Estación llamada (indicativo)" />
-                <x-text-input id="estacion_llamada" name="estacion_llamada" type="text" class="!py-3 font-mono !text-2xl font-semibold uppercase tracking-wider" :value="old('estacion_llamada', $contacto->estacion_llamada)" required autofocus maxlength="20" placeholder="LU4BB" autocomplete="off" />
+                <x-text-input id="estacion_llamada" name="estacion_llamada" type="text" class="!py-3 font-mono !text-2xl font-semibold uppercase tracking-wider" required autofocus maxlength="20" placeholder="LU4BB" autocomplete="off"
+                              x-model="indicativo" x-on:input.debounce.350ms="buscarFicha()" aria-describedby="ficha-indicativo" />
                 <x-input-error :messages="$errors->get('estacion_llamada')" />
             </div>
 
             <div class="flex items-end sm:col-span-3 sm:justify-end">
                 <x-reloj-utc grande class="w-full justify-center sm:w-auto" />
+            </div>
+
+            {{-- Ficha rápida del indicativo (innovación 3) --}}
+            <div id="ficha-indicativo" class="sm:col-span-6" aria-live="polite">
+                <template x-if="ficha">
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl bg-black/20 px-4 py-3 ring-1 ring-white/5">
+                        <template x-if="ficha.perfil && ficha.perfil.foto_url">
+                            <img :src="ficha.perfil.foto_url" alt="" class="h-10 w-10 rounded-xl object-cover ring-1 ring-white/10">
+                        </template>
+                        <div class="min-w-0">
+                            <p class="text-sm text-white">
+                                <span class="font-mono font-semibold" x-text="ficha.indicativo"></span>
+                                <template x-if="ficha.perfil && ficha.perfil.nombre"><span class="text-slate-300"> · <span x-text="ficha.perfil.nombre"></span></span></template>
+                            </p>
+                            <p class="text-xs text-slate-400" x-text="[ficha.perfil?.ciudad, ficha.pais].filter(Boolean).join(', ') || 'País desconocido'"></p>
+                        </div>
+                        <div class="text-xs">
+                            <template x-if="ficha.contactos_previos > 0">
+                                <p class="inline-flex items-center gap-2 text-amber-200">
+                                    <span class="punto h-2 w-2 bg-amber-400"></span>
+                                    <span x-text="`Ya hablaste ${ficha.contactos_previos} ${ficha.contactos_previos === 1 ? 'vez' : 'veces'} con esta estación · última ${ficha.ultimo.hace} en ${ficha.ultimo.banda} ${ficha.ultimo.modo}`"></span>
+                                </p>
+                            </template>
+                            <template x-if="ficha.contactos_previos === 0">
+                                <p class="inline-flex items-center gap-2 text-emerald-200"><span class="punto h-2 w-2 bg-emerald-400"></span>Primer contacto con esta estación</p>
+                            </template>
+                        </div>
+                        <template x-if="ficha.registrado">
+                            <a :href="ficha.perfil.url" target="_blank" class="ms-auto inline-flex items-center gap-1.5 rounded-full bg-acento-400/10 px-3 py-1 text-xs font-medium text-acento-300 ring-1 ring-acento-400/25 hover:bg-acento-400/20">
+                                Usa Libro de Guardia · ver perfil
+                            </a>
+                        </template>
+                    </div>
+                </template>
             </div>
 
             <div class="sm:col-span-2">

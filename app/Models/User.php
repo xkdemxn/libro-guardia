@@ -4,14 +4,17 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Rules\IndicativoValido;
+use App\Services\Maidenhead;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Operador: radioaficionado registrado dueño de un libro de guardia.
@@ -54,6 +57,67 @@ class User extends Authenticatable
         return Attribute::make(
             get: fn (): string => trim("{$this->nombres} {$this->apellidos}"),
         );
+    }
+
+    /**
+     * URL pública de la foto de perfil, o null si no tiene.
+     */
+    protected function fotoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): ?string => $this->foto_path ? Storage::disk('public')->url($this->foto_path) : null,
+        );
+    }
+
+    /**
+     * Visibilidad del perfil; si el operador nunca la configuró se usan los valores por defecto.
+     *
+     * @return HasOne<VisibilidadPerfil, $this>
+     */
+    public function visibilidad(): HasOne
+    {
+        return $this->hasOne(VisibilidadPerfil::class)->withDefault();
+    }
+
+    /**
+     * Ubicación de la estación del operador: su grid locator; si no lo configuró, el país de su indicativo.
+     *
+     * @return array{lat: float, lon: float}|null
+     */
+    public function coordenadas(): ?array
+    {
+        $porGrid = Maidenhead::aCoordenadas($this->grid_locator);
+
+        if ($porGrid !== null) {
+            return $porGrid;
+        }
+
+        $prefijo = PrefijoPais::paraIndicativo($this->indicativo);
+
+        return $prefijo?->latitud === null ? null : ['lat' => $prefijo->latitud, 'lon' => $prefijo->longitud];
+    }
+
+    /**
+     * Datos que cualquier persona puede ver, según lo que el operador decidió mostrar (US-13, US-15).
+     *
+     * El indicativo y el país siempre son visibles; el correo y los contactos nunca.
+     *
+     * @return array{indicativo: string, pais: ?string, nombre: ?string, ciudad: ?string, equipo_radio: ?string, antena: ?string, biografia: ?string, foto_url: ?string}
+     */
+    public function datosPublicos(): array
+    {
+        $visibilidad = $this->visibilidad;
+
+        return [
+            'indicativo' => $this->indicativo,
+            'pais' => $this->pais ?: PrefijoPais::paraIndicativo($this->indicativo)?->pais,
+            'nombre' => $visibilidad->mostrar_nombre ? $this->nombre_completo : null,
+            'ciudad' => $visibilidad->mostrar_pais_ciudad ? $this->ciudad : null,
+            'equipo_radio' => $visibilidad->mostrar_equipo ? $this->equipo_radio : null,
+            'antena' => $visibilidad->mostrar_equipo ? $this->antena : null,
+            'biografia' => $visibilidad->mostrar_biografia_foto ? $this->biografia : null,
+            'foto_url' => $visibilidad->mostrar_biografia_foto ? $this->foto_url : null,
+        ];
     }
 
     /**

@@ -18,6 +18,12 @@
                     <x-nav-link :href="route('contactos.create')" :active="request()->routeIs('contactos.create')">
                         Nuevo contacto
                     </x-nav-link>
+                    <x-nav-link :href="route('estadisticas')" :active="request()->routeIs('estadisticas')">
+                        Estadísticas
+                    </x-nav-link>
+                    <x-nav-link :href="route('perfil-publico.index')" :active="request()->routeIs('perfil-publico.*')">
+                        Directorio
+                    </x-nav-link>
                     <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.*')">
                         Perfil
                     </x-nav-link>
@@ -45,6 +51,7 @@
                         </div>
                         <div class="my-1 h-px bg-white/10"></div>
                         <x-dropdown-link :href="route('profile.edit')">Mi perfil</x-dropdown-link>
+                        <x-dropdown-link :href="route('perfil-publico.show', Auth::user()->indicativo)">Ver mi perfil público</x-dropdown-link>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();" class="!text-rose-300">
@@ -77,6 +84,10 @@
         <div class="space-y-1">
             <x-responsive-nav-link :href="route('contactos.index')" :active="request()->routeIs('contactos.index')">Libro de guardia</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('contactos.create')" :active="request()->routeIs('contactos.create')">Nuevo contacto</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('estadisticas')" :active="request()->routeIs('estadisticas')">Estadísticas</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('perfil-publico.index')" :active="request()->routeIs('perfil-publico.*')">Directorio de indicativos</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('importacion.create')" :active="request()->routeIs('importacion.*')">Importar ADIF</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('exportacion.create')" :active="request()->routeIs('exportacion.*')">Exportar</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.*')">Mi perfil</x-responsive-nav-link>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

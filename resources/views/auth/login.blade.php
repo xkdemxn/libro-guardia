@@ -37,4 +37,7 @@
         ¿No tienes cuenta?
         <a class="font-medium text-acento-300 transition hover:text-acento-200" href="{{ route('register') }}">Regístrate con tu indicativo</a>
     </p>
+    <p class="mt-2 text-center text-sm">
+        <a class="text-slate-400 transition hover:text-white" href="{{ route('perfil-publico.index') }}">Buscar un indicativo sin iniciar sesión &rsaquo;</a>
+    </p>
 </x-guest-layout>
