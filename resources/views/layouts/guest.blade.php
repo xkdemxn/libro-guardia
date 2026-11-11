@@ -6,12 +6,14 @@
     <body class="font-sans">
         <div class="fondo-noche" aria-hidden="true"><span></span></div>
 
+        <x-selector-tema class="vidrio-fuerte fixed right-4 top-4 z-40 h-10 w-10" />
+
         <div class="mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-2 lg:gap-16">
             {{-- Presentación --}}
             <div class="hidden lg:block">
                 <a href="/" class="inline-flex items-center gap-3 text-white">
-                    <span class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-b from-acento-400 to-acento-600 shadow-boton">
-                        <x-application-logo class="h-6 w-6 text-white" />
+                    <span class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-b from-marca-400 to-marca-600 shadow-boton">
+                        <x-application-logo class="h-6 w-6 text-blanco" />
                     </span>
                     <span class="font-display text-lg font-semibold">Libro de Guardia</span>
                 </a>
@@ -51,8 +53,8 @@
             {{-- Formulario --}}
             <div class="mx-auto w-full max-w-md">
                 <a href="/" class="mb-8 flex items-center justify-center gap-3 text-white lg:hidden">
-                    <span class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-b from-acento-400 to-acento-600 shadow-boton">
-                        <x-application-logo class="h-6 w-6 text-white" />
+                    <span class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-b from-marca-400 to-marca-600 shadow-boton">
+                        <x-application-logo class="h-6 w-6 text-blanco" />
                     </span>
                     <span class="font-display text-lg font-semibold">Libro de Guardia</span>
                 </a>

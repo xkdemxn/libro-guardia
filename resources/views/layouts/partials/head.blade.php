@@ -3,6 +3,17 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="theme-color" content="#070e1c">
 
+{{-- Aplica el tema guardado (o el del sistema) antes de pintar, para que la página no parpadee. --}}
+<script>
+    (() => {
+        let tema = null;
+        try { tema = localStorage.getItem('tema'); } catch (e) {}
+        const claro = tema ? tema === 'claro' : window.matchMedia('(prefers-color-scheme: light)').matches;
+        document.documentElement.classList.toggle('claro', claro);
+        document.querySelector('meta[name="theme-color"]').content = claro ? '#e8eef8' : '#070e1c';
+    })();
+</script>
+
 <title>{{ isset($titulo) ? $titulo.' · ' : '' }}{{ config('app.name', 'Libro de Guardia') }}</title>
 
 <link rel="preconnect" href="https://fonts.bunny.net">

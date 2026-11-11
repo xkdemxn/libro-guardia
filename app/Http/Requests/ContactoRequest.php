@@ -48,7 +48,7 @@ class ContactoRequest extends FormRequest
             'hora_inicio' => ['required', 'date_format:H:i'],
             'hora_fin' => ['nullable', 'date_format:H:i'],
             'frecuencia_mhz' => ['required', 'numeric', 'gt:0'],
-            'modo_id' => ['required', 'integer', 'exists:modos,id'],
+            'modo_id' => ['bail', 'required', 'integer', 'exists:modos,id'],
             'reporte_enviado' => ['required', 'string', 'max:4'],
             'reporte_recibido' => ['required', 'string', 'max:4'],
             'potencia_w' => ['nullable', 'numeric', 'gt:0', 'max:1500'],

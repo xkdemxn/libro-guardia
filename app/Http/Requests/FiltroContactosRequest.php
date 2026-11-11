@@ -24,8 +24,8 @@ class FiltroContactosRequest extends FormRequest
             'indicativo' => ['nullable', 'string', 'max:20'],
             'desde' => ['nullable', 'date_format:Y-m-d'],
             'hasta' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:desde'],
-            'banda_id' => ['nullable', 'integer', 'exists:bandas,id'],
-            'modo_id' => ['nullable', 'integer', 'exists:modos,id'],
+            'banda_id' => ['bail', 'nullable', 'integer', 'exists:bandas,id'],
+            'modo_id' => ['bail', 'nullable', 'integer', 'exists:modos,id'],
             'qsl' => ['nullable', 'in:confirmado,enviada,pendiente'],
         ];
     }

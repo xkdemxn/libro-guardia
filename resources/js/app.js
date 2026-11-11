@@ -13,6 +13,31 @@ const horaUtc = (fecha, conSegundos = false) => {
 };
 
 /**
+ * Modo claro / oscuro. El tema se guarda en el navegador; sin elección se usa el del sistema
+ * (ver el script en layouts/partials/head.blade.php, que lo aplica antes de pintar).
+ */
+const aplicarTema = (claro) => {
+    document.documentElement.classList.toggle('claro', claro);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', claro ? '#e8eef8' : '#070e1c');
+
+    try {
+        localStorage.setItem('tema', claro ? 'claro' : 'oscuro');
+    } catch {
+        // Sin almacenamiento (modo privado): el tema solo dura esta visita.
+    }
+
+    window.dispatchEvent(new CustomEvent('tema-cambiado', { detail: { claro } }));
+};
+
+Alpine.data('selectorTema', () => ({
+    claro: document.documentElement.classList.contains('claro'),
+    alternar() {
+        this.claro = ! this.claro;
+        aplicarTema(this.claro);
+    },
+}));
+
+/**
  * Reloj UTC en vivo. En radioafición todos los contactos se anotan en UTC.
  */
 Alpine.data('relojUtc', () => ({

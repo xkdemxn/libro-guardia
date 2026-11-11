@@ -23,7 +23,7 @@
                             <span class="flex items-center justify-between">
                                 <span class="font-display font-semibold text-white">{{ $titulo }}</span>
                                 <span class="grid h-5 w-5 place-items-center rounded-full ring-1" :class="formato === '{{ $valor }}' ? 'bg-acento-500 ring-acento-400' : 'ring-white/20'">
-                                    <span class="h-2 w-2 rounded-full bg-white" x-show="formato === '{{ $valor }}'"></span>
+                                    <span class="h-2 w-2 rounded-full bg-blanco" x-show="formato === '{{ $valor }}'"></span>
                                 </span>
                             </span>
                             <span class="mt-2 block text-sm text-slate-400">{{ $descripcion }}</span>

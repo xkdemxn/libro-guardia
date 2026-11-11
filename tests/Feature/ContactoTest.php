@@ -279,6 +279,18 @@ class ContactoTest extends TestCase
             ->assertSee('No se encontraron contactos.');
     }
 
+    public function test_un_filtro_de_banda_no_numerico_se_ignora_sin_romper_la_pagina(): void
+    {
+        $this->sembrarCatalogos();
+        $operador = User::factory()->create();
+        Contacto::factory()->for($operador)->create(['estacion_llamada' => 'LU4BB']);
+
+        $this->actingAs($operador)
+            ->get(route('contactos.index', ['banda_id' => 'abc', 'modo_id' => '1 OR 1=1']))
+            ->assertOk()
+            ->assertSee('LU4BB');
+    }
+
     public function test_pide_corregir_si_la_fecha_desde_es_mayor_que_hasta(): void
     {
         $this->sembrarCatalogos();

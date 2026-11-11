@@ -8,8 +8,12 @@
 
 @layer base {
     html {
-        /* Calendarios, relojes y barras de desplazamiento nativos en modo oscuro. */
+        /* Calendarios, relojes y barras de desplazamiento nativos según el tema. */
         color-scheme: dark;
+    }
+
+    html.claro {
+        color-scheme: light;
     }
 
     body {
@@ -27,7 +31,7 @@
      * El vidrio de los paneles necesita algo detrás para que se note el desenfoque.
      */
     .fondo-noche {
-        @apply pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-gradient-to-b from-noche-900 via-noche-950 to-[#050a14];
+        @apply pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-gradient-to-b from-noche-900 via-noche-950 to-noche-950;
     }
 
     .fondo-noche::before,
@@ -68,6 +72,23 @@
 
     select.campo option {
         @apply bg-noche-900 text-white;
+    }
+
+    /*
+     * Modo claro: el vidrio pasa a ser blanco translúcido (como en iOS) en lugar de una capa oscura.
+     * El resto de los colores ya cambia solo por las variables (ver tailwind.config.js).
+     */
+    html.claro .vidrio {
+        @apply border-blanco/80 bg-blanco/60 shadow-vidrio-claro;
+    }
+
+    html.claro .vidrio-fuerte {
+        @apply border-blanco/80 bg-blanco/70 shadow-vidrio-claro;
+    }
+
+    /* Dentro de html.claro las clases también se espejan: slate-700 aquí se ve como gris claro (slate-300). */
+    html.claro .campo {
+        @apply border-slate-700 bg-blanco/80 focus:bg-blanco;
     }
 
     /* Etiqueta pequeña tipo chip. */

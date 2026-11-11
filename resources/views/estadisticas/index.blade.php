@@ -130,10 +130,13 @@
                         .setView(origen ? [origen.lat, origen.lon] : [10, -40], 2);
 
                     // Mapa base oscuro de Esri: gratuito y sin clave de API.
-                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                    // Mapa base de Esri (gratuito, sin clave): gris oscuro o gris claro según el tema.
+                    const urlMapaBase = (claro) => `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${claro ? 'Light' : 'Dark'}_Gray_Base/MapServer/tile/{z}/{y}/{x}`;
+                    const mapaBase = L.tileLayer(urlMapaBase(document.documentElement.classList.contains('claro')), {
                         attribution: 'Mapa base &copy; Esri, HERE, Garmin, &copy; OpenStreetMap',
                         maxZoom: 10,
                     }).addTo(mapa);
+                    window.addEventListener('tema-cambiado', (evento) => mapaBase.setUrl(urlMapaBase(evento.detail.claro)));
 
                     const limites = [];
                     const maximo = Math.max(1, ...puntos.map((p) => p.cantidad));

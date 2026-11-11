@@ -13,7 +13,7 @@
                         <a href="{{ route('perfil-publico.show', $contacto->estacion_llamada) }}" class="rounded-full bg-acento-400/10 px-4 py-2 text-sm font-medium text-acento-300 ring-1 ring-acento-400/25 transition hover:bg-acento-400/20">Ver perfil</a>
                     @endif
                     <x-estado-qsl :estado="$contacto->estadoQsl()" />
-                    <a href="{{ route('contactos.tarjeta', $contacto) }}" class="rounded-full bg-gradient-to-b from-acento-400 to-acento-600 px-4 py-2 text-sm font-semibold text-white shadow-boton transition hover:brightness-110">Tarjeta QSL</a>
+                    <a href="{{ route('contactos.tarjeta', $contacto) }}" class="rounded-full bg-gradient-to-b from-marca-400 to-marca-600 px-4 py-2 text-sm font-semibold text-blanco shadow-boton transition hover:brightness-110">Tarjeta QSL</a>
                     <a href="{{ route('contactos.edit', $contacto) }}" class="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/10">Editar</a>
                 </div>
             </div>

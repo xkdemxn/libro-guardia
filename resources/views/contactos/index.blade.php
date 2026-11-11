@@ -16,7 +16,7 @@
                     Exportar
                 </a>
             @endif
-            <a href="{{ route('contactos.create') }}" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-acento-400 to-acento-600 px-5 py-2.5 text-sm font-semibold text-white shadow-boton transition hover:brightness-110 active:scale-[0.97]">
+            <a href="{{ route('contactos.create') }}" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-marca-400 to-marca-600 px-5 py-2.5 text-sm font-semibold text-blanco shadow-boton transition hover:brightness-110 active:scale-[0.97]">
                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
                 Nuevo contacto
             </a>
@@ -138,7 +138,7 @@
                 </span>
                 <h2 class="mt-6 font-display text-xl font-semibold text-white">Aún no tienes contactos registrados.</h2>
                 <p class="mt-2 text-slate-400">Cuando hagas tu primer QSO, anótalo aquí. La banda y el país se calculan solos.</p>
-                <a href="{{ route('contactos.create') }}" class="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-acento-400 to-acento-600 px-6 py-3 text-sm font-semibold text-white shadow-boton transition hover:brightness-110">
+                <a href="{{ route('contactos.create') }}" class="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-marca-400 to-marca-600 px-6 py-3 text-sm font-semibold text-blanco shadow-boton transition hover:brightness-110">
                     Registrar mi primer contacto
                 </a>
             </div>

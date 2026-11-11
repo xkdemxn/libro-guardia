@@ -74,6 +74,8 @@ class ConfirmadorQsl
 
         $miIndicativo = User::query()->whereKey($contacto->user_id)->value('indicativo');
 
+        // Si hay varios candidatos dentro de la tolerancia se elige el de hora más cercana.
+        // Se calcula en PHP para que funcione igual en PostgreSQL, MariaDB o cualquier base.
         return $otroOperador->contactos()
             ->where('estacion_llamada', $miIndicativo)
             ->where('banda_id', $contacto->banda_id)
@@ -82,7 +84,8 @@ class ConfirmadorQsl
                 $contacto->inicio_utc->copy()->subMinutes(self::MINUTOS_TOLERANCIA),
                 $contacto->inicio_utc->copy()->addMinutes(self::MINUTOS_TOLERANCIA),
             ])
-            ->orderByRaw('ABS(TIMESTAMPDIFF(SECOND, inicio_utc, ?))', [$contacto->inicio_utc])
+            ->get()
+            ->sortBy(fn (Contacto $candidato): int => abs($candidato->inicio_utc->getTimestamp() - $contacto->inicio_utc->getTimestamp()))
             ->first();
     }
 
