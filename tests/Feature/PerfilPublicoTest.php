@@ -50,6 +50,29 @@ class PerfilPublicoTest extends TestCase
             ->assertDontSee('lucia@example.com');
     }
 
+    public function test_muestra_la_bandera_del_pais(): void
+    {
+        $this->operadora();
+
+        $this->get(route('perfil-publico.show', 'LU4BB'))
+            ->assertSee('banderas/ar.svg')
+            ->assertSee('Bandera de Argentina');
+    }
+
+    public function test_la_bandera_sigue_al_pais_escrito_en_el_perfil_y_si_no_al_prefijo(): void
+    {
+        $operadora = $this->operadora();
+
+        $operadora->update(['pais' => '  ecuador ']);
+        $this->assertSame('ec', $operadora->codigoBandera());
+
+        $operadora->update(['pais' => 'Narnia']);
+        $this->assertSame('ar', $operadora->codigoBandera());
+
+        $operadora->update(['pais' => null]);
+        $this->assertSame('ar', $operadora->codigoBandera());
+    }
+
     public function test_un_perfil_totalmente_privado_muestra_solo_indicativo_y_pais(): void
     {
         $operadora = $this->operadora();

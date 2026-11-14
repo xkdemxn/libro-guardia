@@ -69,7 +69,10 @@
                                 <span class="font-mono font-semibold" x-text="ficha.indicativo"></span>
                                 <template x-if="ficha.perfil && ficha.perfil.nombre"><span class="text-slate-300"> · <span x-text="ficha.perfil.nombre"></span></span></template>
                             </p>
-                            <p class="text-xs text-slate-400" x-text="[ficha.perfil?.ciudad, ficha.pais].filter(Boolean).join(', ') || 'País desconocido'"></p>
+                            <p class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400">
+                                <template x-if="ficha.bandera"><img :src="ficha.bandera" :alt="`Bandera de ${ficha.pais}`" class="h-3 w-4 rounded-[2px] object-cover ring-1 ring-white/15"></template>
+                                <span x-text="[ficha.perfil?.ciudad, ficha.pais].filter(Boolean).join(', ') || 'País desconocido'"></span>
+                            </p>
                         </div>
                         <div class="text-xs">
                             <template x-if="ficha.contactos_previos > 0">

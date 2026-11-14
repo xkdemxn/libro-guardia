@@ -17,8 +17,11 @@
         <div class="vidrio mx-auto mt-8 max-w-xl p-6 text-center" role="status">
             <p class="font-mono text-2xl font-semibold text-white">{{ $buscado }}</p>
             <p class="mt-2 text-slate-300">Este indicativo no está registrado.</p>
-            @if ($paisDelPrefijo)
-                <p class="mt-1 text-sm text-slate-500">Por su prefijo, es una estación de {{ $paisDelPrefijo }}.</p>
+            @if ($prefijoBuscado)
+                <p class="mt-1 inline-flex items-center gap-2 text-sm text-slate-500">
+                    <x-bandera :codigo="$prefijoBuscado->codigo_bandera" :pais="$prefijoBuscado->pais" />
+                    Por su prefijo, es una estación de {{ $prefijoBuscado->pais }}.
+                </p>
             @endif
         </div>
     @endisset

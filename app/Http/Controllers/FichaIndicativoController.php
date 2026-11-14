@@ -31,11 +31,13 @@ class FichaIndicativoController extends Controller
 
         $ultimo = (clone $previos)->first();
         $operador = User::query()->where('indicativo', $indicativo)->first();
+        $prefijo = PrefijoPais::paraIndicativo($indicativo);
 
         return response()->json([
             'valido' => true,
             'indicativo' => $indicativo,
-            'pais' => PrefijoPais::paraIndicativo($indicativo)?->pais,
+            'pais' => $prefijo?->pais,
+            'bandera' => $prefijo?->codigo_bandera ? asset('banderas/'.$prefijo->codigo_bandera.'.svg') : null,
             'contactos_previos' => (clone $previos)->count(),
             'ultimo' => $ultimo === null ? null : [
                 'fecha' => $ultimo->inicio_utc->format('Y-m-d'),

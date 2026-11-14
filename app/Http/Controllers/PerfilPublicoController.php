@@ -34,7 +34,7 @@ class PerfilPublicoController extends Controller
         if ($operador === null) {
             return view('perfil-publico.buscar', [
                 'buscado' => $indicativo,
-                'paisDelPrefijo' => PrefijoPais::paraIndicativo($indicativo)?->pais,
+                'prefijoBuscado' => PrefijoPais::paraIndicativo($indicativo),
             ]);
         }
 

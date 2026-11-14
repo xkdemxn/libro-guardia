@@ -31,6 +31,7 @@ class FichaIndicativoTest extends TestCase
                 'valido' => true,
                 'indicativo' => 'LU4BB',
                 'pais' => 'Argentina',
+                'bandera' => asset('banderas/ar.svg'),
                 'contactos_previos' => 2,
                 'registrado' => false,
             ]);

@@ -100,19 +100,35 @@ class User extends Authenticatable
     }
 
     /**
+     * Bandera del operador: la del país que escribió en su perfil y, si no lo reconoce
+     * (o lo dejó vacío), la que corresponde al prefijo de su indicativo.
+     */
+    public function codigoBandera(?PrefijoPais $prefijo = null): ?string
+    {
+        if ($this->pais && ($codigo = PrefijoPais::codigoBanderaDePais($this->pais))) {
+            return $codigo;
+        }
+
+        return ($prefijo ?? PrefijoPais::paraIndicativo($this->indicativo))?->codigo_bandera;
+    }
+
+    /**
      * Datos que cualquier persona puede ver, según lo que el operador decidió mostrar (US-13, US-15).
      *
      * El indicativo y el país siempre son visibles; el correo y los contactos nunca.
      *
-     * @return array{indicativo: string, pais: ?string, nombre: ?string, ciudad: ?string, equipo_radio: ?string, antena: ?string, biografia: ?string, foto_url: ?string}
+     * @return array{indicativo: string, pais: ?string, bandera: ?string, nombre: ?string, ciudad: ?string, equipo_radio: ?string, antena: ?string, biografia: ?string, foto_url: ?string}
      */
     public function datosPublicos(): array
     {
         $visibilidad = $this->visibilidad;
 
+        $prefijo = PrefijoPais::paraIndicativo($this->indicativo);
+
         return [
             'indicativo' => $this->indicativo,
-            'pais' => $this->pais ?: PrefijoPais::paraIndicativo($this->indicativo)?->pais,
+            'pais' => $this->pais ?: $prefijo?->pais,
+            'bandera' => $this->codigoBandera($prefijo),
             'nombre' => $visibilidad->mostrar_nombre ? $this->nombre_completo : null,
             'ciudad' => $visibilidad->mostrar_pais_ciudad ? $this->ciudad : null,
             'equipo_radio' => $visibilidad->mostrar_equipo ? $this->equipo_radio : null,

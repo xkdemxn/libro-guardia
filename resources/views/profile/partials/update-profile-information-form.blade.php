@@ -21,7 +21,7 @@
             </span>
         </div>
         <div class="flex-1">
-            <p class="font-mono text-2xl font-semibold tracking-wide text-white">{{ $user->indicativo }}</p>
+            <p class="flex items-center gap-2.5 font-mono text-2xl font-semibold tracking-wide text-white">{{ $user->indicativo }} <x-bandera :codigo="$user->codigoBandera()" :pais="$user->pais" class="!h-4 !w-[1.35rem]" /></p>
             <p class="text-xs text-slate-500">El indicativo no se puede cambiar.</p>
             <div class="mt-3 flex flex-wrap items-center gap-3">
                 <label class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10">

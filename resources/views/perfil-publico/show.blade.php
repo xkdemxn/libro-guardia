@@ -18,7 +18,8 @@
                 @if ($perfil['nombre'])
                     <p class="mt-1 text-lg text-slate-200">{{ $perfil['nombre'] }}</p>
                 @endif
-                <p class="mt-1 text-slate-400">
+                <p class="mt-1 inline-flex items-center gap-2 text-slate-400">
+                    <x-bandera :codigo="$perfil['bandera']" :pais="$perfil['pais']" class="!h-4 !w-[1.35rem]" />
                     {{ collect([$perfil['ciudad'], $perfil['pais']])->filter()->join(', ') ?: 'País desconocido' }}
                 </p>
             </div>

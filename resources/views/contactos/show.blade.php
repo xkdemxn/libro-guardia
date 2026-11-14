@@ -6,7 +6,7 @@
             <div class="mt-3 flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 class="font-mono text-4xl font-semibold tracking-wide text-white">{{ $contacto->estacion_llamada }}</h1>
-                    <p class="mt-1 text-slate-400">{{ $contacto->prefijoPais?->pais ?? 'País desconocido' }}</p>
+                    <p class="mt-1 inline-flex items-center gap-2 text-slate-400"><x-bandera :codigo="$contacto->prefijoPais?->codigo_bandera" :pais="$contacto->prefijoPais?->pais" class="!h-4 !w-[1.35rem]" />{{ $contacto->prefijoPais?->pais ?? 'País desconocido' }}</p>
                 </div>
                 <div class="flex items-center gap-3">
                     @if ($esUsuario)

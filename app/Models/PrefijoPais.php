@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * Prefijo de indicativo y el país al que corresponde (HC → Ecuador, LU → Argentina).
  */
 #[Table('prefijos_pais')]
-#[Fillable(['prefijo', 'pais', 'continente', 'latitud', 'longitud'])]
+#[Fillable(['prefijo', 'pais', 'codigo_bandera', 'continente', 'latitud', 'longitud'])]
 class PrefijoPais extends Model
 {
     /** @use HasFactory<PrefijoPaisFactory> */
@@ -54,6 +54,18 @@ class PrefijoPais extends Model
             ->whereIn('prefijo', $candidatos)
             ->orderByRaw('CHAR_LENGTH(prefijo) DESC')
             ->first();
+    }
+
+    /**
+     * Código de bandera de un país escrito a mano (el campo «país» del perfil), sin importar
+     * mayúsculas ni espacios extra: «ecuador» → ec.
+     */
+    public static function codigoBanderaDePais(string $pais): ?string
+    {
+        return self::query()
+            ->whereRaw('LOWER(pais) = ?', [mb_strtolower(trim($pais))])
+            ->whereNotNull('codigo_bandera')
+            ->value('codigo_bandera');
     }
 
     private static function parteQueIndicaPais(string $indicativo): string
