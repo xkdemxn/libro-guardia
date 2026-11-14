@@ -4,7 +4,7 @@
         <div class="mx-auto max-w-3xl">
             <a href="{{ route('contactos.index') }}" class="inline-flex items-center gap-1.5 text-sm text-slate-400 transition hover:text-white">&lsaquo; Volver al libro</a>
             <h1 class="mt-3 font-display text-3xl font-semibold text-white">Exportar mi libro</h1>
-            <p class="mt-1 text-slate-400">Descarga un respaldo de tus contactos o llévalos a otro programa de log.</p>
+            <p class="mt-1 text-slate-400">Descarga un reporte en PDF, un respaldo de tus contactos o llévalos a otro programa de log.</p>
         </div>
     </x-slot>
 
@@ -13,8 +13,9 @@
             @csrf
 
             <x-panel ceja="01 · Formato">
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     @foreach ([
+                        'pdf' => ['Reporte PDF', 'Para imprimir o entregar: resumen por rango, banda y modo, y la tabla de contactos.'],
                         'adif' => ['ADIF (.adi)', 'El estándar de la radioafición. Para LoTW, QRZ, Club Log y otros programas de log.'],
                         'csv' => ['CSV (.csv)', 'Para abrir en Excel, LibreOffice o Google Sheets.'],
                     ] as $valor => [$titulo, $descripcion])

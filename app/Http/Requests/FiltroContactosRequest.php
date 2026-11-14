@@ -47,7 +47,7 @@ class FiltroContactosRequest extends FormRequest
     {
         return [
             ...self::reglas(),
-            'formato' => ['required', 'in:csv,adif'],
+            'formato' => ['required', 'in:csv,adif,pdf'],
         ];
     }
 

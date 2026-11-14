@@ -26,6 +26,19 @@
                     <a href="{{ route('estadisticas') }}" class="pb-2.5 text-sm text-slate-400 hover:text-white">Todo</a>
                 @endif
             </form>
+            @if ($hayContactos)
+                {{-- Reporte PDF del mismo rango de fechas --}}
+                <form method="POST" action="{{ route('exportacion.store') }}">
+                    @csrf
+                    <input type="hidden" name="formato" value="pdf">
+                    <input type="hidden" name="desde" value="{{ $rango['desde'] ?? '' }}">
+                    <input type="hidden" name="hasta" value="{{ $rango['hasta'] ?? '' }}">
+                    <x-secondary-button type="submit" class="!py-2.5">
+                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M4.5 2A1.5 1.5 0 0 0 3 3.5v13A1.5 1.5 0 0 0 4.5 18h11a1.5 1.5 0 0 0 1.5-1.5V7.621a1.5 1.5 0 0 0-.44-1.06l-4.12-4.122A1.5 1.5 0 0 0 11.378 2H4.5Zm4.75 6.75a.75.75 0 0 0-1.5 0v2.546l-.943-1.048a.75.75 0 1 0-1.114 1.004l2.25 2.5a.75.75 0 0 0 1.114 0l2.25-2.5a.75.75 0 1 0-1.114-1.004l-.943 1.048V8.75Z" clip-rule="evenodd" /></svg>
+                        Reporte PDF
+                    </x-secondary-button>
+                </form>
+            @endif
         </div>
         @if ($errors->any())
             <p role="alert" class="mt-3 flex items-center gap-2 text-sm text-rose-400"><span class="punto bg-rose-400"></span>{{ $errors->first() }}</p>

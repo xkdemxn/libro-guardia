@@ -44,7 +44,8 @@ class ContactoRequest extends FormRequest
     {
         return [
             'estacion_llamada' => ['required', 'string', 'max:20', new IndicativoValido],
-            'fecha' => ['required', 'date_format:Y-m-d'],
+            // El contacto se registra el mismo día en que ocurre: no se aceptan fechas futuras (en UTC).
+            'fecha' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.now('UTC')->toDateString()],
             'hora_inicio' => ['required', 'date_format:H:i'],
             'hora_fin' => ['nullable', 'date_format:H:i'],
             'frecuencia_mhz' => ['required', 'numeric', 'gt:0'],
@@ -88,6 +89,7 @@ class ContactoRequest extends FormRequest
     {
         return [
             'grid_locator.regex' => 'El grid locator debe tener el formato FI09 o FI09AA.',
+            'fecha.before_or_equal' => 'La fecha no puede ser posterior a hoy ('.now('UTC')->toDateString().' UTC).',
         ];
     }
 

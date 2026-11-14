@@ -15,7 +15,10 @@ $colores = [
     '10 m' => 'border-lime-400/25 bg-lime-400/10 text-lime-300',
     '6 m' => 'border-yellow-400/25 bg-yellow-400/10 text-yellow-300',
     '2 m' => 'border-amber-400/25 bg-amber-400/10 text-amber-300',
-    '70 cm' => 'border-orange-400/25 bg-orange-400/10 text-orange-300',
+    '1.25 m' => 'border-orange-400/25 bg-orange-400/10 text-orange-300',
+    '70 cm' => 'border-rose-400/25 bg-rose-400/10 text-rose-300',
+    '33 cm' => 'border-red-400/25 bg-red-400/10 text-red-300',
+    '23 cm' => 'border-fuchsia-400/25 bg-fuchsia-400/10 text-fuchsia-300',
 ];
 @endphp
 

@@ -3,19 +3,28 @@
     Variables: $contacto (Contacto), $modos y $bandas (colecciones).
 --}}
 @php
-    $tiposPorModo = $modos->mapWithKeys(fn ($modo) => [$modo->id => [
+    $listaModos = $modos->map(fn ($modo) => [
+        'id' => $modo->id,
+        'nombre' => $modo->nombre,
         'tipo' => $modo->tipo_reporte->value,
         'ejemplo' => $modo->tipo_reporte->ejemplo(),
-    ]]);
-    $rangosBandas = $bandas->map(fn ($banda) => [
+    ])->values();
+    $listaBandas = $bandas->map(fn ($banda) => [
         'nombre' => $banda->nombre,
         'min' => $banda->frecuencia_min_mhz,
         'max' => $banda->frecuencia_max_mhz,
+        'rango' => $banda->rango,
     ])->values();
+    $reportesIniciales = [
+        'enviado' => (string) old('reporte_enviado', $contacto->reporte_enviado),
+        'recibido' => (string) old('reporte_recibido', $contacto->reporte_recibido),
+    ];
+    // Botones de modo: SSB agrupa USB y LSB (sus dos bandas laterales).
+    $botonesModo = collect(['SSB'])->merge($modos->pluck('nombre')->reject(fn ($nombre) => in_array($nombre, ['USB', 'LSB'])));
 @endphp
 
 <div
-    x-data="formularioContacto(@js($tiposPorModo), @js((string) old('modo_id', $contacto->modo_id)), @js($rangosBandas), @js((string) old('frecuencia_mhz', $contacto->frecuencia_mhz)), @js(route('contactos.ficha')), @js((string) old('estacion_llamada', $contacto->estacion_llamada)))"
+    x-data="formularioContacto(@js($listaModos), @js((string) old('modo_id', $contacto->modo_id)), @js($listaBandas), @js((string) old('frecuencia_mhz', $contacto->frecuencia_mhz)), @js(route('contactos.ficha')), @js((string) old('estacion_llamada', $contacto->estacion_llamada)), @js($reportesIniciales))"
     class="space-y-6"
 >
     @if ($errors->has('duplicado'))
@@ -108,64 +117,172 @@
         </div>
     </x-panel>
 
-    <x-panel ceja="02 · Frecuencia y señal">
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-6">
+    <x-panel ceja="02 · Banda y frecuencia">
+        {{-- Rango del espectro --}}
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-1 rounded-full bg-black/25 p-1 ring-1 ring-white/5" role="tablist" aria-label="Rango de frecuencias">
+                @foreach (['HF' => 'HF · onda corta', 'VHF' => 'VHF', 'UHF' => 'UHF'] as $rango => $etiqueta)
+                    <button type="button" role="tab" x-on:click="rangoVisible = '{{ $rango }}'" x-bind:aria-selected="rangoVisible === '{{ $rango }}'"
+                            class="rounded-full px-4 py-1.5 text-sm transition"
+                            x-bind:class="rangoVisible === '{{ $rango }}' ? 'bg-white/10 font-semibold text-white ring-1 ring-white/10' : 'text-slate-400 hover:text-white'">{{ $etiqueta }}</button>
+                @endforeach
+            </div>
+            <p class="text-xs text-slate-500">HF: 1.8–30 MHz · VHF: 30–300 MHz · UHF: 300–3000 MHz</p>
+        </div>
+
+        {{-- Bandas del rango elegido --}}
+        <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5" role="radiogroup" aria-label="Banda">
+            <template x-for="opcion in bandasDelRango(rangoVisible)" :key="opcion.nombre">
+                <button type="button" role="radio" x-on:click="elegirBanda(opcion)" x-bind:aria-checked="banda === opcion.nombre"
+                        class="rounded-2xl border px-3 py-2.5 text-left transition"
+                        x-bind:class="banda === opcion.nombre ? 'border-acento-400/60 bg-acento-400/10 shadow-[0_0_0_3px_rgb(82_173_255/0.12)]' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05]'">
+                    <span class="block font-mono text-sm font-semibold text-white" x-text="opcion.nombre"></span>
+                    <span class="block font-mono text-[11px] text-slate-500" x-text="`${opcion.min.toFixed(3)}–${opcion.max.toFixed(3)}`"></span>
+                </button>
+            </template>
+        </div>
+
+        {{-- Frecuencia: escrita o con el deslizador dentro de la banda --}}
+        <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-6">
             <div class="sm:col-span-2">
                 <x-input-label for="frecuencia_mhz" value="Frecuencia (MHz)" />
                 <x-text-input id="frecuencia_mhz" name="frecuencia_mhz" type="text" inputmode="decimal" x-model="frecuencia" class="font-mono tabular-nums !text-acento-200" required placeholder="14.225" />
                 <p class="mt-1.5 flex h-5 items-center gap-2 text-xs" aria-live="polite">
                     <template x-if="banda">
-                        <span class="inline-flex items-center gap-2 text-slate-400">Banda <span class="chip border-sky-400/25 bg-sky-400/10 font-mono text-sky-300" x-text="banda"></span></span>
+                        <span class="inline-flex items-center gap-2 text-slate-400">Banda <span class="chip border-sky-400/25 bg-sky-400/10 font-mono text-sky-300" x-text="banda"></span><span x-text="bandaActual?.rango"></span></span>
                     </template>
                     <template x-if="banda === false">
                         <span class="inline-flex items-center gap-2 text-rose-400"><span class="punto bg-rose-400"></span>Fuera de las bandas de radioaficionados</span>
                     </template>
                     <template x-if="banda === null">
-                        <span class="text-slate-500">La banda se calcula sola.</span>
+                        <span class="text-slate-500">Elige una banda o escribe la frecuencia.</span>
                     </template>
                 </p>
                 <x-input-error :messages="$errors->get('frecuencia_mhz')" />
             </div>
 
-            <div class="sm:col-span-2">
-                <x-input-label for="modo_id" value="Modo" />
-                <select id="modo_id" name="modo_id" x-model="modoId" required class="campo">
-                    <option value="">Elige un modo</option>
-                    @foreach ($modos as $modo)
-                        <option value="{{ $modo->id }}" @selected((string) old('modo_id', $contacto->modo_id) === (string) $modo->id)>{{ $modo->nombre }}</option>
+            <div class="sm:col-span-4">
+                <template x-if="bandaActual">
+                    <div>
+                        <div class="mb-1.5 flex items-baseline justify-between text-[13px]">
+                            <label for="deslizador-frecuencia" class="font-medium text-slate-400">Sintonía dentro de <span class="font-mono" x-text="bandaActual.nombre"></span></label>
+                            <span class="font-mono text-acento-300" x-text="`${mhz.toFixed(3)} MHz`"></span>
+                        </div>
+                        <input id="deslizador-frecuencia" type="range" class="w-full accent-[#2a8fff]"
+                               x-bind:min="bandaActual.min" x-bind:max="bandaActual.max" x-bind:step="pasoDeslizador(bandaActual)"
+                               x-bind:value="mhz" x-on:input="frecuencia = Number($event.target.value).toFixed(3)">
+                        <div class="mt-1 flex justify-between font-mono text-[11px] text-slate-500">
+                            <span x-text="bandaActual.min.toFixed(3)"></span>
+                            <span x-text="bandaActual.max.toFixed(3)"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </x-panel>
+
+    <x-panel ceja="03 · Modo y señal">
+        {{-- Modo --}}
+        <input type="hidden" name="modo_id" x-bind:value="modoId">
+        <x-input-label value="Modo" />
+        <div class="flex flex-wrap gap-2" role="radiogroup" aria-label="Modo">
+            @foreach ($botonesModo as $nombreModo)
+                <button type="button" role="radio" x-on:click="elegirModo(@js($nombreModo))" x-bind:aria-checked="botonActivo(@js($nombreModo))"
+                        class="rounded-full border px-4 py-2 font-mono text-sm font-semibold transition"
+                        x-bind:class="botonActivo(@js($nombreModo)) ? 'border-acento-400/60 bg-acento-400/15 text-white' : 'border-white/10 bg-white/[0.02] text-slate-300 hover:bg-white/[0.06]'">{{ $nombreModo }}</button>
+            @endforeach
+        </div>
+        <x-input-error :messages="$errors->get('modo_id')" />
+
+        {{-- SSB: banda lateral inferior (LSB) o superior (USB) --}}
+        <div x-show="esSsb" x-cloak class="mt-4 rounded-2xl bg-black/20 p-4 ring-1 ring-white/5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <p class="text-sm text-slate-300">Banda lateral</p>
+                <div class="flex items-center gap-1 rounded-full bg-black/25 p-1 ring-1 ring-white/5" role="radiogroup" aria-label="Banda lateral">
+                    @foreach (['LSB' => 'Inferior · LSB', 'USB' => 'Superior · USB'] as $lateral => $etiqueta)
+                        <button type="button" role="radio" x-on:click="elegirLateral('{{ $lateral }}')" x-bind:aria-checked="modoActual?.nombre === '{{ $lateral }}'"
+                                class="rounded-full px-4 py-1.5 text-sm transition"
+                                x-bind:class="modoActual?.nombre === '{{ $lateral }}' ? 'bg-white/10 font-semibold text-white ring-1 ring-white/10' : 'text-slate-400 hover:text-white'">{{ $etiqueta }}</button>
                     @endforeach
-                </select>
-                <x-input-error :messages="$errors->get('modo_id')" />
+                </div>
             </div>
-
-            <div class="sm:col-span-2">
-                <x-input-label for="potencia_w" value="Potencia (W)" />
-                <x-text-input id="potencia_w" name="potencia_w" type="number" step="0.1" min="0" :value="old('potencia_w', $contacto->potencia_w)" placeholder="100" />
-                <x-input-error :messages="$errors->get('potencia_w')" />
-            </div>
-
-            <div class="sm:col-span-3">
-                <x-input-label for="reporte_enviado" value="Reporte enviado" />
-                <x-text-input id="reporte_enviado" name="reporte_enviado" type="text" class="font-mono tabular-nums" :value="old('reporte_enviado', $contacto->reporte_enviado)" required maxlength="4" x-bind:placeholder="ejemplo" />
-                <x-input-error :messages="$errors->get('reporte_enviado')" />
-            </div>
-
-            <div class="sm:col-span-3">
-                <x-input-label for="reporte_recibido" value="Reporte recibido" />
-                <x-text-input id="reporte_recibido" name="reporte_recibido" type="text" class="font-mono tabular-nums" :value="old('reporte_recibido', $contacto->reporte_recibido)" required maxlength="4" x-bind:placeholder="ejemplo" />
-                <x-input-error :messages="$errors->get('reporte_recibido')" />
-            </div>
-
-            <p class="text-xs text-slate-500 sm:col-span-6" x-show="tipo" x-cloak>
-                En este modo el reporte es <span class="font-semibold text-slate-300" x-text="tipo"></span>, por ejemplo <span class="font-mono text-slate-300" x-text="ejemplo"></span>.
+            <p class="mt-2 text-xs text-slate-500">
+                <span x-show="! lateralManual">Elegida automáticamente: por convención se usa LSB por debajo de 10 MHz y USB por encima.</span>
+                <span x-show="lateralManual" x-cloak>Elegida a mano. <button type="button" class="text-acento-300 hover:text-acento-200" x-on:click="lateralManual = false; ajustarBandaLateral()">Volver a automática</button></span>
             </p>
+        </div>
+
+        {{-- Reportes --}}
+        <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2" x-show="tipo" x-cloak>
+            @foreach (['enviado' => 'Reporte enviado', 'recibido' => 'Reporte recibido'] as $lado => $etiqueta)
+                <div>
+                    <x-input-label :value="$etiqueta" />
+                    <input type="hidden" name="reporte_{{ $lado }}" x-bind:value="reporte.{{ $lado }}">
+
+                    {{-- Voz y CW: botón rápido 59 / 599, u «Otro» para armarlo con R, S y T --}}
+                    <template x-if="tipo === 'RS' || tipo === 'RST'">
+                        <div>
+                            <div class="flex gap-2">
+                                <button type="button" x-on:click="usarRapido('{{ $lado }}')"
+                                        class="flex-1 rounded-xl border px-4 py-2.5 font-mono text-lg font-semibold transition"
+                                        x-bind:class="! manual.{{ $lado }} ? 'border-emerald-400/50 bg-emerald-400/10 text-emerald-200' : 'border-white/10 bg-white/[0.02] text-slate-400 hover:bg-white/[0.06]'"
+                                        x-text="reporteRapido"></button>
+                                <button type="button" x-on:click="abrirManual('{{ $lado }}')"
+                                        class="rounded-xl border px-4 py-2.5 text-sm font-semibold transition"
+                                        x-bind:class="manual.{{ $lado }} ? 'border-amber-400/50 bg-amber-400/10 text-amber-200' : 'border-white/10 bg-white/[0.02] text-slate-300 hover:bg-white/[0.06]'">Otro</button>
+                            </div>
+                            <div x-show="manual.{{ $lado }}" x-cloak class="mt-2 grid gap-2" x-bind:class="tipo === 'RST' ? 'grid-cols-3' : 'grid-cols-2'">
+                                <label class="text-[11px] text-slate-500">R · legibilidad
+                                    <select class="campo mt-1 !py-2 font-mono" x-model.number="rst.{{ $lado }}.r" x-on:change="componer('{{ $lado }}')">
+                                        @foreach ([5 => 'perfecta', 4 => 'casi sin dificultad', 3 => 'con dificultad', 2 => 'apenas', 1 => 'ilegible'] as $valor => $texto)
+                                            <option value="{{ $valor }}">{{ $valor }} · {{ $texto }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+                                <label class="text-[11px] text-slate-500">S · fuerza
+                                    <select class="campo mt-1 !py-2 font-mono" x-model.number="rst.{{ $lado }}.s" x-on:change="componer('{{ $lado }}')">
+                                        @for ($valor = 9; $valor >= 1; $valor--)
+                                            <option value="{{ $valor }}">{{ $valor }}{{ $valor === 9 ? ' · muy fuerte' : ($valor === 1 ? ' · apenas perceptible' : '') }}</option>
+                                        @endfor
+                                    </select>
+                                </label>
+                                <template x-if="tipo === 'RST'">
+                                    <label class="text-[11px] text-slate-500">T · tono
+                                        <select class="campo mt-1 !py-2 font-mono" x-model.number="rst.{{ $lado }}.t" x-on:change="componer('{{ $lado }}')">
+                                            @for ($valor = 9; $valor >= 1; $valor--)
+                                                <option value="{{ $valor }}">{{ $valor }}{{ $valor === 9 ? ' · puro' : ($valor === 1 ? ' · muy áspero' : '') }}</option>
+                                            @endfor
+                                        </select>
+                                    </label>
+                                </template>
+                            </div>
+                            <p x-show="manual.{{ $lado }}" x-cloak class="mt-1.5 text-xs text-slate-400">Reporte: <span class="font-mono font-semibold text-slate-200" x-text="reporte.{{ $lado }}"></span></p>
+                        </div>
+                    </template>
+
+                    {{-- Modos digitales: relación señal/ruido en dB --}}
+                    <template x-if="tipo === 'dB'">
+                        <div>
+                            <input type="text" inputmode="numeric" class="campo font-mono" x-model="reporte.{{ $lado }}" maxlength="4" placeholder="-12" aria-label="{{ $etiqueta }} en dB">
+                            <p class="mt-1.5 text-xs text-slate-500">En dB, de -50 a +50 (ej. -12).</p>
+                        </div>
+                    </template>
+                    <x-input-error :messages="$errors->get('reporte_'.$lado)" />
+                </div>
+            @endforeach
+        </div>
+
+        <div class="mt-6 sm:w-1/3">
+            <x-input-label for="potencia_w" value="Potencia (W)" />
+            <x-text-input id="potencia_w" name="potencia_w" type="number" step="0.1" min="0" :value="old('potencia_w', $contacto->potencia_w)" placeholder="100" />
+            <x-input-error :messages="$errors->get('potencia_w')" />
         </div>
     </x-panel>
 
     <details class="vidrio group p-5 sm:p-6" @if ($errors->hasAny(['nombre_operador', 'equipo', 'grid_locator', 'activacion', 'observaciones']) || $contacto->observaciones || $contacto->nombre_operador) open @endif>
         <summary class="flex cursor-pointer list-none items-center gap-4 [&::-webkit-details-marker]:hidden">
             <span class="h-px flex-1 bg-gradient-to-r from-transparent to-white/15"></span>
-            <span class="text-[11px] font-medium uppercase tracking-[0.28em] text-slate-400">03 · Datos opcionales</span>
+            <span class="text-[11px] font-medium uppercase tracking-[0.28em] text-slate-400">04 · Datos opcionales</span>
             <svg class="h-4 w-4 text-slate-500 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
             <span class="h-px flex-1 bg-gradient-to-l from-transparent to-white/15"></span>
         </summary>

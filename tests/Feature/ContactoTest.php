@@ -157,6 +157,49 @@ class ContactoTest extends TestCase
         $this->assertDatabaseHas('contactos', ['reporte_enviado' => '-12', 'reporte_recibido' => '+3']);
     }
 
+    public function test_el_formulario_nuevo_trae_la_fecha_y_hora_utc_actuales(): void
+    {
+        $this->sembrarCatalogos();
+        $this->travelTo(now('UTC')->setDate(2026, 11, 14)->setTime(15, 42));
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('contactos.create'))
+            ->assertOk()
+            ->assertSee('value="2026-11-14"', false)
+            ->assertSee('value="15:42"', false);
+    }
+
+    public function test_no_acepta_una_fecha_futura(): void
+    {
+        $this->sembrarCatalogos();
+        $this->travelTo(now('UTC')->setDate(2026, 11, 14)->setTime(12, 0));
+
+        $this->actingAs(User::factory()->create())
+            ->post(route('contactos.store'), $this->datosValidos(['fecha' => '2026-11-15']))
+            ->assertSessionHasErrors(['fecha' => 'La fecha no puede ser posterior a hoy (2026-11-14 UTC).']);
+    }
+
+    #[TestWith(['146.520', 'FM', '2 m'], 'VHF')]
+    #[TestWith(['223.500', 'FM', '1.25 m'], 'VHF 1,25 m')]
+    #[TestWith(['435.000', 'FM', '70 cm'], 'UHF')]
+    #[TestWith(['1296.200', 'CW', '23 cm'], 'UHF 23 cm')]
+    public function test_registra_contactos_en_bandas_de_vhf_y_uhf(string $frecuencia, string $modo, string $banda): void
+    {
+        $this->sembrarCatalogos();
+        $operador = User::factory()->create();
+
+        $this->actingAs($operador)
+            ->post(route('contactos.store'), $this->datosValidos([
+                'frecuencia_mhz' => $frecuencia,
+                'modo_id' => $this->modo($modo)->id,
+                'reporte_enviado' => $modo === 'CW' ? '599' : '59',
+                'reporte_recibido' => $modo === 'CW' ? '579' : '57',
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($banda, $operador->contactos()->sole()->banda->nombre);
+    }
+
     public function test_la_hora_de_fin_no_puede_ser_menor_que_la_de_inicio(): void
     {
         $this->sembrarCatalogos();

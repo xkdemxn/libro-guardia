@@ -7,13 +7,14 @@ use App\Models\Banda;
 use App\Models\Modo;
 use App\Services\ExportadorAdif;
 use App\Services\ExportadorCsv;
+use App\Services\ReportePdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Throwable;
 
 /**
- * Exporta el libro de guardia en CSV (US-11) o ADIF (US-12), con filtros opcionales.
+ * Exporta el libro de guardia en CSV (US-11), ADIF (US-12) o como reporte PDF, con filtros opcionales.
  */
 class ExportacionController extends Controller
 {
@@ -25,7 +26,7 @@ class ExportacionController extends Controller
         ]);
     }
 
-    public function store(FiltroContactosRequest $request, ExportadorCsv $csv, ExportadorAdif $adif): Response|RedirectResponse
+    public function store(FiltroContactosRequest $request, ExportadorCsv $csv, ExportadorAdif $adif, ReportePdf $pdf): Response|RedirectResponse
     {
         $operador = $request->user();
 
@@ -42,7 +43,11 @@ class ExportacionController extends Controller
         $formato = $request->validated('formato');
 
         try {
-            $contenido = $formato === 'adif' ? $adif->generar($operador, $contactos) : $csv->generar($contactos);
+            $contenido = match ($formato) {
+                'adif' => $adif->generar($operador, $contactos),
+                'pdf' => $pdf->generar($operador, $contactos, $request->filtros()),
+                default => $csv->generar($contactos),
+            };
         } catch (Throwable $error) {
             report($error);
 
@@ -53,11 +58,15 @@ class ExportacionController extends Controller
             'libro-%s-%s.%s',
             str_replace('/', '-', $operador->indicativo),
             now('UTC')->format('Ymd-Hi'),
-            $formato === 'adif' ? 'adi' : 'csv',
+            ['adif' => 'adi', 'pdf' => 'pdf'][$formato] ?? 'csv',
         );
 
         return response($contenido, 200, [
-            'Content-Type' => $formato === 'adif' ? 'text/plain; charset=US-ASCII' : 'text/csv; charset=UTF-8',
+            'Content-Type' => match ($formato) {
+                'adif' => 'text/plain; charset=US-ASCII',
+                'pdf' => 'application/pdf',
+                default => 'text/csv; charset=UTF-8',
+            },
             'Content-Disposition' => 'attachment; filename="'.$nombreArchivo.'"',
         ]);
     }

@@ -114,6 +114,20 @@ class ExportacionTest extends TestCase
         $this->assertStringContainsString('Confirmado', $lineas[1]);
     }
 
+    public function test_genera_el_reporte_en_pdf(): void
+    {
+        $operador = User::factory()->create(['indicativo' => 'HC1QRC']);
+        $this->contactoDeEjemplo($operador);
+
+        $respuesta = $this->actingAs($operador)
+            ->post(route('exportacion.store'), ['formato' => 'pdf'])
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf');
+
+        $this->assertStringStartsWith('%PDF-', $respuesta->getContent());
+        $this->assertMatchesRegularExpression('/filename="libro-HC1QRC-\d{8}-\d{4}\.pdf"/', $respuesta->headers->get('Content-Disposition'));
+    }
+
     public function test_respeta_el_rango_de_fechas(): void
     {
         $operador = User::factory()->create();
@@ -151,7 +165,7 @@ class ExportacionTest extends TestCase
     public function test_el_formato_es_obligatorio(): void
     {
         $this->actingAs(User::factory()->create())
-            ->post(route('exportacion.store'), ['formato' => 'pdf'])
+            ->post(route('exportacion.store'), ['formato' => 'xlsx'])
             ->assertSessionHasErrors('formato');
     }
 }

@@ -64,7 +64,8 @@ class ContactoController extends Controller
     public function create(): View
     {
         return view('contactos.create', [
-            'contacto' => new Contacto,
+            // La fecha y la hora de inicio se generan con el momento actual (UTC); el operador puede ajustarlas.
+            'contacto' => new Contacto(['inicio_utc' => now('UTC')->startOfMinute()]),
             ...$this->catalogosFormulario(),
         ]);
     }
