@@ -51,7 +51,10 @@
     <div class="encabezado">
         <table>
             <tr>
-                <td><span class="marca">LIBRO DE GUARDIA · REPORTE DE CONTACTOS</span></td>
+                <td>
+                    <img src="{{ public_path('img/emblema-256.png') }}" alt="" style="width: 11mm; height: 11mm; vertical-align: middle; margin-right: 2.5mm;">
+                    <span class="marca">LIBRO DE GUARDIA · RADIOAFICIONADOS DX ECUADOR</span>
+                </td>
                 <td style="text-align: right;" class="tenue">Generado el {{ $generado->format('Y-m-d H:i') }} UTC</td>
             </tr>
         </table>

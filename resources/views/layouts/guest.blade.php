@@ -6,16 +6,19 @@
     <body class="font-sans">
         <div class="fondo-noche" aria-hidden="true"><span></span></div>
 
-        <x-selector-tema class="vidrio-fuerte fixed right-4 top-4 z-40 h-10 w-10" />
+        <div class="fixed right-4 top-4 z-40">
+            <x-selector-tema class="vidrio-fuerte h-10 w-10" />
+        </div>
 
         <div class="mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-2 lg:gap-16">
             {{-- Presentación --}}
             <div class="hidden lg:block">
-                <a href="/" class="inline-flex items-center gap-3 text-white">
-                    <span class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-b from-marca-400 to-marca-600 shadow-boton">
-                        <x-application-logo class="h-6 w-6 text-blanco" />
+                <a href="/" class="inline-flex items-center gap-4 text-white">
+                    <x-emblema class="h-20 w-20" />
+                    <span class="leading-tight">
+                        <span class="block font-display text-xl font-semibold">Libro de Guardia</span>
+                        <span class="mt-1 block text-xs font-medium uppercase tracking-[0.22em] text-amber-300/90">Radioaficionados DX Ecuador</span>
                     </span>
-                    <span class="font-display text-lg font-semibold">Libro de Guardia</span>
                 </a>
 
                 <h1 class="mt-10 font-display text-4xl font-semibold leading-tight text-white xl:text-5xl">
@@ -52,11 +55,12 @@
 
             {{-- Formulario --}}
             <div class="mx-auto w-full max-w-md">
-                <a href="/" class="mb-8 flex items-center justify-center gap-3 text-white lg:hidden">
-                    <span class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-b from-marca-400 to-marca-600 shadow-boton">
-                        <x-application-logo class="h-6 w-6 text-blanco" />
+                <a href="/" class="mb-8 flex flex-col items-center gap-3 text-center text-white lg:hidden">
+                    <x-emblema class="h-24 w-24" />
+                    <span class="leading-tight">
+                        <span class="block font-display text-lg font-semibold">Libro de Guardia</span>
+                        <span class="mt-1 block text-[11px] font-medium uppercase tracking-[0.22em] text-amber-300/90">Radioaficionados DX Ecuador</span>
                     </span>
-                    <span class="font-display text-lg font-semibold">Libro de Guardia</span>
                 </a>
 
                 <div class="vidrio p-6 sm:p-8">

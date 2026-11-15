@@ -262,7 +262,7 @@ Alpine.data('formularioContacto', (modos, modoInicial, bandas, frecuenciaInicial
  * Al aplicar, el navegador dibuja el cuadro visible en un lienzo de 512×512 y pone ese JPG en el campo
  * «foto» del formulario: así se sube ya recortada y liviana, aunque la original pese mucho.
  */
-Alpine.data('fotoPerfil', (fotoGuardada) => ({
+Alpine.data('fotoPerfil', (fotoGuardada, conErrores = false) => ({
     LADO: 288,
     SALIDA: 512,
     ZOOM_MAXIMO: 4,
@@ -272,6 +272,35 @@ Alpine.data('fotoPerfil', (fotoGuardada) => ({
     imagen: null,
     arrastre: null,
     editor: { abierto: false, src: null, ancho: 0, alto: 0, escala: 1, escalaMinima: 1, x: 0, y: 0 },
+    formulario: null,
+    estadoInicial: null,
+    hayCambios: false,
+
+    init() {
+        // Se guarda el formulario: desde el editor (llevado al <body>) $el ya no es el formulario.
+        this.formulario = this.$el;
+
+        // Si volvió con errores, lo escrito todavía no se guardó: se puede guardar sin tocar nada más.
+        this.$nextTick(() => {
+            this.estadoInicial = this.estadoFormulario();
+            this.hayCambios = conErrores;
+        });
+    },
+
+    /** Estado del formulario como texto comparable (la foto nueva cuenta por su nombre y tamaño). */
+    estadoFormulario() {
+        const datos = [...new FormData(this.formulario).entries()]
+            .filter(([campo]) => ! ['_token', '_method', 'seccion'].includes(campo))
+            .map(([campo, valor]) => [campo, valor instanceof File ? `${valor.name}:${valor.size}` : valor]);
+
+        return JSON.stringify(datos);
+    },
+
+    revisarCambios() {
+        if (this.estadoInicial !== null) {
+            this.hayCambios = conErrores || this.estadoFormulario() !== this.estadoInicial;
+        }
+    },
 
     elegir(evento) {
         const archivo = evento.target.files[0];
@@ -378,6 +407,7 @@ Alpine.data('fotoPerfil', (fotoGuardada) => ({
             this.vistaPrevia = URL.createObjectURL(datos);
             this.quitar = false;
             this.cerrarEditor();
+            this.revisarCambios();
         }, 'image/jpeg', 0.9);
     },
 }));

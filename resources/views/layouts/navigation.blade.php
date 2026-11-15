@@ -1,13 +1,16 @@
 {{-- Barra superior flotante de vidrio. --}}
-<nav x-data="{ open: false }" class="sticky top-0 z-40 px-3 pt-3 sm:px-6">
+<nav x-data="{ open: false, desplazado: window.scrollY > 4 }" x-on:scroll.window.passive="desplazado = window.scrollY > 4" class="sticky top-0 z-40 px-3 pt-3 sm:px-6">
+    {{-- Franja de desenfoque a todo el ancho: lo que pasa por debajo de la barra se ve borroso. --}}
+    <div class="franja-desenfoque" x-bind:class="desplazado && 'visible'" aria-hidden="true"></div>
     <div class="vidrio-fuerte mx-auto max-w-7xl rounded-full px-3 py-2 sm:px-4">
         <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-6">
                 <a href="{{ route('contactos.index') }}" class="flex items-center gap-2.5 rounded-full pe-2 text-white">
-                    <span class="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-b from-marca-400 to-marca-600 shadow-boton">
-                        <x-application-logo class="h-5 w-5 text-blanco" />
+                    <x-emblema class="h-10 w-10" />
+                    <span class="hidden leading-tight md:block">
+                        <span class="block font-display text-sm font-semibold tracking-tight">Libro de Guardia</span>
+                        <span class="block text-[10px] font-medium uppercase tracking-[0.18em] text-amber-300/90">DX Ecuador</span>
                     </span>
-                    <span class="hidden font-display text-sm font-semibold tracking-tight md:block">Libro de Guardia</span>
                 </a>
 
                 {{-- Control segmentado --}}

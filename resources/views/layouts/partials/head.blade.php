@@ -2,6 +2,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="theme-color" content="#070e1c">
+<link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+<link rel="icon" type="image/png" href="{{ asset('favicon-32.png') }}" sizes="32x32">
+<link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
 {{-- Aplica el tema guardado (o el del sistema) antes de pintar, para que la página no parpadee. --}}
 <script>

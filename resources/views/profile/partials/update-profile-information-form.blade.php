@@ -10,7 +10,8 @@
 
 {{-- novalidate: un campo obligatorio en una sección oculta bloquearía el envío sin mostrar nada; valida el servidor. --}}
 <form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data" novalidate
-      x-data="fotoPerfil(@js($user->foto_url))">
+      x-data="fotoPerfil(@js($user->foto_url), @js($errors->any()))"
+      x-on:input="revisarCambios()" x-on:change="revisarCambios()">
     @csrf
     @method('patch')
     <input type="hidden" name="seccion" :value="seccion">
@@ -97,7 +98,7 @@
         </div>
 
         <div class="mt-8 flex justify-end">
-            <x-primary-button class="!px-7">Guardar cambios</x-primary-button>
+            <x-boton-guardar-perfil />
         </div>
     </x-panel>
 
@@ -132,7 +133,7 @@
         </div>
 
         <div class="mt-8 flex justify-end">
-            <x-primary-button class="!px-7">Guardar cambios</x-primary-button>
+            <x-boton-guardar-perfil />
         </div>
     </x-panel>
 
@@ -155,7 +156,7 @@
                 Ver cómo queda mi perfil público
                 <x-icono nombre="enlace-externo" class="h-4 w-4" />
             </a>
-            <x-primary-button class="!px-7">Guardar cambios</x-primary-button>
+            <x-boton-guardar-perfil />
         </div>
     </x-panel>
 </form>
