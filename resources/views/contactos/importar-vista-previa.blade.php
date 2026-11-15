@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="mx-auto max-w-5xl">
             <a href="{{ route('importacion.create') }}" class="inline-flex items-center gap-1.5 text-sm text-slate-400 transition hover:text-white">&lsaquo; Elegir otro archivo</a>
-            <h1 class="mt-3 font-display text-3xl font-semibold text-white">Vista previa</h1>
+            <h1 class="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">Vista previa</h1>
             <p class="mt-1 font-mono text-sm text-slate-400">{{ $nombreArchivo }} · {{ $totalFilas }} {{ $totalFilas === 1 ? 'registro' : 'registros' }}</p>
         </div>
     </x-slot>

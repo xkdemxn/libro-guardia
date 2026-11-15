@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="mx-auto max-w-3xl">
             <a href="{{ route('contactos.index') }}" class="inline-flex items-center gap-1.5 text-sm text-slate-400 transition hover:text-white">&lsaquo; Volver al libro</a>
-            <h1 class="mt-3 font-display text-3xl font-semibold text-white">Exportar mi libro</h1>
+            <h1 class="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">Exportar mi libro</h1>
             <p class="mt-1 text-slate-400">Descarga un reporte en PDF, un respaldo de tus contactos o llévalos a otro programa de log.</p>
         </div>
     </x-slot>

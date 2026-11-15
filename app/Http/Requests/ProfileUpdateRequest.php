@@ -18,6 +18,16 @@ class ProfileUpdateRequest extends FormRequest
      */
     public const FOTO_MAXIMO_KB = 2048;
 
+    /**
+     * Tamaño máximo de la portada en kilobytes (el navegador ya la reduce antes de subirla).
+     */
+    public const PORTADA_MAXIMO_KB = 4096;
+
+    /**
+     * Estilos de portada y de foto de la tarjeta QSL: degradado hasta la mitad, o la tarjeta completa con opacidad.
+     */
+    public const ESTILOS_PORTADA = ['degradado', 'completa'];
+
     protected function prepareForValidation(): void
     {
         if ($this->filled('grid_locator')) {
@@ -51,6 +61,10 @@ class ProfileUpdateRequest extends FormRequest
             'biografia' => ['nullable', 'string', 'max:1000'],
             'foto' => ['nullable', File::types(['jpg', 'jpeg', 'png', 'webp'])->max(self::FOTO_MAXIMO_KB)],
             'quitar_foto' => ['nullable', 'boolean'],
+            'portada' => ['nullable', File::types(['jpg', 'jpeg', 'png', 'webp'])->max(self::PORTADA_MAXIMO_KB)],
+            'quitar_portada' => ['nullable', 'boolean'],
+            'portada_estilo' => ['sometimes', Rule::in(self::ESTILOS_PORTADA)],
+            'portada_opacidad' => ['sometimes', 'integer', 'between:10,50'],
             'mostrar_nombre' => ['nullable', 'boolean'],
             'mostrar_pais_ciudad' => ['nullable', 'boolean'],
             'mostrar_equipo' => ['nullable', 'boolean'],
@@ -78,12 +92,16 @@ class ProfileUpdateRequest extends FormRequest
         return [
             'foto.mimes' => 'La foto debe ser JPG, PNG o WEBP.',
             'foto.max' => 'La foto no puede pesar más de 2 MB.',
+            'portada.mimes' => 'La portada debe ser JPG, PNG o WEBP.',
+            'portada.max' => 'La portada no puede pesar más de 4 MB.',
+            'portada_estilo.in' => 'Elige «Degradado» o «Tarjeta completa».',
+            'portada_opacidad.between' => 'La opacidad debe estar entre 10 % y 50 %.',
             'grid_locator.regex' => 'El grid locator debe tener el formato FI09 o FI09AA.',
         ];
     }
 
     /**
-     * Datos del operador sin la foto ni las opciones de visibilidad.
+     * Datos del operador sin las imágenes (foto y portada) ni las opciones de visibilidad.
      *
      * @return array<string, mixed>
      */
@@ -91,6 +109,7 @@ class ProfileUpdateRequest extends FormRequest
     {
         return $this->safe()->only([
             'nombres', 'apellidos', 'email', 'pais', 'ciudad', 'grid_locator', 'equipo_radio', 'antena', 'biografia',
+            'portada_estilo', 'portada_opacidad',
         ]);
     }
 

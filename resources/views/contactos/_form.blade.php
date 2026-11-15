@@ -46,15 +46,17 @@
 
     <x-panel ceja="01 · Estación y horario">
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-6">
-            <div class="sm:col-span-3">
+            <div class="flex flex-col gap-5 sm:col-span-6 md:flex-row md:items-end">
+            <div class="min-w-0 flex-1">
                 <x-input-label for="estacion_llamada" value="Estación llamada (indicativo)" />
                 <x-text-input id="estacion_llamada" name="estacion_llamada" type="text" class="!py-3 font-mono !text-2xl font-semibold uppercase tracking-wider" required autofocus maxlength="20" placeholder="LU4BB" autocomplete="off"
                               x-model="indicativo" x-on:input.debounce.350ms="buscarFicha()" aria-describedby="ficha-indicativo" />
                 <x-input-error :messages="$errors->get('estacion_llamada')" />
             </div>
 
-            <div class="flex items-end sm:col-span-3 sm:justify-end">
-                <x-reloj-utc grande class="w-full justify-center sm:w-auto" />
+            <div class="flex shrink-0 items-end">
+                <x-reloj-utc grande class="w-full justify-center !py-3 md:w-auto" />
+            </div>
             </div>
 
             {{-- Ficha rápida del indicativo (innovación 3) --}}
@@ -72,6 +74,7 @@
                             <p class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400">
                                 <template x-if="ficha.bandera"><img :src="ficha.bandera" :alt="`Bandera de ${ficha.pais}`" class="h-3 w-4 rounded-[2px] object-cover ring-1 ring-white/15"></template>
                                 <span x-text="[ficha.perfil?.ciudad, ficha.pais].filter(Boolean).join(', ') || 'País desconocido'"></span>
+                                <template x-if="ficha.zona"><span class="text-amber-300/90" x-text="`· ${ficha.zona}`"></span></template>
                             </p>
                         </div>
                         <div class="text-xs">
@@ -94,13 +97,13 @@
                 </template>
             </div>
 
-            <div class="sm:col-span-2">
+            <div class="sm:col-span-6 lg:col-span-2">
                 <x-input-label for="fecha" value="Fecha (UTC)" />
                 <x-text-input id="fecha" name="fecha" type="date" x-ref="fecha" :value="old('fecha', $contacto->inicio_utc?->format('Y-m-d'))" required />
                 <x-input-error :messages="$errors->get('fecha')" />
             </div>
 
-            <div class="sm:col-span-2">
+            <div class="sm:col-span-3 lg:col-span-2">
                 <x-input-label for="hora_inicio" value="Hora de inicio (UTC)" />
                 <div class="flex gap-2">
                     <x-text-input id="hora_inicio" name="hora_inicio" type="time" x-ref="horaInicio" :value="old('hora_inicio', $contacto->inicio_utc?->format('H:i'))" required />
@@ -109,7 +112,7 @@
                 <x-input-error :messages="$errors->get('hora_inicio')" />
             </div>
 
-            <div class="sm:col-span-2">
+            <div class="sm:col-span-3 lg:col-span-2">
                 <x-input-label for="hora_fin" value="Hora de fin (UTC)" />
                 <div class="flex gap-2">
                     <x-text-input id="hora_fin" name="hora_fin" type="time" x-ref="horaFin" :value="old('hora_fin', $contacto->fin_utc?->format('H:i'))" />

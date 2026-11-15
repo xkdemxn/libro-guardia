@@ -8,11 +8,22 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    /**
+     * Imágenes del perfil: campo del formulario => [columna en users, carpeta en el disco público].
+     * Cada una se puede reemplazar o quitar con la casilla «quitar_{campo}». La foto de la tarjeta QSL
+     * se edita en la propia tarjeta, pero se borra aquí junto con la cuenta.
+     */
+    private const IMAGENES = [
+        'foto' => ['foto_path', 'fotos'],
+        'portada' => ['portada_path', 'portadas'],
+    ];
+
+    private const IMAGEN_QSL = ['qsl_foto_path', 'qsl'];
+
     /**
      * Display the user's profile form.
      */
@@ -24,7 +35,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Actualiza datos, foto y visibilidad del perfil (US-13).
+     * Actualiza datos, imágenes (foto y portada) y visibilidad del perfil (US-13).
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
@@ -35,12 +46,8 @@ class ProfileController extends Controller
             $user->email_verified_at = null;
         }
 
-        if ($request->hasFile('foto')) {
-            $this->borrarFoto($user);
-            $user->foto_path = $request->file('foto')->store('fotos', 'public');
-        } elseif ($request->boolean('quitar_foto')) {
-            $this->borrarFoto($user);
-            $user->foto_path = null;
+        foreach (self::IMAGENES as $campo => [$columna, $carpeta]) {
+            $user->cambiarImagen($columna, $carpeta, $request->file($campo), $request->boolean('quitar_'.$campo));
         }
 
         $user->save();
@@ -49,13 +56,6 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')
             ->with('status', 'Perfil actualizado.')
             ->with('seccion', $request->string('seccion')->toString());
-    }
-
-    private function borrarFoto(User $user): void
-    {
-        if ($user->foto_path !== null) {
-            Storage::disk('public')->delete($user->foto_path);
-        }
     }
 
     /**
@@ -71,7 +71,9 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $this->borrarFoto($user);
+        foreach ([...array_values(self::IMAGENES), self::IMAGEN_QSL] as [$columna, $carpeta]) {
+            $user->cambiarImagen($columna, $carpeta, null, quitar: true);
+        }
         $user->delete();
 
         $request->session()->invalidate();

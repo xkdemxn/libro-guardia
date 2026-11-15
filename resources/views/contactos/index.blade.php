@@ -180,7 +180,7 @@
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-3.5">
                                             <a href="{{ route('contactos.show', $contacto) }}" class="font-mono text-[15px] font-semibold tracking-wide text-white transition hover:text-acento-300">{{ $contacto->estacion_llamada }}</a>
-                                            <p class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500"><x-bandera :codigo="$contacto->prefijoPais?->codigo_bandera" :pais="$contacto->prefijoPais?->pais" class="!h-3 !w-4" />{{ $contacto->prefijoPais?->pais ?? 'País desconocido' }}</p>
+                                            <p class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500"><x-bandera :codigo="$contacto->prefijoPais?->codigo_bandera" :pais="$contacto->prefijoPais?->pais" class="!h-3 !w-4" />{{ $contacto->prefijoPais?->pais ?? 'País desconocido' }}@if ($zona = $contacto->zonaEcuador())<span class="text-amber-300/80" title="{{ $zona->descripcion() }}">· {{ $zona->nombre() }}</span>@endif</p>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-3.5 text-right font-mono tabular-nums text-acento-300">{{ number_format($contacto->frecuencia_mhz, 3) }}</td>
                                         <td class="whitespace-nowrap px-3 py-3.5"><x-banda-chip :banda="$contacto->banda->nombre" /></td>
@@ -211,7 +211,7 @@
                                 <div class="flex items-start justify-between gap-3">
                                     <div>
                                         <a href="{{ route('contactos.show', $contacto) }}" class="font-mono text-lg font-semibold text-white">{{ $contacto->estacion_llamada }}</a>
-                                        <p class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500"><x-bandera :codigo="$contacto->prefijoPais?->codigo_bandera" :pais="$contacto->prefijoPais?->pais" class="!h-3 !w-4" />{{ $contacto->prefijoPais?->pais ?? 'País desconocido' }}</p>
+                                        <p class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500"><x-bandera :codigo="$contacto->prefijoPais?->codigo_bandera" :pais="$contacto->prefijoPais?->pais" class="!h-3 !w-4" />{{ $contacto->prefijoPais?->pais ?? 'País desconocido' }}@if ($zona = $contacto->zonaEcuador())<span class="text-amber-300/80" title="{{ $zona->descripcion() }}">· {{ $zona->nombre() }}</span>@endif</p>
                                     </div>
                                     <x-estado-qsl :estado="$contacto->estadoQsl()" />
                                 </div>

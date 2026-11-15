@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ZonaEcuador;
 use App\Models\Contacto;
 use App\Services\Maidenhead;
 use Illuminate\Http\Request;
@@ -11,7 +12,7 @@ use Illuminate\View\View;
 
 /**
  * Estadísticas del operador (US-16) con el mapa de contactos (innovación 2)
- * y el progreso hacia diplomas de radioafición (innovación 4).
+ * y el progreso hacia diplomas de radioafición (innovación 4), incluidas las zonas de Ecuador.
  */
 class EstadisticasController extends Controller
 {
@@ -46,6 +47,7 @@ class EstadisticasController extends Controller
         $confirmados = $contactos->filter(fn (Contacto $contacto): bool => $contacto->estadoQsl() === 'confirmado');
         $paisesConfirmados = $confirmados->pluck('prefijoPais.pais')->filter()->unique();
         $continentesTrabajados = $contactos->pluck('prefijoPais.continente')->filter()->unique();
+        $contactosPorZona = $contactos->map(fn (Contacto $contacto): ?int => $contacto->zonaEcuador()?->value)->filter()->countBy();
         $origen = $operador->coordenadas();
 
         return view('estadisticas.index', [
@@ -58,13 +60,19 @@ class EstadisticasController extends Controller
                 'bandas' => $contactos->pluck('banda_id')->unique()->count(),
             ],
             'porBanda' => $this->contar($contactos, fn (Contacto $c): string => $c->banda->nombre),
-            'porModo' => $this->contar($contactos, fn (Contacto $c): string => $c->modo->nombre),
+            'porModo' => $this->contar($contactos, fn (Contacto $c): string => $c->modo->etiqueta),
             'porPais' => $this->contar($contactos, fn (Contacto $c): string => $c->prefijoPais?->pais ?? 'Desconocido')
                 ->take(self::PAISES_EN_RANKING),
             'dxcc' => ['confirmados' => $paisesConfirmados->count(), 'meta' => self::META_DXCC],
             'continentes' => collect(self::CONTINENTES)->map(fn (string $nombre, string $codigo): array => [
                 'nombre' => $nombre,
                 'trabajado' => $continentesTrabajados->contains($codigo),
+            ]),
+            'zonas' => collect(ZonaEcuador::cases())->map(fn (ZonaEcuador $zona): array => [
+                'numero' => $zona->value,
+                'provincias' => $zona->provincias(),
+                'contactos' => $contactosPorZona->get($zona->value, 0),
+                'propia' => $operador->zonaEcuador() === $zona,
             ]),
             'origen' => $origen,
             'puntos' => $this->puntosDelMapa($contactos),

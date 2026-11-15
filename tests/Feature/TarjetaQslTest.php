@@ -11,6 +11,8 @@ use App\Models\User;
 use Database\Seeders\BandaSeeder;
 use Database\Seeders\ModoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class TarjetaQslTest extends TestCase
@@ -93,6 +95,74 @@ class TarjetaQslTest extends TestCase
 
         $this->assertStringContainsString('Yaesu &lt;FT-991A&gt; &amp;', $svg);
         $this->assertNotFalse(simplexml_load_string($svg), 'El SVG debe ser XML válido.');
+    }
+
+    public function test_la_foto_personalizada_va_incrustada_en_la_tarjeta(): void
+    {
+        Storage::fake('public');
+        [$operador, $contacto] = $this->contactoConTarjeta();
+
+        $this->actingAs($operador)
+            ->from(route('contactos.tarjeta', $contacto))
+            ->patch(route('tarjeta-qsl.personalizar'), [
+                'qsl_foto' => UploadedFile::fake()->image('estacion.jpg', 1400, 900),
+                'qsl_foto_estilo' => 'completa', 'qsl_foto_opacidad' => 30,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('contactos.tarjeta', $contacto));
+        Storage::disk('public')->assertExists($operador->refresh()->qsl_foto_path);
+
+        // Va como data URI: el PNG se genera en el navegador y un SVG no puede cargar imágenes externas.
+        $this->get(route('contactos.tarjeta', $contacto))
+            ->assertOk()
+            ->assertSee('jpeg;base64,', false);
+
+        $svg = $this->get(route('contactos.tarjeta.svg', $contacto))->getContent();
+        $this->assertStringContainsString('<image href="data:image/jpeg;base64,', $svg);
+        $this->assertStringContainsString('opacity="0.3"', $svg);
+        $this->assertNotFalse(simplexml_load_string($svg), 'El SVG con la foto debe seguir siendo XML válido.');
+    }
+
+    public function test_el_mensaje_personalizado_sale_en_la_tarjeta_y_vacio_vuelve_al_de_siempre(): void
+    {
+        [$operador, $contacto] = $this->contactoConTarjeta();
+
+        $this->actingAs($operador)->patch(route('tarjeta-qsl.personalizar'), ['qsl_mensaje' => '  TNX QSO · 73 desde Quito  ']);
+        $this->assertSame('TNX QSO · 73 desde Quito', $operador->refresh()->qsl_mensaje);
+        $this->assertStringContainsString('TNX QSO · 73 desde Quito', $this->get(route('contactos.tarjeta.svg', $contacto))->getContent());
+
+        $this->actingAs($operador)->patch(route('tarjeta-qsl.personalizar'), ['qsl_mensaje' => '']);
+        $this->assertNull($operador->refresh()->qsl_mensaje);
+        $this->assertStringContainsString('Confirmando nuestro QSO. ¡Gracias y 73!', $this->get(route('contactos.tarjeta.svg', $contacto))->getContent());
+    }
+
+    public function test_el_mensaje_y_la_opacidad_tienen_limite(): void
+    {
+        [$operador] = $this->contactoConTarjeta();
+
+        $this->actingAs($operador)
+            ->patch(route('tarjeta-qsl.personalizar'), ['qsl_mensaje' => str_repeat('a', 71), 'qsl_foto_estilo' => 'completa', 'qsl_foto_opacidad' => 90])
+            ->assertSessionHasErrors(['qsl_mensaje', 'qsl_foto_opacidad']);
+    }
+
+    public function test_el_svg_descargado_no_lleva_atributos_de_alpine(): void
+    {
+        [$operador, $contacto] = $this->contactoConTarjeta();
+
+        $svg = $this->actingAs($operador)->get(route('contactos.tarjeta.svg', $contacto))->getContent();
+
+        $this->assertStringNotContainsString('x-bind', $svg);
+        $this->assertStringNotContainsString('x-show', $svg);
+    }
+
+    public function test_sin_foto_la_tarjeta_conserva_su_diseno_original(): void
+    {
+        [$operador, $contacto] = $this->contactoConTarjeta();
+
+        $svg = $this->actingAs($operador)->get(route('contactos.tarjeta.svg', $contacto))->getContent();
+
+        $this->assertStringNotContainsString('<image', $svg);
+        $this->assertStringContainsString('Confirmando nuestro QSO. ¡Gracias y 73!', $svg);
     }
 
     public function test_no_se_puede_ver_la_tarjeta_de_un_contacto_ajeno(): void

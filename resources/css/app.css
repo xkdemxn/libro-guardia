@@ -10,6 +10,9 @@
     html {
         /* Calendarios, relojes y barras de desplazamiento nativos según el tema. */
         color-scheme: dark;
+        /* Reserva siempre el espacio de la barra de desplazamiento: así el nav y el contenido
+           no cambian de ancho entre páginas cortas (sin barra) y largas (con barra). */
+        scrollbar-gutter: stable;
     }
 
     html.claro {
@@ -65,6 +68,33 @@
 
     .franja-desenfoque.visible {
         @apply opacity-100;
+    }
+
+    /*
+     * Portada del perfil público: imagen de fondo de la tarjeta.
+     * «Degradado»: se ve completa en un borde y se desvanece hasta la mitad (a la derecha en pantallas
+     * anchas, arriba en el celular), así el texto queda limpio. «Completa»: toda la tarjeta, con opacidad.
+     */
+    .portada {
+        @apply pointer-events-none absolute inset-0 h-full w-full select-none object-cover;
+    }
+
+    .portada-degradado {
+        -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.75) 22%, transparent 55%);
+        mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.75) 22%, transparent 55%);
+    }
+
+    @media (min-width: 640px) {
+        .portada-degradado {
+            -webkit-mask-image: linear-gradient(to left, #000 0%, rgb(0 0 0 / 0.75) 22%, transparent 55%);
+            mask-image: linear-gradient(to left, #000 0%, rgb(0 0 0 / 0.75) 22%, transparent 55%);
+        }
+    }
+
+    /* Foto de la tarjeta QSL «a la derecha»: siempre horizontal, igual que en el SVG de la tarjeta. */
+    .qsl-degradado {
+        -webkit-mask-image: linear-gradient(to left, #000 0%, rgb(0 0 0 / 0.8) 21%, transparent 60%);
+        mask-image: linear-gradient(to left, #000 0%, rgb(0 0 0 / 0.8) 21%, transparent 60%);
     }
 
     /* Panel de vidrio oscuro: translúcido, desenfoca el fondo y tiene un borde fino con brillo. */

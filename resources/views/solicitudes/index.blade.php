@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="mx-auto max-w-3xl">
             <p class="text-[11px] font-medium uppercase tracking-[0.28em] text-slate-500">Confirmación QSL</p>
-            <h1 class="mt-2 font-display text-3xl font-semibold text-white">Solicitudes de confirmación</h1>
+            <h1 class="mt-2 font-display text-3xl font-semibold text-white sm:text-4xl">Solicitudes de confirmación</h1>
             <p class="mt-1 text-slate-400">Otras estaciones registraron estos contactos contigo. Si los reconoces, agrégalos a tu libro y quedan confirmados para los dos.</p>
         </div>
     </x-slot>

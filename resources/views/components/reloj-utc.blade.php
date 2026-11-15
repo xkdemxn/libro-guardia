@@ -5,6 +5,6 @@
     <span class="{{ $grande ? 'text-xs' : 'text-[10px]' }} font-sans font-semibold uppercase tracking-[0.2em] text-dial-300/70">UTC</span>
     <span class="{{ $grande ? 'text-3xl' : 'text-sm' }} font-semibold tabular-nums tracking-wider [text-shadow:0_0_12px_rgb(255_184_74/0.45)]" x-text="hora" role="timer" aria-label="Hora UTC actual">--:--:--</span>
     @if ($grande)
-        <span class="text-xs tabular-nums text-slate-500" x-text="fecha"></span>
+        <span class="whitespace-nowrap text-xs tabular-nums text-slate-500" x-text="fecha"></span>
     @endif
 </div>

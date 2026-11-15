@@ -7,6 +7,9 @@
                 <div>
                     <h1 class="font-mono text-4xl font-semibold tracking-wide text-white">{{ $contacto->estacion_llamada }}</h1>
                     <p class="mt-1 inline-flex items-center gap-2 text-slate-400"><x-bandera :codigo="$contacto->prefijoPais?->codigo_bandera" :pais="$contacto->prefijoPais?->pais" class="!h-4 !w-[1.35rem]" />{{ $contacto->prefijoPais?->pais ?? 'País desconocido' }}</p>
+                    @if ($zona = $contacto->zonaEcuador())
+                        <p class="mt-2"><span class="chip border-amber-400/25 bg-amber-400/10 text-amber-200"><span class="punto bg-amber-400"></span>{{ $zona->descripcion() }}</span></p>
+                    @endif
                 </div>
                 <div class="flex items-center gap-3">
                     @if ($esUsuario)

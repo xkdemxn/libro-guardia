@@ -117,6 +117,46 @@
                 </x-panel>
             </div>
 
+            {{-- Zonas de Ecuador (HC1 a HC9) --}}
+            @php($zonasTrabajadas = $zonas->where('contactos', '>', 0)->count())
+            <x-panel ceja="Zonas de Ecuador">
+                <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+                    <p>
+                        <span class="font-display text-4xl font-semibold tabular-nums text-white">{{ $zonasTrabajadas }}</span>
+                        <span class="text-slate-500">/ 9 zonas trabajadas</span>
+                    </p>
+                    <p class="text-sm text-slate-400">El número de la zona es el dígito del indicativo: HC<span class="text-amber-300">5</span>EV está en la zona 5.</p>
+                </div>
+                <ul class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($zonas as $zona)
+                        <li @class([
+                            'flex items-start gap-3 rounded-2xl p-3.5 ring-1',
+                            'bg-amber-400/10 ring-amber-400/25' => $zona['contactos'] > 0,
+                            'bg-white/[0.02] ring-white/5' => $zona['contactos'] === 0,
+                        ])>
+                            <span @class([
+                                'grid h-10 w-10 shrink-0 place-items-center rounded-xl font-display text-lg font-semibold',
+                                'bg-gradient-to-b from-amber-300 to-amber-500 text-noche-950' => $zona['contactos'] > 0,
+                                'bg-white/5 text-slate-500' => $zona['contactos'] === 0,
+                            ])>{{ $zona['numero'] }}</span>
+                            <span class="min-w-0 flex-1">
+                                <span class="flex flex-wrap items-center gap-x-2 text-sm font-medium {{ $zona['contactos'] > 0 ? 'text-slate-100' : 'text-slate-400' }}">
+                                    HC{{ $zona['numero'] }} · HD{{ $zona['numero'] }}
+                                    @if ($zona['propia'])
+                                        <span class="rounded-full bg-acento-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-acento-300">Tu zona</span>
+                                    @endif
+                                </span>
+                                <span class="mt-0.5 block text-xs leading-relaxed text-slate-500">{{ implode(', ', $zona['provincias']) }}</span>
+                            </span>
+                            <span class="shrink-0 text-right">
+                                <span class="block font-mono text-sm tabular-nums {{ $zona['contactos'] > 0 ? 'text-amber-200' : 'text-slate-600' }}">{{ $zona['contactos'] }}</span>
+                                <span class="sr-only">contactos</span>
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+            </x-panel>
+
             {{-- Distribución (US-16) --}}
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <x-panel ceja="Por banda">

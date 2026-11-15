@@ -52,6 +52,15 @@ class FichaIndicativoTest extends TestCase
         $this->assertStringNotContainsString('lucia@example.com', $respuesta->getContent());
     }
 
+    public function test_un_indicativo_ecuatoriano_incluye_su_zona(): void
+    {
+        $this->seed(PrefijoPaisSeeder::class);
+
+        $this->actingAs(User::factory()->create())
+            ->getJson(route('contactos.ficha', ['indicativo' => 'HC5EV']))
+            ->assertJson(['pais' => 'Ecuador', 'zona' => 'Zona 5 · Azuay, Cañar, Chimborazo']);
+    }
+
     public function test_un_indicativo_invalido_no_devuelve_ficha(): void
     {
         $this->actingAs(User::factory()->create())

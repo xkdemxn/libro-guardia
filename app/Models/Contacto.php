@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ZonaEcuador;
 use App\Rules\IndicativoValido;
 use App\Services\Maidenhead;
 use Carbon\CarbonInterface;
@@ -127,6 +128,14 @@ class Contacto extends Model
         }
 
         return (int) round(Maidenhead::distanciaKm($origen['lat'], $origen['lon'], $destino['lat'], $destino['lon']));
+    }
+
+    /**
+     * Zona de Ecuador de la estación contactada (HC5EV → zona 5), o null si no es ecuatoriana.
+     */
+    public function zonaEcuador(): ?ZonaEcuador
+    {
+        return ZonaEcuador::paraIndicativo($this->estacion_llamada);
     }
 
     /**

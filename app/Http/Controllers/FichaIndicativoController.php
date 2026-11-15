@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ZonaEcuador;
 use App\Models\PrefijoPais;
 use App\Models\User;
 use App\Rules\IndicativoValido;
@@ -37,6 +38,7 @@ class FichaIndicativoController extends Controller
             'valido' => true,
             'indicativo' => $indicativo,
             'pais' => $prefijo?->pais,
+            'zona' => ZonaEcuador::paraIndicativo($indicativo)?->descripcion(),
             'bandera' => $prefijo?->codigo_bandera ? asset('banderas/'.$prefijo->codigo_bandera.'.svg') : null,
             'contactos_previos' => (clone $previos)->count(),
             'ultimo' => $ultimo === null ? null : [

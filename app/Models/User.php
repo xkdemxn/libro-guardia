@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\TipoQsl;
+use App\Enums\ZonaEcuador;
 use App\Rules\IndicativoValido;
 use App\Services\Maidenhead;
 use Database\Factories\UserFactory;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
@@ -23,7 +25,8 @@ use Illuminate\Support\Facades\Storage;
  */
 #[Fillable([
     'indicativo', 'nombres', 'apellidos', 'pais', 'ciudad', 'grid_locator',
-    'equipo_radio', 'antena', 'biografia', 'email', 'password',
+    'equipo_radio', 'antena', 'biografia', 'email', 'password', 'portada_estilo', 'portada_opacidad',
+    'qsl_foto_estilo', 'qsl_foto_opacidad', 'qsl_mensaje',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -72,6 +75,74 @@ class User extends Authenticatable
     }
 
     /**
+     * URL pública de la portada (fondo de la tarjeta del perfil público), o null si no tiene.
+     */
+    protected function portadaUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): ?string => $this->portada_path ? Storage::disk('public')->url($this->portada_path) : null,
+        );
+    }
+
+    /**
+     * Mensaje del pie de las tarjetas QSL cuando el operador no escribió uno propio.
+     */
+    public const MENSAJE_QSL_PREDETERMINADO = 'Confirmando nuestro QSO. ¡Gracias y 73!';
+
+    public function mensajeQsl(): string
+    {
+        return $this->qsl_mensaje ?: self::MENSAJE_QSL_PREDETERMINADO;
+    }
+
+    /**
+     * Reemplaza o quita una imagen del perfil (foto, portada o foto de la tarjeta QSL) en el disco
+     * público, borrando la anterior. No guarda el modelo.
+     */
+    public function cambiarImagen(string $columna, string $carpeta, ?UploadedFile $archivo, bool $quitar): void
+    {
+        if ($archivo === null && ! $quitar) {
+            return;
+        }
+
+        if ($this->{$columna} !== null) {
+            Storage::disk('public')->delete($this->{$columna});
+        }
+
+        $this->{$columna} = $archivo?->store($carpeta, 'public');
+    }
+
+    /**
+     * URL pública de la foto de las tarjetas QSL, o null si no tiene.
+     */
+    protected function qslFotoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): ?string => $this->qsl_foto_path ? Storage::disk('public')->url($this->qsl_foto_path) : null,
+        );
+    }
+
+    /**
+     * Foto de la tarjeta QSL incrustada como data URI. La tarjeta es un SVG y, al convertirla a PNG
+     * en el navegador, un SVG no puede cargar imágenes externas: por eso la foto va dentro.
+     *
+     * @return array{data: string, estilo: string, opacidad: int}|null
+     */
+    public function fondoTarjetaQsl(): ?array
+    {
+        $disco = Storage::disk('public');
+
+        if ($this->qsl_foto_path === null || ! $disco->exists($this->qsl_foto_path)) {
+            return null;
+        }
+
+        return [
+            'data' => 'data:'.$disco->mimeType($this->qsl_foto_path).';base64,'.base64_encode($disco->get($this->qsl_foto_path)),
+            'estilo' => $this->qsl_foto_estilo,
+            'opacidad' => min(50, max(10, (int) $this->qsl_foto_opacidad)),
+        ];
+    }
+
+    /**
      * Visibilidad del perfil; si el operador nunca la configuró se usan los valores por defecto.
      *
      * @return HasOne<VisibilidadPerfil, $this>
@@ -100,6 +171,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Zona de Ecuador del operador según su indicativo, o null si no es ecuatoriano.
+     */
+    public function zonaEcuador(): ?ZonaEcuador
+    {
+        return ZonaEcuador::paraIndicativo($this->indicativo);
+    }
+
+    /**
      * Bandera del operador: la del país que escribió en su perfil y, si no lo reconoce
      * (o lo dejó vacío), la que corresponde al prefijo de su indicativo.
      */
@@ -117,7 +196,7 @@ class User extends Authenticatable
      *
      * El indicativo y el país siempre son visibles; el correo y los contactos nunca.
      *
-     * @return array{indicativo: string, pais: ?string, bandera: ?string, nombre: ?string, ciudad: ?string, equipo_radio: ?string, antena: ?string, biografia: ?string, foto_url: ?string}
+     * @return array{indicativo: string, pais: ?string, bandera: ?string, zona: ?string, nombre: ?string, ciudad: ?string, equipo_radio: ?string, antena: ?string, biografia: ?string, foto_url: ?string, portada: ?array{url: string, estilo: string, opacidad: int}}
      */
     public function datosPublicos(): array
     {
@@ -129,12 +208,18 @@ class User extends Authenticatable
             'indicativo' => $this->indicativo,
             'pais' => $this->pais ?: $prefijo?->pais,
             'bandera' => $this->codigoBandera($prefijo),
+            'zona' => $this->zonaEcuador()?->descripcion(),
             'nombre' => $visibilidad->mostrar_nombre ? $this->nombre_completo : null,
             'ciudad' => $visibilidad->mostrar_pais_ciudad ? $this->ciudad : null,
             'equipo_radio' => $visibilidad->mostrar_equipo ? $this->equipo_radio : null,
             'antena' => $visibilidad->mostrar_equipo ? $this->antena : null,
             'biografia' => $visibilidad->mostrar_biografia_foto ? $this->biografia : null,
             'foto_url' => $visibilidad->mostrar_biografia_foto ? $this->foto_url : null,
+            'portada' => $this->portada_url === null ? null : [
+                'url' => $this->portada_url,
+                'estilo' => $this->portada_estilo,
+                'opacidad' => $this->portada_opacidad,
+            ],
         ];
     }
 

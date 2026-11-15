@@ -3,25 +3,35 @@
     <a href="{{ route('perfil-publico.index') }}" class="inline-flex items-center gap-1.5 text-sm text-slate-400 transition hover:text-white">&lsaquo; Buscar otro indicativo</a>
 
     <section class="vidrio mt-4 overflow-hidden !p-0">
-        <div class="flex flex-col items-center gap-6 bg-gradient-to-b from-acento-500/10 to-transparent px-6 pb-8 pt-10 text-center sm:flex-row sm:text-left">
-            <div class="h-28 w-28 shrink-0 overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-600 to-slate-800 ring-1 ring-white/15">
-                @if ($perfil['foto_url'])
-                    <img src="{{ $perfil['foto_url'] }}" alt="Foto de {{ $perfil['indicativo'] }}" class="h-full w-full object-cover">
-                @else
-                    <span class="grid h-full w-full place-items-center">
-                        <x-application-logo class="h-12 w-12 text-slate-400" />
-                    </span>
-                @endif
-            </div>
-            <div>
-                <h1 class="font-mono text-4xl font-semibold tracking-wide text-white">{{ $perfil['indicativo'] }}</h1>
-                @if ($perfil['nombre'])
-                    <p class="mt-1 text-lg text-slate-200">{{ $perfil['nombre'] }}</p>
-                @endif
-                <p class="mt-1 inline-flex items-center gap-2 text-slate-400">
-                    <x-bandera :codigo="$perfil['bandera']" :pais="$perfil['pais']" class="!h-4 !w-[1.35rem]" />
-                    {{ collect([$perfil['ciudad'], $perfil['pais']])->filter()->join(', ') ?: 'País desconocido' }}
-                </p>
+        <div class="relative isolate">
+            <x-portada :portada="$perfil['portada']" class="-z-10" />
+            <div class="flex flex-col items-center gap-6 bg-gradient-to-b from-acento-500/10 to-transparent px-6 pb-8 pt-10 text-center sm:flex-row sm:text-left">
+                <div class="h-28 w-28 shrink-0 overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-600 to-slate-800 ring-1 ring-white/15">
+                    @if ($perfil['foto_url'])
+                        <img src="{{ $perfil['foto_url'] }}" alt="Foto de {{ $perfil['indicativo'] }}" class="h-full w-full object-cover">
+                    @else
+                        <span class="grid h-full w-full place-items-center">
+                            <x-application-logo class="h-12 w-12 text-slate-400" />
+                        </span>
+                    @endif
+                </div>
+                <div>
+                    <h1 class="font-mono text-4xl font-semibold tracking-wide text-white">{{ $perfil['indicativo'] }}</h1>
+                    @if ($perfil['nombre'])
+                        <p class="mt-1 text-lg text-slate-200">{{ $perfil['nombre'] }}</p>
+                    @endif
+                    <p class="mt-1 inline-flex items-center gap-2 text-slate-400">
+                        <x-bandera :codigo="$perfil['bandera']" :pais="$perfil['pais']" class="!h-4 !w-[1.35rem]" />
+                        {{ collect([$perfil['ciudad'], $perfil['pais']])->filter()->join(', ') ?: 'País desconocido' }}
+                    </p>
+                    @if ($perfil['zona'])
+                        <p class="mt-2">
+                            <span class="chip border-amber-400/25 bg-amber-400/10 text-amber-200">
+                                <span class="punto bg-amber-400"></span>{{ $perfil['zona'] }}
+                            </span>
+                        </p>
+                    @endif
+                </div>
             </div>
         </div>
 

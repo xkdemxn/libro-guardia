@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TipoQsl;
+use App\Http\Requests\PersonalizarTarjetaQslRequest;
 use App\Models\Contacto;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -34,6 +35,19 @@ class TarjetaQslController extends Controller
     }
 
     /**
+     * Personaliza todas las tarjetas del operador: foto (estilo y opacidad) y mensaje del pie.
+     */
+    public function personalizar(PersonalizarTarjetaQslRequest $request): RedirectResponse
+    {
+        $operador = $request->user();
+        $operador->cambiarImagen('qsl_foto_path', 'qsl', $request->file('qsl_foto'), $request->boolean('quitar_qsl_foto'));
+        $operador->fill($request->safe()->only(['qsl_foto_estilo', 'qsl_foto_opacidad', 'qsl_mensaje']));
+        $operador->save();
+
+        return back()->with('status', 'Tarjeta actualizada. Se aplica a todas tus tarjetas QSL.');
+    }
+
+    /**
      * La tarjeta como archivo SVG descargable.
      */
     public function svg(Request $request, string $contacto): Response|RedirectResponse
@@ -54,7 +68,7 @@ class TarjetaQslController extends Controller
     }
 
     /**
-     * @return array{contacto: Contacto, operador: User, verificado: bool}
+     * @return array{contacto: Contacto, operador: User, verificado: bool, fondo: array{data: string, estilo: string, opacidad: int}|null}
      */
     private function datosTarjeta(Contacto $contacto): array
     {
@@ -63,6 +77,7 @@ class TarjetaQslController extends Controller
         return [
             'contacto' => $contacto,
             'operador' => $contacto->user,
+            'fondo' => $contacto->user->fondoTarjetaQsl(),
             'verificado' => $contacto->confirmacionesQsl->contains(
                 fn ($confirmacion): bool => $confirmacion->tipo === TipoQsl::Interna,
             ),

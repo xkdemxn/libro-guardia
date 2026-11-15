@@ -43,9 +43,32 @@ class EstadisticasTest extends TestCase
             ->assertOk()
             ->assertViewHas('totales', ['contactos' => 3, 'paises' => 2, 'confirmados' => 1, 'bandas' => 2])
             ->assertViewHas('porBanda', fn ($porBanda): bool => $porBanda->all() === ['20 m' => 2, '40 m' => 1])
-            ->assertViewHas('porModo', fn ($porModo): bool => $porModo->all() === ['FT8' => 2, 'USB' => 1])
+            ->assertViewHas('porModo', fn ($porModo): bool => $porModo->all() === ['FT8' => 2, 'SSB · USB' => 1])
             ->assertViewHas('dxcc', ['confirmados' => 1, 'meta' => 100])
             ->assertViewHas('masLejano', fn (array $lejano): bool => $lejano['indicativo'] === 'JA1ABC' && $lejano['km'] > 13000);
+    }
+
+    public function test_cuenta_las_zonas_de_ecuador_trabajadas(): void
+    {
+        $this->seed([BandaSeeder::class, ModoSeeder::class, PrefijoPaisSeeder::class]);
+        $operador = User::factory()->create(['indicativo' => 'HC5EV']);
+        $this->contacto($operador, 'HC1QRC', '40 m', 'LSB', '2026-10-01 10:00:00');
+        $this->contacto($operador, 'HD1AB', '40 m', 'LSB', '2026-10-02 10:00:00');
+        $this->contacto($operador, 'HC8GR', '20 m', 'USB', '2026-10-03 10:00:00');
+        $this->contacto($operador, 'LU4BB', '20 m', 'USB', '2026-10-04 10:00:00');
+
+        $this->actingAs($operador)
+            ->get(route('estadisticas'))
+            ->assertOk()
+            ->assertSee('/ 9 zonas trabajadas')
+            ->assertViewHas('zonas', function ($zonas): bool {
+                $porNumero = $zonas->keyBy('numero');
+
+                return $zonas->where('contactos', '>', 0)->count() === 2
+                    && $porNumero[1]['contactos'] === 2
+                    && $porNumero[8]['contactos'] === 1
+                    && $porNumero[5]['propia'] === true;
+            });
     }
 
     public function test_el_rango_de_fechas_filtra_las_cifras(): void

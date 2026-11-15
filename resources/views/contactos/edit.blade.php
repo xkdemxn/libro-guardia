@@ -1,15 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="mx-auto max-w-4xl">
+        <div class="mx-auto max-w-7xl">
             <a href="{{ route('contactos.index') }}" class="inline-flex items-center gap-1.5 text-sm text-slate-400 transition hover:text-white">&lsaquo; Volver al libro</a>
-            <h1 class="mt-3 font-display text-3xl font-semibold text-white">
+            <h1 class="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">
                 Editar <span class="font-mono text-acento-300">{{ $contacto->estacion_llamada }}</span>
             </h1>
             <p class="mt-1 text-sm text-slate-500">Última modificación: {{ $contacto->updated_at->format('Y-m-d H:i') }} UTC</p>
         </div>
     </x-slot>
 
-    <div class="mx-auto box-content max-w-4xl px-4 pt-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
         <form method="POST" action="{{ route('contactos.update', $contacto) }}">
             @csrf
             @method('PUT')

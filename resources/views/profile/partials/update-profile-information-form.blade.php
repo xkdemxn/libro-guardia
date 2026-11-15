@@ -10,7 +10,11 @@
 
 {{-- novalidate: un campo obligatorio en una sección oculta bloquearía el envío sin mostrar nada; valida el servidor. --}}
 <form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data" novalidate
-      x-data="fotoPerfil(@js($user->foto_url), @js($errors->any()))"
+      x-data="fotoPerfil(@js($user->foto_url), @js($errors->any()), @js([
+          'url' => $user->portada_url,
+          'estilo' => old('portada_estilo', $user->portada_estilo),
+          'opacidad' => (int) old('portada_opacidad', $user->portada_opacidad),
+      ]))"
       x-on:input="revisarCambios()" x-on:change="revisarCambios()">
     @csrf
     @method('patch')
@@ -134,6 +138,88 @@
 
         <div class="mt-8 flex justify-end">
             <x-boton-guardar-perfil />
+        </div>
+    </x-panel>
+
+    {{-- Portada del perfil público --}}
+    <x-panel x-show="seccion === 'portada'" x-cloak class="sm:!p-8">
+        <header class="mb-6">
+            <h2 class="font-display text-lg font-semibold text-white">Portada</h2>
+            <p class="mt-1 text-sm text-slate-400">Una imagen de fondo para la tarjeta de tu perfil público.</p>
+        </header>
+
+        {{-- Vista previa: la misma tarjeta que ven los demás --}}
+        <div class="relative isolate overflow-hidden rounded-3xl bg-white/[0.03] ring-1 ring-white/10">
+            <template x-if="fondos.portada.previa && ! fondos.portada.quitar">
+                <img :src="fondos.portada.previa" alt="" class="portada -z-10"
+                     :class="fondos.portada.estilo === 'degradado' && 'portada-degradado'"
+                     :style="fondos.portada.estilo === 'completa' ? `opacity: ${fondos.portada.opacidad / 100}` : ''">
+            </template>
+            <div class="flex flex-col items-center gap-5 bg-gradient-to-b from-acento-500/10 to-transparent px-6 pb-7 pt-8 text-center sm:flex-row sm:text-left">
+                <div class="h-24 w-24 shrink-0 overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-marca-400 to-marca-600 ring-1 ring-white/15">
+                    <template x-if="vistaPrevia && ! quitar">
+                        <img :src="vistaPrevia" alt="" class="h-full w-full object-cover">
+                    </template>
+                    <span x-show="! vistaPrevia || quitar" class="grid h-full w-full place-items-center font-display text-2xl font-semibold text-blanco">
+                        {{ mb_strtoupper(mb_substr($user->nombres, 0, 1).mb_substr($user->apellidos, 0, 1)) }}
+                    </span>
+                </div>
+                <div>
+                    <p class="font-mono text-3xl font-semibold tracking-wide text-white">{{ $user->indicativo }}</p>
+                    <p class="mt-1 text-slate-200">{{ $user->nombre_completo }}</p>
+                    <p class="mt-1 inline-flex items-center gap-2 text-sm text-slate-400">
+                        <x-bandera :codigo="$user->codigoBandera()" :pais="$user->pais" />
+                        {{ $user->datosPublicos()['pais'] ?? 'País desconocido' }}
+                    </p>
+                </div>
+            </div>
+            <span class="absolute right-3 top-3 rounded-full bg-noche-950/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300 backdrop-blur">Vista previa</span>
+        </div>
+
+        @include('profile.partials.selector-fondo', [
+            'clave' => 'portada',
+            'campo' => 'portada',
+            'guardada' => $user->portada_path !== null,
+            'quitarTexto' => 'Quitar portada',
+            'estilos' => [
+                'degradado' => ['Degradado', 'La imagen se desvanece hasta la mitad de la tarjeta.'],
+                'completa' => ['Tarjeta completa', 'Cubre toda la tarjeta, con la transparencia que elijas.'],
+            ],
+        ])
+
+        <div class="mt-8 flex flex-wrap items-center justify-between gap-3">
+            <a href="{{ route('perfil-publico.show', $user->indicativo) }}" target="_blank" class="inline-flex items-center gap-1.5 text-sm text-acento-300 hover:text-acento-200">
+                Ver mi perfil público
+                <x-icono nombre="enlace-externo" class="h-4 w-4" />
+            </a>
+            <x-boton-guardar-perfil />
+        </div>
+    </x-panel>
+
+    {{-- Tarjeta QSL: se personaliza en la propia tarjeta, con vista previa en vivo --}}
+    @php($ultimoContacto = $user->contactos()->latest('inicio_utc')->value('id'))
+    <x-panel x-show="seccion === 'tarjeta'" x-cloak class="sm:!p-8">
+        <header>
+            <h2 class="font-display text-lg font-semibold text-white">Tarjeta QSL</h2>
+            <p class="mt-1 text-sm text-slate-400">La foto y el mensaje de tus tarjetas se cambian en la propia tarjeta, viendo el resultado en vivo. Se aplican a todas.</p>
+        </header>
+        <div class="mt-6 flex flex-wrap items-center gap-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-b from-marca-400 to-marca-600 text-blanco shadow-boton">
+                <x-icono nombre="tarjeta" class="h-6 w-6" />
+            </span>
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-slate-100">
+                    {{ $user->qsl_foto_path ? 'Tus tarjetas tienen una foto personalizada.' : 'Tus tarjetas usan el diseño por defecto.' }}
+                </p>
+                <p class="mt-0.5 truncate text-xs text-slate-500">Mensaje: «{{ $user->mensajeQsl() }}»</p>
+            </div>
+            @if ($ultimoContacto)
+                <a href="{{ route('contactos.tarjeta', $ultimoContacto) }}" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-marca-400 to-marca-600 px-5 py-2.5 text-sm font-semibold text-blanco shadow-boton transition hover:brightness-110">
+                    Personalizar tarjeta <x-icono nombre="flecha" class="h-4 w-4" />
+                </a>
+            @else
+                <p class="text-sm text-slate-500">Registra tu primer contacto para ver y personalizar tu tarjeta.</p>
+            @endif
         </div>
     </x-panel>
 

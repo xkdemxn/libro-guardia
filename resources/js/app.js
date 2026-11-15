@@ -262,7 +262,7 @@ Alpine.data('formularioContacto', (modos, modoInicial, bandas, frecuenciaInicial
  * Al aplicar, el navegador dibuja el cuadro visible en un lienzo de 512×512 y pone ese JPG en el campo
  * «foto» del formulario: así se sube ya recortada y liviana, aunque la original pese mucho.
  */
-Alpine.data('fotoPerfil', (fotoGuardada, conErrores = false) => ({
+Alpine.data('fotoPerfil', (fotoGuardada, conErrores = false, portada = {}, fotoQsl = {}) => ({
     LADO: 288,
     SALIDA: 512,
     ZOOM_MAXIMO: 4,
@@ -272,13 +272,19 @@ Alpine.data('fotoPerfil', (fotoGuardada, conErrores = false) => ({
     imagen: null,
     arrastre: null,
     editor: { abierto: false, src: null, ancho: 0, alto: 0, escala: 1, escalaMinima: 1, x: 0, y: 0 },
+    /** Imágenes de fondo: portada del perfil público y foto de las tarjetas QSL (lado mayor máximo en px). */
+    fondos: {
+        portada: { previa: portada.url ?? null, quitar: false, estilo: portada.estilo ?? 'degradado', opacidad: portada.opacidad ?? 35, lado: 1800 },
+        qsl: { previa: fotoQsl.url ?? null, quitar: false, estilo: fotoQsl.estilo ?? 'degradado', opacidad: fotoQsl.opacidad ?? 35, lado: 1400 },
+    },
     formulario: null,
     estadoInicial: null,
     hayCambios: false,
 
     init() {
         // Se guarda el formulario: desde el editor (llevado al <body>) $el ya no es el formulario.
-        this.formulario = this.$el;
+        // En la página de la tarjeta QSL el componente envuelve la tarjeta y el formulario.
+        this.formulario = this.$el.tagName === 'FORM' ? this.$el : this.$el.querySelector('form');
 
         // Si volvió con errores, lo escrito todavía no se guardó: se puede guardar sin tocar nada más.
         this.$nextTick(() => {
@@ -300,6 +306,47 @@ Alpine.data('fotoPerfil', (fotoGuardada, conErrores = false) => ({
         if (this.estadoInicial !== null) {
             this.hayCambios = conErrores || this.estadoFormulario() !== this.estadoInicial;
         }
+    },
+
+    /**
+     * Imagen de fondo (portada o foto de la tarjeta QSL): el navegador la reduce a JPG antes de ponerla
+     * en el campo oculto, así una foto pesada del celular sube rápido y entra en el límite del servidor.
+     */
+    elegirFondo(evento, clave) {
+        const archivo = evento.target.files[0];
+        const fondo = this.fondos[clave];
+        evento.target.value = '';
+
+        if (! archivo || ! archivo.type.startsWith('image/')) {
+            return;
+        }
+
+        const imagen = new Image();
+        imagen.onload = () => {
+            const factor = Math.min(1, fondo.lado / Math.max(imagen.naturalWidth, imagen.naturalHeight));
+            const lienzo = document.createElement('canvas');
+            lienzo.width = Math.round(imagen.naturalWidth * factor);
+            lienzo.height = Math.round(imagen.naturalHeight * factor);
+
+            const contexto = lienzo.getContext('2d');
+            contexto.fillStyle = '#ffffff';
+            contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+            contexto.imageSmoothingQuality = 'high';
+            contexto.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+            URL.revokeObjectURL(imagen.src);
+
+            lienzo.toBlob((datos) => {
+                const transferencia = new DataTransfer();
+                transferencia.items.add(new File([datos], `${clave}.jpg`, { type: 'image/jpeg' }));
+                this.$refs[`entrada_${clave}`].files = transferencia.files;
+
+                // Data URL (no blob:) para que la tarjeta QSL la incluya al exportarse a PNG.
+                fondo.previa = lienzo.toDataURL('image/jpeg', 0.85);
+                fondo.quitar = false;
+                this.revisarCambios();
+            }, 'image/jpeg', 0.85);
+        };
+        imagen.src = URL.createObjectURL(archivo);
     },
 
     elegir(evento) {
@@ -446,6 +493,12 @@ Alpine.data('tarjetaQsl', (nombreArchivo) => ({
 
         try {
             const svg = this.$refs.tarjeta.querySelector('svg').cloneNode(true);
+            // Los atributos de Alpine (x-show, x-bind:…) no son XML válido para un SVG suelto.
+            svg.querySelectorAll('*').forEach((elemento) => {
+                [...elemento.attributes]
+                    .filter((atributo) => /^(x-|:|@)/.test(atributo.name))
+                    .forEach((atributo) => elemento.removeAttribute(atributo.name));
+            });
             svg.setAttribute('width', '1400');
             svg.setAttribute('height', '900');
 

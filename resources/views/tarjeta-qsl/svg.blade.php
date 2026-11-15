@@ -1,8 +1,11 @@
 {{--
     Tarjeta QSL en SVG (1400 × 900, proporción de tarjeta postal).
-    Variables: $contacto, $operador, $verificado.
+    Variables: $contacto, $operador, $verificado, $fondo (foto personalizada del operador o null) y
+    $editable (opcional): en la página de la tarjeta la foto y el mensaje se enlazan con Alpine para verlos
+    cambiar en vivo. El archivo descargado nunca lleva esos enlaces.
 --}}
 @php
+    $editable ??= false;
     $miIndicativo = $operador->indicativo;
     // El indicativo se achica si es largo (ej. EA8/HC1QRC) para que no invada el bloque de la derecha.
     $tamanoIndicativo = (int) min(170, 760 / (max(1, strlen($miIndicativo)) * 0.66));
@@ -45,15 +48,49 @@
             <stop offset="0" stop-color="#ffffff" />
             <stop offset="1" stop-color="#bfe0ff" />
         </linearGradient>
+        @if ($fondo || $editable)
+            <clipPath id="recorteTarjeta"><rect width="1400" height="900" rx="36" /></clipPath>
+            {{-- Degradado: la foto se ve completa a la derecha y se desvanece hasta la mitad --}}
+            <linearGradient id="desvanecerFoto" x1="1" y1="0" x2="0.4" y2="0">
+                <stop offset="0" stop-color="#ffffff" />
+                <stop offset="0.35" stop-color="#ffffff" stop-opacity="0.8" />
+                <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+            </linearGradient>
+            <mask id="mascaraFoto"><rect width="1400" height="900" fill="url(#desvanecerFoto)" /></mask>
+            {{-- Sombra abajo para que los datos y el indicativo destinatario se lean sobre la foto --}}
+            <linearGradient id="sombraInferior" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0.35" stop-color="#050a14" stop-opacity="0" />
+                <stop offset="1" stop-color="#050a14" stop-opacity="0.85" />
+            </linearGradient>
+        @endif
     </defs>
 
     {{-- Fondo --}}
     <rect width="1400" height="900" rx="36" fill="url(#fondo)" />
     <rect width="1400" height="900" rx="36" fill="url(#brilloAzul)" />
     <rect width="1400" height="900" rx="36" fill="url(#brilloAmbar)" />
+    @if ($editable)
+        {{-- Foto en vivo: fondos.qsl viene del componente fotoPerfil de la página --}}
+        <g clip-path="url(#recorteTarjeta)" x-show="fondos.qsl.previa && ! fondos.qsl.quitar" @unless ($fondo) style="display: none" @endunless>
+            <image x="0" y="0" width="1400" height="900" preserveAspectRatio="xMidYMid slice"
+                   x-bind:href="fondos.qsl.previa"
+                   x-bind:mask="fondos.qsl.estilo === 'degradado' ? 'url(#mascaraFoto)' : null"
+                   x-bind:opacity="fondos.qsl.estilo === 'completa' ? fondos.qsl.opacidad / 100 : 1" />
+            <rect width="1400" height="900" fill="url(#sombraInferior)" />
+        </g>
+    @elseif ($fondo)
+        {{-- Foto personalizada del operador --}}
+        <g clip-path="url(#recorteTarjeta)">
+            <image href="{{ $fondo['data'] }}" x="0" y="0" width="1400" height="900" preserveAspectRatio="xMidYMid slice"
+                   @if ($fondo['estilo'] === 'degradado') mask="url(#mascaraFoto)" @else opacity="{{ $fondo['opacidad'] / 100 }}" @endif />
+            <rect width="1400" height="900" fill="url(#sombraInferior)" />
+        </g>
+    @endif
     <rect x="18" y="18" width="1364" height="864" rx="26" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="2" />
 
-    {{-- Ondas de radio saliendo de la antena (esquina superior derecha) --}}
+    {{-- Ondas de radio saliendo de la antena (esquina superior derecha); con foto a la derecha no se dibujan --}}
+    @unless (! $editable && $fondo && $fondo['estilo'] === 'degradado')
+    <g @if ($editable) x-show="! (fondos.qsl.previa && ! fondos.qsl.quitar && fondos.qsl.estilo === 'degradado')" @endif>
     <g fill="none" stroke="#52adff" stroke-linecap="round">
         @foreach ([70 => 0.55, 125 => 0.4, 180 => 0.28, 235 => 0.18, 290 => 0.1] as $radio => $opacidad)
             <circle cx="1240" cy="150" r="{{ $radio }}" stroke-opacity="{{ $opacidad }}" stroke-width="3" />
@@ -64,6 +101,8 @@
         <circle cx="24" cy="18" r="3.5" fill="#ffffff" stroke="none" />
         <path d="M16.5 10.5a10.5 10.5 0 0 0 0 15M31.5 10.5a10.5 10.5 0 0 1 0 15" />
     </g>
+    </g>
+    @endunless
 
     {{-- Encabezado --}}
     <rect x="80" y="76" width="96" height="44" rx="22" fill="#2a8fff" />
@@ -93,7 +132,8 @@
     @endforeach
 
     {{-- Pie --}}
-    <text x="82" y="820" font-family="{{ $fuenteTexto }}" font-size="28" fill="#c9d6ea">Confirmando nuestro QSO. ¡Gracias y <tspan font-weight="700" fill="#ffffff">73</tspan>!</text>
+    <text x="82" y="820" font-family="{{ $fuenteTexto }}" font-size="{{ mb_strlen($operador->mensajeQsl()) > 45 ? 22 : 28 }}" fill="#e2e9f5"
+          @if ($editable) x-text="mensajeQsl.trim() || @js(\App\Models\User::MENSAJE_QSL_PREDETERMINADO)" x-bind:font-size="(mensajeQsl.trim() || @js(\App\Models\User::MENSAJE_QSL_PREDETERMINADO)).length > 45 ? 22 : 28" @endif>{{ $operador->mensajeQsl() }}</text>
     <text x="82" y="852" font-family="{{ $fuenteMono }}" font-size="18" fill="#4d6690">{{ $recibida ? 'TNX QSL' : 'PSE QSL TNX' }}  ·  QSO #{{ $contacto->id }}</text>
 
     @if ($verificado)

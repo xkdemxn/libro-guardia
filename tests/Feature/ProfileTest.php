@@ -180,4 +180,48 @@ class ProfileTest extends TestCase
 
         $this->assertNull($user->refresh()->foto_path);
     }
+
+    public function test_la_portada_se_guarda_con_su_estilo_y_se_ve_en_el_perfil_publico(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create(['indicativo' => 'HC5EV']);
+        $datos = ['nombres' => 'Emi', 'apellidos' => 'Velasco', 'email' => $user->email];
+
+        $this->actingAs($user)
+            ->patch('/profile', [...$datos, 'portada' => UploadedFile::fake()->image('cerro.jpg', 1600, 900), 'portada_estilo' => 'completa', 'portada_opacidad' => 40])
+            ->assertSessionHasNoErrors();
+
+        $user->refresh();
+        Storage::disk('public')->assertExists($user->portada_path);
+        $this->assertSame('completa', $user->portada_estilo);
+        $this->assertSame(40, $user->portada_opacidad);
+
+        $this->get(route('perfil-publico.show', 'HC5EV'))
+            ->assertSee($user->portada_url)
+            ->assertSee('opacity: 0.4', false);
+    }
+
+    public function test_la_opacidad_de_la_portada_no_pasa_del_50_por_ciento(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch('/profile', ['nombres' => 'Ana', 'apellidos' => 'Pérez', 'email' => $user->email, 'portada_estilo' => 'completa', 'portada_opacidad' => 80])
+            ->assertSessionHasErrors(['portada_opacidad' => 'La opacidad debe estar entre 10 % y 50 %.']);
+    }
+
+    public function test_la_portada_se_puede_quitar(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $datos = ['nombres' => 'Ana', 'apellidos' => 'Pérez', 'email' => $user->email];
+
+        $this->actingAs($user)->patch('/profile', [...$datos, 'portada' => UploadedFile::fake()->image('fondo.jpg')]);
+        $portada = $user->refresh()->portada_path;
+
+        $this->actingAs($user)->patch('/profile', [...$datos, 'quitar_portada' => '1']);
+
+        Storage::disk('public')->assertMissing($portada);
+        $this->assertNull($user->refresh()->portada_path);
+    }
 }
