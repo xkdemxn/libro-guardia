@@ -190,6 +190,24 @@
         <x-input-label value="Modo" />
         <div class="flex flex-wrap gap-2" role="radiogroup" aria-label="Modo">
             @foreach ($botonesModo as $nombreModo)
+                @if ($nombreModo === 'SSB')
+                    {{-- SSB es un solo modo; USB/LSB es su variante y aparece dentro del mismo botón. --}}
+                    <div class="flex items-center rounded-full border transition"
+                         x-bind:class="esSsb ? 'border-acento-400/60 bg-acento-400/15' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.06]'">
+                        <button type="button" role="radio" x-on:click="elegirModo('SSB')" x-bind:aria-checked="esSsb"
+                                class="rounded-full px-4 py-2 font-mono text-sm font-semibold transition"
+                                x-bind:class="esSsb ? 'text-white' : 'text-slate-300'">SSB</button>
+                        <div x-show="esSsb" x-cloak class="flex items-center gap-0.5 pe-1" role="radiogroup" aria-label="Banda lateral de SSB">
+                            @foreach (['USB' => 'Banda lateral superior', 'LSB' => 'Banda lateral inferior'] as $lateral => $descripcion)
+                                <button type="button" role="radio" x-on:click="elegirLateral('{{ $lateral }}')" x-bind:aria-checked="modoActual?.nombre === '{{ $lateral }}'"
+                                        title="{{ $descripcion }}" aria-label="{{ $lateral }}: {{ mb_strtolower($descripcion) }}"
+                                        class="rounded-full px-3 py-1 font-mono text-xs font-semibold transition"
+                                        x-bind:class="modoActual?.nombre === '{{ $lateral }}' ? 'bg-gradient-to-b from-marca-400 to-marca-600 text-blanco shadow-boton' : 'text-slate-400 hover:text-white'">{{ $lateral }}</button>
+                            @endforeach
+                        </div>
+                    </div>
+                    @continue
+                @endif
                 <button type="button" role="radio" x-on:click="elegirModo(@js($nombreModo))" x-bind:aria-checked="botonActivo(@js($nombreModo))"
                         class="rounded-full border px-4 py-2 font-mono text-sm font-semibold transition"
                         x-bind:class="botonActivo(@js($nombreModo)) ? 'border-acento-400/60 bg-acento-400/15 text-white' : 'border-white/10 bg-white/[0.02] text-slate-300 hover:bg-white/[0.06]'">{{ $nombreModo }}</button>
@@ -197,23 +215,14 @@
         </div>
         <x-input-error :messages="$errors->get('modo_id')" />
 
-        {{-- SSB: banda lateral inferior (LSB) o superior (USB) --}}
-        <div x-show="esSsb" x-cloak class="mt-4 rounded-2xl bg-black/20 p-4 ring-1 ring-white/5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <p class="text-sm text-slate-300">Banda lateral</p>
-                <div class="flex items-center gap-1 rounded-full bg-black/25 p-1 ring-1 ring-white/5" role="radiogroup" aria-label="Banda lateral">
-                    @foreach (['LSB' => 'Inferior · LSB', 'USB' => 'Superior · USB'] as $lateral => $etiqueta)
-                        <button type="button" role="radio" x-on:click="elegirLateral('{{ $lateral }}')" x-bind:aria-checked="modoActual?.nombre === '{{ $lateral }}'"
-                                class="rounded-full px-4 py-1.5 text-sm transition"
-                                x-bind:class="modoActual?.nombre === '{{ $lateral }}' ? 'bg-white/10 font-semibold text-white ring-1 ring-white/10' : 'text-slate-400 hover:text-white'">{{ $etiqueta }}</button>
-                    @endforeach
-                </div>
-            </div>
-            <p class="mt-2 text-xs text-slate-500">
-                <span x-show="! lateralManual">Elegida automáticamente: por convención se usa LSB por debajo de 10 MHz y USB por encima.</span>
-                <span x-show="lateralManual" x-cloak>Elegida a mano. <button type="button" class="text-acento-300 hover:text-acento-200" x-on:click="lateralManual = false; ajustarBandaLateral()">Volver a automática</button></span>
-            </p>
-        </div>
+        {{-- SSB: qué significa la variante elegida y sugerencia para las bandas bajas --}}
+        <p x-show="esSsb" x-cloak class="mt-2.5 text-xs text-slate-500">
+            <span x-text="modoActual?.nombre === 'LSB' ? 'LSB: banda lateral inferior.' : 'USB: banda lateral superior (la más usada; queda por defecto si no eliges otra).'"></span>
+            <span x-show="sugiereLsb" x-cloak class="text-amber-300/90">
+                En 160, 80 y 40 m lo habitual es LSB.
+                <button type="button" class="font-medium text-acento-300 hover:text-acento-200" x-on:click="elegirLateral('LSB')">Usar LSB</button>
+            </span>
+        </p>
 
         {{-- Reportes --}}
         <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2" x-show="tipo" x-cloak>

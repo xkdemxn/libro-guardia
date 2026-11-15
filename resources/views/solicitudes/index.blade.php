@@ -26,7 +26,7 @@
 
                 <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
                     <x-banda-chip :banda="$solicitud->banda->nombre" />
-                    <span class="chip border-white/10 bg-white/5 text-slate-300">{{ $solicitud->modo->nombre }}</span>
+                    <span class="chip border-white/10 bg-white/5 text-slate-300">{{ $solicitud->modo->etiqueta }}</span>
                     <span class="font-mono text-acento-300">{{ number_format($solicitud->frecuencia_mhz, 3) }} MHz</span>
                     {{-- Visto desde tu lado: lo que ellos enviaron es lo que tú recibiste. --}}
                     <span class="text-slate-400">· Tú enviaste <span class="font-mono text-slate-200">{{ $solicitud->reporte_recibido }}</span>, recibiste <span class="font-mono text-slate-200">{{ $solicitud->reporte_enviado }}</span></span>

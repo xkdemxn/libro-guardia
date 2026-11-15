@@ -44,11 +44,15 @@
                     @endif
                 </a>
 
-                <x-dropdown align="right" width="48">
+                <x-dropdown align="right" width="w-72">
                     <x-slot name="trigger">
                         <button class="flex items-center gap-2 rounded-full bg-white/5 py-1 pe-3 ps-1 text-sm text-slate-200 ring-1 ring-white/10 transition hover:bg-white/10">
-                            <span class="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-slate-500 to-slate-700 text-[11px] font-semibold text-white">
-                                {{ mb_substr(Auth::user()->nombres, 0, 1) }}{{ mb_substr(Auth::user()->apellidos, 0, 1) }}
+                            <span class="grid h-7 w-7 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-marca-400 to-marca-600 text-[11px] font-semibold text-blanco">
+                                @if (Auth::user()->foto_url)
+                                    <img src="{{ Auth::user()->foto_url }}" alt="" class="h-full w-full object-cover">
+                                @else
+                                    {{ mb_strtoupper(mb_substr(Auth::user()->nombres, 0, 1).mb_substr(Auth::user()->apellidos, 0, 1)) }}
+                                @endif
                             </span>
                             <span class="font-mono font-semibold">{{ Auth::user()->indicativo }}</span>
                             <svg class="h-4 w-4 text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
@@ -56,17 +60,36 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <div class="px-3 pb-2 pt-1.5">
-                            <p class="text-sm font-medium text-white">{{ Auth::user()->nombre_completo }}</p>
-                            <p class="truncate text-xs text-slate-400">{{ Auth::user()->email }}</p>
+                        <div class="flex items-center gap-3 rounded-xl bg-white/[0.04] p-3">
+                            <span class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-marca-400 to-marca-600 text-sm font-semibold text-blanco">
+                                @if (Auth::user()->foto_url)
+                                    <img src="{{ Auth::user()->foto_url }}" alt="" class="h-full w-full object-cover">
+                                @else
+                                    {{ mb_strtoupper(mb_substr(Auth::user()->nombres, 0, 1).mb_substr(Auth::user()->apellidos, 0, 1)) }}
+                                @endif
+                            </span>
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-semibold text-white">{{ Auth::user()->nombre_completo }}</p>
+                                <p class="truncate text-xs text-slate-400">{{ Auth::user()->email }}</p>
+                            </div>
                         </div>
-                        <div class="my-1 h-px bg-white/10"></div>
-                        <x-dropdown-link :href="route('profile.edit')">Mi perfil</x-dropdown-link>
-                        <x-dropdown-link :href="route('perfil-publico.show', Auth::user()->indicativo)">Ver mi perfil público</x-dropdown-link>
+
+                        <p class="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Cuenta</p>
+                        <x-dropdown-link :href="route('profile.edit').'#datos'">
+                            <x-icono nombre="usuario" class="h-4 w-4 text-slate-400" /> Mi perfil
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('profile.edit').'#contrasena'">
+                            <x-icono nombre="candado" class="h-4 w-4 text-slate-400" /> Cambiar contraseña
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('perfil-publico.show', Auth::user()->indicativo)">
+                            <x-icono nombre="enlace-externo" class="h-4 w-4 text-slate-400" /> Ver mi perfil público
+                        </x-dropdown-link>
+
+                        <div class="mx-2 my-1.5 h-px bg-white/10"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();" class="!text-rose-300">
-                                Cerrar sesión
+                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();" class="!text-rose-300 hover:!bg-rose-500/10">
+                                <x-icono nombre="salir" class="h-4 w-4" /> Cerrar sesión
                             </x-dropdown-link>
                         </form>
                     </x-slot>

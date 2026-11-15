@@ -23,6 +23,24 @@ class ProfileTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_al_guardar_vuelve_a_la_seccion_donde_estaba(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->patch('/profile', ['nombres' => 'Ana', 'apellidos' => 'Pérez', 'email' => 'ana@example.com', 'seccion' => 'estacion'])
+            ->assertRedirect('/profile')
+            ->assertSessionHas('seccion', 'estacion');
+    }
+
+    public function test_un_error_abre_la_seccion_que_tiene_el_campo(): void
+    {
+        $usuario = User::factory()->create();
+        $this->actingAs($usuario);
+
+        $this->withViewErrors(['grid_locator' => 'El grid locator no es válido.'])
+            ->view('profile.edit', ['user' => $usuario])
+            ->assertSee("\\u0022cuenta\\u0022]'), 'estacion')", false);
+    }
+
     public function test_profile_information_can_be_updated(): void
     {
         $user = User::factory()->create();

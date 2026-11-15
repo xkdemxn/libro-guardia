@@ -28,7 +28,7 @@ $width = match ($width) {
             class="absolute z-50 mt-2 {{ $width }} {{ $alignmentClasses }}"
             style="display: none;"
             @click="open = false">
-        <div class="rounded-2xl border border-white/10 bg-noche-800/95 shadow-vidrio-lg {{ $contentClasses }}">
+        <div class="menu-flotante {{ $contentClasses }}">
             {{ $content }}
         </div>
     </div>

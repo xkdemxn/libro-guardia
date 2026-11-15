@@ -82,6 +82,15 @@
         @apply border-blanco/80 bg-blanco/60 shadow-vidrio-claro;
     }
 
+    /* Menús desplegables: vidrio denso en oscuro, blanco casi opaco con sombra suave en claro. */
+    .menu-flotante {
+        @apply rounded-2xl border border-white/10 bg-noche-800/90 shadow-vidrio-lg backdrop-blur-2xl backdrop-saturate-150;
+    }
+
+    html.claro .menu-flotante {
+        @apply border-slate-800/70 bg-blanco/95 shadow-[0_12px_40px_-12px_rgb(15_23_42/0.25),0_2px_6px_rgb(15_23_42/0.06)];
+    }
+
     html.claro .vidrio-fuerte {
         @apply border-blanco/80 bg-blanco/70 shadow-vidrio-claro;
     }

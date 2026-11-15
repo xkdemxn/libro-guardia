@@ -60,7 +60,7 @@
                         <select id="modo_id" name="modo_id" class="campo">
                             <option value="">Todos</option>
                             @foreach ($modos as $modo)
-                                <option value="{{ $modo->id }}" @selected((string) old('modo_id') === (string) $modo->id)>{{ $modo->nombre }}</option>
+                                <option value="{{ $modo->id }}" @selected((string) old('modo_id') === (string) $modo->id)>{{ $modo->etiqueta }}</option>
                             @endforeach
                         </select>
                     </div>

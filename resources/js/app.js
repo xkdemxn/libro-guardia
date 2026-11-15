@@ -60,8 +60,8 @@ Alpine.data('relojUtc', () => ({
  *
  * - Banda: se elige por rango (HF/VHF/UHF) y la frecuencia con un deslizador dentro de la banda;
  *   o al revés, escribiendo la frecuencia la banda se marca sola.
- * - Modo: botones. SSB tiene dos bandas laterales: inferior (LSB) y superior (USB); se elige sola
- *   por convención (LSB por debajo de 10 MHz, USB por encima) y el operador puede cambiarla.
+ * - Modo: botones. SSB es un solo modo con dos variantes dentro del mismo botón: USB (banda lateral
+ *   superior) y LSB (inferior). Si el operador no elige, queda USB, la más usada.
  * - Reportes: botón rápido 59 (voz) o 599 (CW); «Otro» permite armarlo con R, S y T si no se recibió bien.
  *
  * @param {Array<{id: number, nombre: string, tipo: string, ejemplo: string}>} modos
@@ -78,7 +78,6 @@ Alpine.data('formularioContacto', (modos, modoInicial, bandas, frecuenciaInicial
     modoId: modoInicial,
     frecuencia: frecuenciaInicial ?? '',
     rangoVisible: null,
-    lateralManual: false,
     indicativo: indicativoInicial ?? '',
     ficha: null,
     buscandoFicha: false,
@@ -100,7 +99,6 @@ Alpine.data('formularioContacto', (modos, modoInicial, bandas, frecuenciaInicial
             if (this.bandaActual) {
                 this.rangoVisible = this.bandaActual.rango;
             }
-            this.ajustarBandaLateral();
         });
 
         if (this.indicativo) {
@@ -155,15 +153,17 @@ Alpine.data('formularioContacto', (modos, modoInicial, bandas, frecuenciaInicial
     modoPorNombre(nombre) {
         return this.modos.find((modo) => modo.nombre === nombre);
     },
-    lateralSugerida() {
-        return this.mhz !== null && this.mhz < 10 ? 'LSB' : 'USB';
+    /** Bajo 10 MHz (160, 80 y 40 m) la convención es LSB: se sugiere, pero no se cambia solo. */
+    get sugiereLsb() {
+        return this.modoActual?.nombre === 'USB' && this.mhz !== null && this.mhz < 10;
     },
     elegirModo(nombre) {
         const tipoAnterior = this.tipo;
 
         if (nombre === 'SSB') {
-            this.lateralManual = false;
-            this.modoId = String(this.modoPorNombre(this.lateralSugerida()).id);
+            if (! this.esSsb) {
+                this.modoId = String(this.modoPorNombre('USB').id);
+            }
         } else {
             this.modoId = String(this.modoPorNombre(nombre).id);
         }
@@ -173,13 +173,7 @@ Alpine.data('formularioContacto', (modos, modoInicial, bandas, frecuenciaInicial
         }
     },
     elegirLateral(nombre) {
-        this.lateralManual = true;
         this.modoId = String(this.modoPorNombre(nombre).id);
-    },
-    ajustarBandaLateral() {
-        if (this.esSsb && ! this.lateralManual) {
-            this.modoId = String(this.modoPorNombre(this.lateralSugerida()).id);
-        }
     },
     botonActivo(nombre) {
         return nombre === 'SSB' ? this.esSsb : this.modoActual?.nombre === nombre;
@@ -263,6 +257,156 @@ Alpine.data('formularioContacto', (modos, modoInicial, bandas, frecuenciaInicial
  *
  * @param {string} nombreArchivo  sin extensión
  */
+/**
+ * Foto de perfil con editor de recorte: se arrastra para mover y se acerca con el deslizador o la rueda.
+ * Al aplicar, el navegador dibuja el cuadro visible en un lienzo de 512×512 y pone ese JPG en el campo
+ * «foto» del formulario: así se sube ya recortada y liviana, aunque la original pese mucho.
+ */
+Alpine.data('fotoPerfil', (fotoGuardada) => ({
+    LADO: 288,
+    SALIDA: 512,
+    ZOOM_MAXIMO: 4,
+    vistaPrevia: fotoGuardada,
+    quitar: false,
+    original: null,
+    imagen: null,
+    arrastre: null,
+    editor: { abierto: false, src: null, ancho: 0, alto: 0, escala: 1, escalaMinima: 1, x: 0, y: 0 },
+
+    elegir(evento) {
+        const archivo = evento.target.files[0];
+        evento.target.value = '';
+
+        if (! archivo || ! archivo.type.startsWith('image/')) {
+            return;
+        }
+
+        this.original = URL.createObjectURL(archivo);
+        this.abrirEditor(this.original);
+    },
+
+    /** Vuelve a ajustar: la foto recién elegida (completa) o, si no hay, la que ya está guardada. */
+    ajustar() {
+        // La ruta relativa evita que el lienzo quede «contaminado» si APP_URL no coincide con el host actual.
+        this.abrirEditor(this.original ?? new URL(fotoGuardada, window.location.href).pathname);
+    },
+
+    abrirEditor(src) {
+        const imagen = new Image();
+        imagen.onload = () => {
+            this.imagen = imagen;
+            Object.assign(this.editor, { src, ancho: imagen.naturalWidth, alto: imagen.naturalHeight });
+            this.editor.escalaMinima = this.LADO / Math.min(imagen.naturalWidth, imagen.naturalHeight);
+            this.centrar();
+            this.editor.abierto = true;
+        };
+        imagen.src = src;
+    },
+
+    cerrarEditor() {
+        this.editor.abierto = false;
+        this.arrastre = null;
+    },
+
+    centrar() {
+        const e = this.editor;
+        e.escala = e.escalaMinima;
+        e.x = (this.LADO - e.ancho * e.escala) / 2;
+        e.y = (this.LADO - e.alto * e.escala) / 2;
+    },
+
+    /** La foto siempre cubre todo el cuadro: no se puede mover dejando bordes vacíos. */
+    limitar() {
+        const e = this.editor;
+        e.x = Math.min(0, Math.max(this.LADO - e.ancho * e.escala, e.x));
+        e.y = Math.min(0, Math.max(this.LADO - e.alto * e.escala, e.y));
+    },
+
+    /** Cambia el zoom manteniendo fijo el punto (cx, cy) del cuadro; por defecto, el centro. */
+    acercarA(escala, cx = this.LADO / 2, cy = this.LADO / 2) {
+        const e = this.editor;
+        const nueva = Math.min(e.escalaMinima * this.ZOOM_MAXIMO, Math.max(e.escalaMinima, escala));
+        e.x = cx - (cx - e.x) * (nueva / e.escala);
+        e.y = cy - (cy - e.y) * (nueva / e.escala);
+        e.escala = nueva;
+        this.limitar();
+    },
+
+    acercar(factor) {
+        this.acercarA(this.editor.escala * factor);
+    },
+
+    rueda(evento) {
+        const cuadro = evento.currentTarget.getBoundingClientRect();
+        this.acercarA(this.editor.escala * (evento.deltaY < 0 ? 1.08 : 1 / 1.08), evento.clientX - cuadro.left, evento.clientY - cuadro.top);
+    },
+
+    empezarArrastre(evento) {
+        evento.currentTarget.setPointerCapture(evento.pointerId);
+        this.arrastre = { px: evento.clientX, py: evento.clientY, x: this.editor.x, y: this.editor.y };
+    },
+
+    arrastrar(evento) {
+        if (! this.arrastre) {
+            return;
+        }
+        this.editor.x = this.arrastre.x + evento.clientX - this.arrastre.px;
+        this.editor.y = this.arrastre.y + evento.clientY - this.arrastre.py;
+        this.limitar();
+    },
+
+    soltar() {
+        this.arrastre = null;
+    },
+
+    aplicarRecorte() {
+        const e = this.editor;
+        const lienzo = document.createElement('canvas');
+        lienzo.width = lienzo.height = this.SALIDA;
+
+        const contexto = lienzo.getContext('2d');
+        contexto.fillStyle = '#ffffff';
+        contexto.fillRect(0, 0, this.SALIDA, this.SALIDA);
+        contexto.imageSmoothingQuality = 'high';
+        contexto.drawImage(this.imagen, -e.x / e.escala, -e.y / e.escala, this.LADO / e.escala, this.LADO / e.escala, 0, 0, this.SALIDA, this.SALIDA);
+
+        lienzo.toBlob((datos) => {
+            const transferencia = new DataTransfer();
+            transferencia.items.add(new File([datos], 'foto-perfil.jpg', { type: 'image/jpeg' }));
+            this.$refs.entrada.files = transferencia.files;
+
+            this.vistaPrevia = URL.createObjectURL(datos);
+            this.quitar = false;
+            this.cerrarEditor();
+        }, 'image/jpeg', 0.9);
+    },
+}));
+
+/**
+ * Secciones de «Mi perfil»: muestra una sola a la vez y la recuerda en el #hash de la URL,
+ * así el enlace «Cambiar contraseña» del menú abre directamente esa sección.
+ */
+Alpine.data('seccionesPerfil', (validas, inicial) => ({
+    seccion: validas[0],
+
+    init() {
+        const delHash = () => window.location.hash.slice(1);
+        this.seccion = [inicial, delHash()].find((s) => validas.includes(s)) ?? validas[0];
+        history.replaceState(null, '', `#${this.seccion}`);
+
+        window.addEventListener('hashchange', () => {
+            if (validas.includes(delHash())) {
+                this.seccion = delHash();
+            }
+        });
+    },
+
+    ir(seccion) {
+        this.seccion = seccion;
+        history.replaceState(null, '', `#${seccion}`);
+    },
+}));
+
 Alpine.data('tarjetaQsl', (nombreArchivo) => ({
     generando: false,
     error: '',

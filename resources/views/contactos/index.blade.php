@@ -94,7 +94,7 @@
                             <select id="modo_id" name="modo_id" class="campo">
                                 <option value="">Todos</option>
                                 @foreach ($modos as $modo)
-                                    <option value="{{ $modo->id }}" @selected((string) request('modo_id') === (string) $modo->id)>{{ $modo->nombre }}</option>
+                                    <option value="{{ $modo->id }}" @selected((string) request('modo_id') === (string) $modo->id)>{{ $modo->etiqueta }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -184,7 +184,7 @@
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-3.5 text-right font-mono tabular-nums text-acento-300">{{ number_format($contacto->frecuencia_mhz, 3) }}</td>
                                         <td class="whitespace-nowrap px-3 py-3.5"><x-banda-chip :banda="$contacto->banda->nombre" /></td>
-                                        <td class="whitespace-nowrap px-3 py-3.5 font-medium text-slate-300">{{ $contacto->modo->nombre }}</td>
+                                        <td class="whitespace-nowrap px-3 py-3.5 font-medium text-slate-300">{{ $contacto->modo->etiqueta }}</td>
                                         <td class="whitespace-nowrap px-3 py-3.5 font-mono tabular-nums text-slate-400">{{ $contacto->reporte_enviado }} / {{ $contacto->reporte_recibido }}</td>
                                         <td class="whitespace-nowrap px-3 py-3.5"><x-estado-qsl :estado="$contacto->estadoQsl()" /></td>
                                         <td class="whitespace-nowrap py-3.5 pl-3 pr-6 text-right">
@@ -217,7 +217,7 @@
                                 </div>
                                 <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
                                     <x-banda-chip :banda="$contacto->banda->nombre" />
-                                    <span class="chip border-white/10 bg-white/5 text-slate-300">{{ $contacto->modo->nombre }}</span>
+                                    <span class="chip border-white/10 bg-white/5 text-slate-300">{{ $contacto->modo->etiqueta }}</span>
                                     <span class="font-mono text-acento-300">{{ number_format($contacto->frecuencia_mhz, 3) }}</span>
                                     <span class="font-mono text-slate-400">{{ $contacto->reporte_enviado }}/{{ $contacto->reporte_recibido }}</span>
                                 </div>

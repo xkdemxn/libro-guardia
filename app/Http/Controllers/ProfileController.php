@@ -46,7 +46,9 @@ class ProfileController extends Controller
         $user->save();
         $user->visibilidad()->updateOrCreate([], $request->visibilidad());
 
-        return Redirect::route('profile.edit')->with('status', 'Perfil actualizado.');
+        return Redirect::route('profile.edit')
+            ->with('status', 'Perfil actualizado.')
+            ->with('seccion', $request->string('seccion')->toString());
     }
 
     private function borrarFoto(User $user): void

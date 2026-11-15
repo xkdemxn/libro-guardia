@@ -27,7 +27,7 @@
                     ['Fecha', $contacto->inicio_utc->format('Y-m-d'), false],
                     ['Hora UTC', $contacto->inicio_utc->format('H:i').($contacto->fin_utc ? ' → '.$contacto->fin_utc->format('H:i') : ''), true],
                     ['Frecuencia', number_format($contacto->frecuencia_mhz, 3).' MHz', true],
-                    ['Modo', $contacto->modo->nombre, false],
+                    ['Modo', $contacto->modo->etiqueta, false],
                     ['Reporte env / rec', $contacto->reporte_enviado.' / '.$contacto->reporte_recibido, true],
                     ['Potencia', $contacto->potencia_w ? rtrim(rtrim(number_format($contacto->potencia_w, 2, '.', ''), '0'), '.').' W' : '—', false],
                     ['Grid locator', $contacto->grid_locator ?? '—', true],

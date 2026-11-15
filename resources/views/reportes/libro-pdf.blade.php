@@ -151,7 +151,7 @@
                     <td>{{ $contacto->prefijoPais?->pais ?? '—' }}</td>
                     <td class="mono derecha">{{ number_format($contacto->frecuencia_mhz, 3) }}</td>
                     <td class="mono">{{ $contacto->banda->nombre }} <span class="tenue">{{ $contacto->banda->rango === 'MF' ? 'HF' : $contacto->banda->rango }}</span></td>
-                    <td class="mono">{{ $contacto->modo->nombre }}</td>
+                    <td class="mono">{{ $contacto->modo->etiqueta }}</td>
                     <td class="mono">{{ $contacto->reporte_enviado }} / {{ $contacto->reporte_recibido }}</td>
                     <td><span class="estado {{ $estado }}">{{ ucfirst($estado) }}</span></td>
                 </tr>
