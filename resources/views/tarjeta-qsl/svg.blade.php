@@ -1,146 +1,156 @@
 {{--
-    Tarjeta QSL en SVG (1400 × 900, proporción de tarjeta postal).
-    Variables: $contacto, $operador, $verificado, $fondo (foto personalizada del operador o null) y
-    $editable (opcional): en la página de la tarjeta la foto y el mensaje se enlazan con Alpine para verlos
-    cambiar en vivo. El archivo descargado nunca lleva esos enlaces.
+    Tarjeta QSL en SVG (1400 × 900), al estilo de las tarjetas impresas clásicas: foto de borde a borde, el
+    indicativo grande arriba, el mensaje abajo a la izquierda, el emblema y la bandera abajo a la derecha y una
+    franja amarilla con país, ciudad y zonas. El recuadro de arriba a la derecha confirma el QSO.
+    Variables: $contacto, $operador, $verificado, $fondo (foto del operador o null), $remitente (datos de la franja,
+    bandera y emblema) y $editable (opcional): en la página de la tarjeta la foto y el mensaje se enlazan con Alpine
+    para verlos cambiar en vivo. El archivo descargado nunca lleva esos enlaces.
 --}}
 @php
     $editable ??= false;
     $miIndicativo = $operador->indicativo;
-    // El indicativo se achica si es largo (ej. EA8/HC1QRC) para que no invada el bloque de la derecha.
-    $tamanoIndicativo = (int) min(170, 760 / (max(1, strlen($miIndicativo)) * 0.66));
-    $ubicacion = collect([$operador->ciudad, $operador->pais])->filter()->join(', ');
-    $estacion = collect([
-        $operador->grid_locator ? 'Grid '.$operador->grid_locator : null,
-        $operador->equipo_radio,
-        $operador->antena,
-    ])->filter()->join('  ·  ');
+    $tamanoIndicativo = (int) min(150, 900 / (max(1, mb_strlen($miIndicativo)) * 0.78));
     $recibida = $contacto->confirmacionesQsl->contains('recibida', true);
-    $columnas = [
+    $datosQso = [
         ['FECHA', mb_strtoupper(str_replace('.', '', $contacto->inicio_utc->locale('es')->translatedFormat('d M Y')))],
         ['HORA UTC', $contacto->inicio_utc->format('H:i')],
         ['MHz', rtrim(rtrim(number_format($contacto->frecuencia_mhz, 3, '.', ''), '0'), '.')],
         ['BANDA', $contacto->banda->nombre],
-        ['MODO', $contacto->modo->nombre],
+        ['MODO', $contacto->modo->etiqueta],
         ['RST', $contacto->reporte_enviado],
     ];
-    $fuenteTitulo = "Unbounded, Inter, 'Arial Black', Arial, sans-serif";
+    $lineas = $operador->lineasMensajeQsl();
+    $estacion = collect([$operador->equipo_radio, $operador->antena])->filter()->join('  ·  ');
+    $franja = $remitente['franja'];
+    $tamanoFranja = round(min(22, 1000 / (max(1, mb_strlen($franja)) * 0.52)), 1);
+    $tamanoInsignia = (int) min(30, 138 / (max(1, mb_strlen($miIndicativo)) * 0.62));
+    $fuenteTitulo = "'Arial Black', 'Archivo Black', Unbounded, Impact, Arial, sans-serif";
     $fuenteTexto = 'Inter, Arial, Helvetica, sans-serif';
     $fuenteMono = "'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace";
+    $mensajePredeterminado = \App\Models\User::MENSAJE_QSL_PREDETERMINADO;
 @endphp
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900" role="img"
      aria-label="Tarjeta QSL de {{ $miIndicativo }} para {{ $contacto->estacion_llamada }}">
     <defs>
-        <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#122038" />
-            <stop offset="0.55" stop-color="#0a1426" />
-            <stop offset="1" stop-color="#050a14" />
+        {{-- Fondo por defecto: atardecer andino --}}
+        <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0b1730" />
+            <stop offset="0.35" stop-color="#2b3f6b" />
+            <stop offset="0.58" stop-color="#8a5a6e" />
+            <stop offset="0.7" stop-color="#e58a3c" />
+            <stop offset="0.78" stop-color="#f7b955" />
         </linearGradient>
-        <radialGradient id="brilloAzul" cx="0.12" cy="0.1" r="0.6">
-            <stop offset="0" stop-color="#2a8fff" stop-opacity="0.35" />
-            <stop offset="1" stop-color="#2a8fff" stop-opacity="0" />
+        <radialGradient id="sol" cx="0.22" cy="0.74" r="0.32">
+            <stop offset="0" stop-color="#ffe7a3" stop-opacity="0.95" />
+            <stop offset="0.25" stop-color="#ffb347" stop-opacity="0.55" />
+            <stop offset="1" stop-color="#ff8a3d" stop-opacity="0" />
         </radialGradient>
-        <radialGradient id="brilloAmbar" cx="0.95" cy="1" r="0.55">
-            <stop offset="0" stop-color="#ffb84a" stop-opacity="0.18" />
-            <stop offset="1" stop-color="#ffb84a" stop-opacity="0" />
-        </radialGradient>
-        <linearGradient id="indicativo" x1="0" y1="0" x2="1" y2="0">
+        <linearGradient id="sombraSuperior" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#000000" stop-opacity="0.55" />
+            <stop offset="1" stop-color="#000000" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id="sombraInferior" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#000000" stop-opacity="0" />
+            <stop offset="1" stop-color="#000000" stop-opacity="0.8" />
+        </linearGradient>
+        <linearGradient id="franja" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffc928" />
+            <stop offset="1" stop-color="#f5a40b" />
+        </linearGradient>
+        <filter id="sombraTexto" x="-10%" y="-30%" width="120%" height="160%">
+            <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.65" />
+        </filter>
+        <clipPath id="recorteFoto"><rect width="1400" height="840" /></clipPath>
+        <clipPath id="recorteInsignia"><path d="M0 0H150V150L75 182 0 150Z" /></clipPath>
+        <linearGradient id="desvanecerFoto" x1="1" y1="0" x2="0.3" y2="0">
             <stop offset="0" stop-color="#ffffff" />
-            <stop offset="1" stop-color="#bfe0ff" />
+            <stop offset="0.4" stop-color="#ffffff" stop-opacity="0.85" />
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
         </linearGradient>
-        @if ($fondo || $editable)
-            <clipPath id="recorteTarjeta"><rect width="1400" height="900" rx="36" /></clipPath>
-            {{-- Degradado: la foto se ve completa a la derecha y se desvanece hasta la mitad --}}
-            <linearGradient id="desvanecerFoto" x1="1" y1="0" x2="0.4" y2="0">
-                <stop offset="0" stop-color="#ffffff" />
-                <stop offset="0.35" stop-color="#ffffff" stop-opacity="0.8" />
-                <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
-            </linearGradient>
-            <mask id="mascaraFoto"><rect width="1400" height="900" fill="url(#desvanecerFoto)" /></mask>
-            {{-- Sombra abajo para que los datos y el indicativo destinatario se lean sobre la foto --}}
-            <linearGradient id="sombraInferior" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0.35" stop-color="#050a14" stop-opacity="0" />
-                <stop offset="1" stop-color="#050a14" stop-opacity="0.85" />
-            </linearGradient>
-        @endif
+        <mask id="mascaraFoto"><rect width="1400" height="840" fill="url(#desvanecerFoto)" /></mask>
     </defs>
 
-    {{-- Fondo --}}
-    <rect width="1400" height="900" rx="36" fill="url(#fondo)" />
-    <rect width="1400" height="900" rx="36" fill="url(#brilloAzul)" />
-    <rect width="1400" height="900" rx="36" fill="url(#brilloAmbar)" />
+    {{-- Fondo por defecto (queda debajo de la foto cuando hay una) --}}
+    <rect width="1400" height="900" fill="url(#cielo)" />
+    <rect width="1400" height="840" fill="url(#sol)" />
+    <path d="M0 640 120 590 230 615 360 548 470 600 590 560 700 610 820 540 960 595 1080 552 1200 600 1310 566 1400 590V840H0Z" fill="#3a2a3f" fill-opacity="0.85" />
+    <path d="M0 700 150 650 300 690 420 640 560 690 700 655 860 700 1000 650 1150 695 1290 660 1400 690V840H0Z" fill="#1d1626" />
+    <path d="M0 760 200 725 380 755 560 720 760 760 960 728 1180 765 1400 735V840H0Z" fill="#0c0a12" />
+
+    {{-- Foto del operador --}}
     @if ($editable)
-        {{-- Foto en vivo: fondos.qsl viene del componente fotoPerfil de la página --}}
-        <g clip-path="url(#recorteTarjeta)" x-show="fondos.qsl.previa && ! fondos.qsl.quitar" @unless ($fondo) style="display: none" @endunless>
-            <image x="0" y="0" width="1400" height="900" preserveAspectRatio="xMidYMid slice"
+        <g clip-path="url(#recorteFoto)" x-show="fondos.qsl.previa && ! fondos.qsl.quitar" @unless ($fondo) style="display: none" @endunless>
+            <rect width="1400" height="840" fill="#05070d" x-show="fondos.qsl.estilo === 'completa'" />
+            <image x="0" y="0" width="1400" height="840" preserveAspectRatio="xMidYMid slice"
                    x-bind:href="fondos.qsl.previa"
                    x-bind:mask="fondos.qsl.estilo === 'degradado' ? 'url(#mascaraFoto)' : null"
                    x-bind:opacity="fondos.qsl.estilo === 'completa' ? fondos.qsl.opacidad / 100 : 1" />
-            <rect width="1400" height="900" fill="url(#sombraInferior)" />
         </g>
     @elseif ($fondo)
-        {{-- Foto personalizada del operador --}}
-        <g clip-path="url(#recorteTarjeta)">
-            <image href="{{ $fondo['data'] }}" x="0" y="0" width="1400" height="900" preserveAspectRatio="xMidYMid slice"
+        <g clip-path="url(#recorteFoto)">
+            @if ($fondo['estilo'] === 'completa')
+                <rect width="1400" height="840" fill="#05070d" />
+            @endif
+            <image href="{{ $fondo['data'] }}" x="0" y="0" width="1400" height="840" preserveAspectRatio="xMidYMid slice"
                    @if ($fondo['estilo'] === 'degradado') mask="url(#mascaraFoto)" @else opacity="{{ $fondo['opacidad'] / 100 }}" @endif />
-            <rect width="1400" height="900" fill="url(#sombraInferior)" />
         </g>
     @endif
-    <rect x="18" y="18" width="1364" height="864" rx="26" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="2" />
 
-    {{-- Ondas de radio saliendo de la antena (esquina superior derecha); con foto a la derecha no se dibujan --}}
-    @unless (! $editable && $fondo && $fondo['estilo'] === 'degradado')
-    <g @if ($editable) x-show="! (fondos.qsl.previa && ! fondos.qsl.quitar && fondos.qsl.estilo === 'degradado')" @endif>
-    <g fill="none" stroke="#52adff" stroke-linecap="round">
-        @foreach ([70 => 0.55, 125 => 0.4, 180 => 0.28, 235 => 0.18, 290 => 0.1] as $radio => $opacidad)
-            <circle cx="1240" cy="150" r="{{ $radio }}" stroke-opacity="{{ $opacidad }}" stroke-width="3" />
+    {{-- Sombras suaves para que el texto se lea sobre cualquier foto --}}
+    <rect width="1400" height="300" fill="url(#sombraSuperior)" />
+    <rect y="560" width="1400" height="280" fill="url(#sombraInferior)" />
+
+    {{-- Mi indicativo --}}
+    <text x="60" y="{{ 50 + $tamanoIndicativo }}" font-family="{{ $fuenteTitulo }}" font-size="{{ $tamanoIndicativo }}" font-weight="900"
+          fill="#ffffff" letter-spacing="10" filter="url(#sombraTexto)">{{ $miIndicativo }}</text>
+    <text x="66" y="{{ 100 + $tamanoIndicativo }}" font-family="{{ $fuenteTexto }}" font-size="30" font-weight="600" fill="#ffffff" fill-opacity="0.92" filter="url(#sombraTexto)">{{ $operador->nombre_completo }}</text>
+    @if ($estacion)
+        <text x="66" y="{{ 140 + $tamanoIndicativo }}" font-family="{{ $fuenteMono }}" font-size="20" fill="#ffffff" fill-opacity="0.75" filter="url(#sombraTexto)">{{ $estacion }}</text>
+    @endif
+
+    {{-- Recuadro del QSO --}}
+    <g transform="translate(840 50)">
+        <rect width="500" height="270" rx="20" fill="#000000" fill-opacity="0.5" stroke="#ffffff" stroke-opacity="0.2" stroke-width="2" />
+        <text x="30" y="44" font-family="{{ $fuenteTexto }}" font-size="16" font-weight="600" fill="#cbd5e1" letter-spacing="4">CONFIRMANDO QSO CON</text>
+        <text x="30" y="102" font-family="{{ $fuenteMono }}" font-size="{{ mb_strlen($contacto->estacion_llamada) > 10 ? 40 : 52 }}" font-weight="700" fill="#ffc928">{{ $contacto->estacion_llamada }}</text>
+        <line x1="30" y1="126" x2="470" y2="126" stroke="#ffffff" stroke-opacity="0.15" stroke-width="2" />
+        @foreach ($datosQso as $indice => [$titulo, $valor])
+            @php($centro = 500 / 6 * (2 * ($indice % 3) + 1))
+            @php($fila = intdiv($indice, 3))
+            <text x="{{ $centro }}" y="{{ 160 + $fila * 66 }}" text-anchor="middle" font-family="{{ $fuenteTexto }}" font-size="13" font-weight="600" fill="#94a3b8" letter-spacing="3">{{ $titulo }}</text>
+            <text x="{{ $centro }}" y="{{ 192 + $fila * 66 }}" text-anchor="middle" font-family="{{ $fuenteMono }}" font-size="{{ mb_strlen($valor) > 9 ? 20 : 26 }}" font-weight="600" fill="#ffffff">{{ $valor }}</text>
         @endforeach
     </g>
-    <g transform="translate(1210 112) scale(1.25)" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M24 22 16 44M24 22l8 22M18.5 37h11" />
-        <circle cx="24" cy="18" r="3.5" fill="#ffffff" stroke="none" />
-        <path d="M16.5 10.5a10.5 10.5 0 0 0 0 15M31.5 10.5a10.5 10.5 0 0 1 0 15" />
-    </g>
-    </g>
-    @endunless
-
-    {{-- Encabezado --}}
-    <rect x="80" y="76" width="96" height="44" rx="22" fill="#2a8fff" />
-    <text x="128" y="106" text-anchor="middle" font-family="{{ $fuenteTitulo }}" font-size="22" font-weight="700" fill="#ffffff" letter-spacing="3">QSL</text>
-    <text x="196" y="106" font-family="{{ $fuenteTexto }}" font-size="18" font-weight="600" fill="#9fb3d3" letter-spacing="6">LIBRO DE GUARDIA</text>
-
-    {{-- Mi estación --}}
-    <text x="76" y="{{ 180 + $tamanoIndicativo }}" font-family="{{ $fuenteTitulo }}" font-size="{{ $tamanoIndicativo }}" font-weight="700" fill="url(#indicativo)" letter-spacing="2">{{ $miIndicativo }}</text>
-    <text x="82" y="{{ 240 + $tamanoIndicativo }}" font-family="{{ $fuenteTexto }}" font-size="32" font-weight="500" fill="#e8eef8">{{ $operador->nombre_completo }}@if ($ubicacion) <tspan fill="#7189b3">·  {{ $ubicacion }}</tspan>@endif</text>
-    @if ($estacion)
-        <text x="82" y="{{ 288 + $tamanoIndicativo }}" font-family="{{ $fuenteMono }}" font-size="22" fill="#7189b3">{{ $estacion }}</text>
-    @endif
-
-    {{-- Estación destinataria --}}
-    <text x="1320" y="490" text-anchor="end" font-family="{{ $fuenteTexto }}" font-size="18" font-weight="600" fill="#9fb3d3" letter-spacing="6">PARA LA ESTACIÓN</text>
-    <text x="1320" y="560" text-anchor="end" font-family="{{ $fuenteMono }}" font-size="64" font-weight="700" fill="#ffb84a">{{ $contacto->estacion_llamada }}</text>
-
-    {{-- Datos del contacto --}}
-    <rect x="80" y="600" width="1240" height="150" rx="24" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.14" stroke-width="2" />
-    @foreach ($columnas as $indice => [$titulo, $valor])
-        @php($centro = 80 + 1240 / 6 * ($indice + 0.5))
-        @if ($indice > 0)
-            <line x1="{{ 80 + 1240 / 6 * $indice }}" y1="625" x2="{{ 80 + 1240 / 6 * $indice }}" y2="725" stroke="#ffffff" stroke-opacity="0.1" stroke-width="2" />
-        @endif
-        <text x="{{ $centro }}" y="655" text-anchor="middle" font-family="{{ $fuenteTexto }}" font-size="16" font-weight="600" fill="#7189b3" letter-spacing="4">{{ $titulo }}</text>
-        <text x="{{ $centro }}" y="708" text-anchor="middle" font-family="{{ $fuenteMono }}" font-size="{{ mb_strlen($valor) > 9 ? 28 : 36 }}" font-weight="600" fill="#ffffff">{{ $valor }}</text>
-    @endforeach
-
-    {{-- Pie --}}
-    <text x="82" y="820" font-family="{{ $fuenteTexto }}" font-size="{{ mb_strlen($operador->mensajeQsl()) > 45 ? 22 : 28 }}" fill="#e2e9f5"
-          @if ($editable) x-text="mensajeQsl.trim() || @js(\App\Models\User::MENSAJE_QSL_PREDETERMINADO)" x-bind:font-size="(mensajeQsl.trim() || @js(\App\Models\User::MENSAJE_QSL_PREDETERMINADO)).length > 45 ? 22 : 28" @endif>{{ $operador->mensajeQsl() }}</text>
-    <text x="82" y="852" font-family="{{ $fuenteMono }}" font-size="18" fill="#4d6690">{{ $recibida ? 'TNX QSL' : 'PSE QSL TNX' }}  ·  QSO #{{ $contacto->id }}</text>
-
     @if ($verificado)
-        <g transform="translate(1320 812)">
-            <rect x="-372" y="-34" width="372" height="52" rx="26" fill="#34d399" fill-opacity="0.12" stroke="#34d399" stroke-opacity="0.45" stroke-width="2" />
-            <circle cx="-346" cy="-8" r="7" fill="#34d399" />
-            <text x="-24" y="0" text-anchor="end" font-family="{{ $fuenteTexto }}" font-size="20" font-weight="600" fill="#a7f3d0">Verificado en Libro de Guardia</text>
+        <g transform="translate(1340 362)">
+            <rect x="-340" y="-28" width="340" height="44" rx="22" fill="#052e1f" fill-opacity="0.75" stroke="#34d399" stroke-opacity="0.6" stroke-width="2" />
+            <circle cx="-316" cy="-6" r="6" fill="#34d399" />
+            <text x="-20" y="0" text-anchor="end" font-family="{{ $fuenteTexto }}" font-size="18" font-weight="600" fill="#a7f3d0">Verificado en Libro de Guardia</text>
         </g>
     @endif
+
+    {{-- Mensaje (hasta 3 líneas) y pie --}}
+    @foreach ([0, 1, 2] as $i)
+        <text x="40" y="{{ 788 - (count($lineas) - 1 - $i) * 34 }}" font-family="{{ $fuenteTexto }}" font-size="24" fill="#ffffff" filter="url(#sombraTexto)"
+              @if ($editable) x-text="lineasQsl[{{ $i }}] ?? ''" x-bind:y="788 - (lineasQsl.length - 1 - {{ $i }}) * 34" @endif>{{ $lineas[$i] ?? '' }}</text>
+    @endforeach
+    <text x="40" y="822" font-family="{{ $fuenteMono }}" font-size="17" fill="#ffffff" fill-opacity="0.7">{{ $recibida ? 'TNX QSL' : 'PSE QSL TNX' }}  ·  QSO #{{ $contacto->id }}</text>
+
+    {{-- Emblema y escudo con la bandera --}}
+    <image href="{{ $remitente['emblema'] }}" x="{{ $remitente['bandera'] ? 1005 : 1175 }}" y="640" width="172" height="172" />
+    @if ($remitente['bandera'])
+        <g transform="translate(1200 638)">
+            <g clip-path="url(#recorteInsignia)">
+                <rect width="150" height="182" fill="#ffffff" />
+                <image href="{{ $remitente['bandera'] }}" y="46" width="150" height="136" preserveAspectRatio="xMidYMid slice" />
+            </g>
+            <text x="75" y="33" text-anchor="middle" font-family="{{ $fuenteTitulo }}" font-size="{{ $tamanoInsignia }}" font-weight="900" fill="#c8102e">{{ $miIndicativo }}</text>
+            <path d="M0 0H150V150L75 182 0 150Z" fill="none" stroke="#ffffff" stroke-width="3" />
+        </g>
+    @endif
+
+    {{-- Franja inferior --}}
+    <rect y="840" width="1400" height="60" fill="url(#franja)" />
+    <text x="30" y="878" font-family="{{ $fuenteTexto }}" font-size="{{ $tamanoFranja }}" font-weight="500" fill="#2a1a00">{{ $franja }}</text>
+    <text x="1370" y="877" text-anchor="end" font-family="{{ $fuenteTexto }}" font-size="14" font-weight="700" fill="#2a1a00" fill-opacity="0.7" letter-spacing="3">LIBRO DE GUARDIA</text>
 </svg>

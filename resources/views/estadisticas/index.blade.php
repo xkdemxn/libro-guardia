@@ -140,16 +140,16 @@
                                 'bg-white/5 text-slate-500' => $zona['contactos'] === 0,
                             ])>{{ $zona['numero'] }}</span>
                             <span class="min-w-0 flex-1">
-                                <span class="flex flex-wrap items-center gap-x-2 text-sm font-medium {{ $zona['contactos'] > 0 ? 'text-slate-100' : 'text-slate-400' }}">
+                                <span class="flex flex-wrap items-center gap-x-2 text-base font-medium {{ $zona['contactos'] > 0 ? 'text-slate-100' : 'text-slate-400' }}">
                                     HC{{ $zona['numero'] }} · HD{{ $zona['numero'] }}
                                     @if ($zona['propia'])
-                                        <span class="rounded-full bg-acento-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-acento-300">Tu zona</span>
+                                        <span class="rounded-full bg-acento-400/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-acento-300">Tu zona</span>
                                     @endif
                                 </span>
-                                <span class="mt-0.5 block text-xs leading-relaxed text-slate-500">{{ implode(', ', $zona['provincias']) }}</span>
+                                <span class="mt-1 block text-[13px] leading-relaxed text-slate-400">{{ implode(', ', $zona['provincias']) }}</span>
                             </span>
                             <span class="shrink-0 text-right">
-                                <span class="block font-mono text-sm tabular-nums {{ $zona['contactos'] > 0 ? 'text-amber-200' : 'text-slate-600' }}">{{ $zona['contactos'] }}</span>
+                                <span class="block font-mono text-base tabular-nums {{ $zona['contactos'] > 0 ? 'text-amber-200' : 'text-slate-600' }}">{{ $zona['contactos'] }}</span>
                                 <span class="sr-only">contactos</span>
                             </span>
                         </li>

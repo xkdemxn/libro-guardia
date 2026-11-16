@@ -142,8 +142,8 @@
                 <button type="button" role="radio" x-on:click="elegirBanda(opcion)" x-bind:aria-checked="banda === opcion.nombre"
                         class="rounded-2xl border px-3 py-2.5 text-left transition"
                         x-bind:class="banda === opcion.nombre ? 'border-acento-400/60 bg-acento-400/10 shadow-[0_0_0_3px_rgb(82_173_255/0.12)]' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05]'">
-                    <span class="block font-mono text-sm font-semibold text-white" x-text="opcion.nombre"></span>
-                    <span class="block font-mono text-[11px] text-slate-500" x-text="`${opcion.min.toFixed(3)}–${opcion.max.toFixed(3)}`"></span>
+                    <span class="block font-mono text-base font-semibold text-white" x-text="opcion.nombre"></span>
+                    <span class="mt-0.5 block font-mono text-[13px] text-slate-400" x-text="`${opcion.min.toFixed(3)}–${opcion.max.toFixed(3)}`"></span>
                 </button>
             </template>
         </div>

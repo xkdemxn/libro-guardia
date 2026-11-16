@@ -10,6 +10,7 @@ use App\Models\Modo;
 use App\Models\User;
 use Database\Seeders\BandaSeeder;
 use Database\Seeders\ModoSeeder;
+use Database\Seeders\PrefijoPaisSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -24,12 +25,13 @@ class TarjetaQslTest extends TestCase
      */
     private function contactoConTarjeta(): array
     {
-        $this->seed([BandaSeeder::class, ModoSeeder::class]);
+        $this->seed([BandaSeeder::class, ModoSeeder::class, PrefijoPaisSeeder::class]);
         $operador = User::factory()->create([
             'indicativo' => 'HC1QRC',
             'nombres' => 'Ana',
             'apellidos' => 'Pérez',
             'ciudad' => 'Quito',
+            'provincia' => 'Pichincha',
             'pais' => 'Ecuador',
             'grid_locator' => 'FI09',
         ]);
@@ -52,7 +54,8 @@ class TarjetaQslTest extends TestCase
         $this->actingAs($operador)
             ->get(route('contactos.tarjeta', $contacto))
             ->assertOk()
-            ->assertSeeInOrder(['HC1QRC', 'Ana Pérez', 'Quito, Ecuador', 'Grid FI09', 'PARA LA ESTACIÓN', 'LU4BB'])
+            ->assertSeeInOrder(['HC1QRC', 'Ana Pérez', 'CONFIRMANDO QSO CON', 'LU4BB'])
+            ->assertSee('Ecuador, Sudamérica   ·   Quito - Pichincha   ·   ITU 12 - CQ 10   ·   Zona 1   ·   Grid FI09')
             ->assertSee('27 OCT 2026')
             ->assertSee('12:15')
             ->assertSee('14.225')
@@ -141,7 +144,7 @@ class TarjetaQslTest extends TestCase
         [$operador] = $this->contactoConTarjeta();
 
         $this->actingAs($operador)
-            ->patch(route('tarjeta-qsl.personalizar'), ['qsl_mensaje' => str_repeat('a', 71), 'qsl_foto_estilo' => 'completa', 'qsl_foto_opacidad' => 90])
+            ->patch(route('tarjeta-qsl.personalizar'), ['qsl_mensaje' => str_repeat('a', 151), 'qsl_foto_estilo' => 'completa', 'qsl_foto_opacidad' => 110])
             ->assertSessionHasErrors(['qsl_mensaje', 'qsl_foto_opacidad']);
     }
 
@@ -155,14 +158,31 @@ class TarjetaQslTest extends TestCase
         $this->assertStringNotContainsString('x-show', $svg);
     }
 
-    public function test_sin_foto_la_tarjeta_conserva_su_diseno_original(): void
+    public function test_sin_foto_la_tarjeta_usa_el_atardecer_y_lleva_emblema_y_bandera(): void
     {
         [$operador, $contacto] = $this->contactoConTarjeta();
 
         $svg = $this->actingAs($operador)->get(route('contactos.tarjeta.svg', $contacto))->getContent();
 
-        $this->assertStringNotContainsString('<image', $svg);
+        $this->assertStringNotContainsString('image/jpeg', $svg);
+        $this->assertStringContainsString('<image href="data:image/png;base64,', $svg);
+        $this->assertStringContainsString('<image href="data:image/svg+xml;base64,', $svg);
         $this->assertStringContainsString('Confirmando nuestro QSO. ¡Gracias y 73!', $svg);
+    }
+
+    public function test_el_mensaje_largo_se_parte_en_lineas_respetando_los_saltos(): void
+    {
+        [$operador, $contacto] = $this->contactoConTarjeta();
+
+        $this->actingAs($operador)->patch(route('tarjeta-qsl.personalizar'), [
+            'qsl_mensaje' => "Los Andes, serranía ecuatoriana, puesta de sol a 2668 msnm\r\nTNX QSO 73",
+        ]);
+
+        $this->assertSame(
+            ['Los Andes, serranía ecuatoriana, puesta de sol a 2668 msnm', 'TNX QSO 73'],
+            $operador->refresh()->lineasMensajeQsl(),
+        );
+        $this->assertStringContainsString('>TNX QSO 73</text>', $this->get(route('contactos.tarjeta.svg', $contacto))->getContent());
     }
 
     public function test_no_se_puede_ver_la_tarjeta_de_un_contacto_ajeno(): void

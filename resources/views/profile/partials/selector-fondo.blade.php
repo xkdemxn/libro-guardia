@@ -1,8 +1,13 @@
 {{--
     Controles de una imagen de fondo (portada del perfil o foto de la tarjeta QSL): subir/quitar, estilo y opacidad.
-    Variables: $clave (fondos.{clave} en fotoPerfil), $campo (nombre del campo), $guardada, $quitarTexto, $estilos.
+    Variables: $clave (fondos.{clave} en fotoPerfil), $campo (nombre del campo), $guardada, $quitarTexto, $estilos
+    y, opcionales, $opacidadMaxima (50 por defecto) y $textoOpacidad.
 --}}
-@php($estado = "fondos.{$clave}")
+@php
+    $estado = "fondos.{$clave}";
+    $opacidadMaxima ??= 50;
+    $textoOpacidad ??= 'Máximo 50 %, para que tu indicativo y tus datos se sigan leyendo bien.';
+@endphp
 
 {{-- Imagen --}}
 <div class="mt-6 flex flex-wrap items-center gap-3">
@@ -49,9 +54,9 @@
             <label for="{{ $campo }}_opacidad" class="text-sm font-medium text-slate-300">Opacidad</label>
             <span class="font-mono text-sm text-acento-300" x-text="`${ {{ $estado }}.opacidad } %`"></span>
         </div>
-        <input id="{{ $campo }}_opacidad" type="range" name="{{ $campo }}_opacidad" min="10" max="50" step="5"
+        <input id="{{ $campo }}_opacidad" type="range" name="{{ $campo }}_opacidad" min="10" max="{{ $opacidadMaxima }}" step="5"
                x-model.number="{{ $estado }}.opacidad" class="mt-2 h-1.5 w-full cursor-pointer accent-marca-500">
-        <p class="mt-1 text-xs text-slate-500">Máximo 50 %, para que tu indicativo y tus datos se sigan leyendo bien.</p>
+        <p class="mt-1 text-xs text-slate-500">{{ $textoOpacidad }}</p>
         <x-input-error :messages="$errors->get($campo.'_opacidad')" />
     </div>
 </fieldset>

@@ -16,7 +16,7 @@
     $seccionInicial = match (true) {
         $errors->updatePassword->isNotEmpty() => 'contrasena',
         $errors->userDeletion->isNotEmpty() => 'cuenta',
-        $errors->hasAny(['foto', 'nombres', 'apellidos', 'email', 'pais', 'ciudad']) => 'datos',
+        $errors->hasAny(['foto', 'nombres', 'apellidos', 'email', 'pais', 'provincia', 'ciudad']) => 'datos',
         $errors->hasAny(['grid_locator', 'equipo_radio', 'antena', 'biografia']) => 'estacion',
         $errors->hasAny(['portada', 'portada_estilo', 'portada_opacidad']) => 'portada',
         default => old('seccion', session('seccion')),

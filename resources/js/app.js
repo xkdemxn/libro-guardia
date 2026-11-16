@@ -258,6 +258,88 @@ Alpine.data('formularioContacto', (modos, modoInicial, bandas, frecuenciaInicial
  * @param {string} nombreArchivo  sin extensión
  */
 /**
+ * Parte el mensaje de la tarjeta QSL en líneas de hasta 64 caracteres (máximo 3), respetando los saltos
+ * de línea. Es la misma regla que User::lineasMensajeQsl() en el servidor.
+ *
+ * @param {string} texto
+ * @returns {string[]}
+ */
+window.partirMensajeQsl = (texto, ancho = 64, maximo = 3) => {
+    const lineas = [];
+
+    for (const parrafo of texto.split(/\r?\n/)) {
+        let actual = '';
+        for (const palabra of parrafo.trim().split(/\s+/).filter(Boolean)) {
+            if (actual !== '' && `${actual} ${palabra}`.length > ancho) {
+                lineas.push(actual);
+                actual = palabra;
+            } else {
+                actual = actual === '' ? palabra : `${actual} ${palabra}`;
+            }
+        }
+        if (actual !== '') {
+            lineas.push(actual);
+        }
+    }
+
+    return lineas.slice(0, maximo);
+};
+
+/**
+ * País, provincia y ciudad del perfil. Las opciones iniciales vienen del servidor; al cambiar de país
+ * o de provincia se rehace la lista de ciudades (en Ecuador, los cantones agrupados por provincia).
+ *
+ * @param {{paises: string[], ecuador: Object<string, string[]>, ciudades: Object<string, string[]>}} datos
+ * @param {string|null} paisPrefijo  país del indicativo, usado cuando no se elige ninguno
+ */
+Alpine.data('ubicacionPerfil', (datos, paisPrefijo) => ({
+    pais: '',
+    provincia: '',
+
+    init() {
+        this.pais = this.$refs.pais.value;
+        this.provincia = this.esEcuador ? this.$refs.provincia.value : '';
+    },
+
+    get esEcuador() {
+        return ['Ecuador', 'Islas Galápagos'].includes(this.pais || paisPrefijo);
+    },
+
+    cambiarPais() {
+        this.pais = this.$refs.pais.value;
+        this.provincia = '';
+        this.$refs.provincia.value = '';
+        this.llenarCiudades();
+    },
+
+    cambiarProvincia() {
+        this.provincia = this.$refs.provincia.value;
+        this.llenarCiudades();
+    },
+
+    llenarCiudades() {
+        const grupos = this.esEcuador
+            ? (this.provincia ? { '': datos.ecuador[this.provincia] ?? [] } : datos.ecuador)
+            : { '': datos.ciudades[this.pais || paisPrefijo] ?? [] };
+        const opciones = (lista) => lista.map((ciudad) => new Option(ciudad, ciudad));
+
+        this.$refs.ciudad.replaceChildren(
+            new Option('Elige una ciudad', ''),
+            ...Object.entries(grupos).flatMap(([grupo, lista]) => {
+                if (grupo === '') {
+                    return opciones(lista);
+                }
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = grupo;
+                optgroup.append(...opciones(lista));
+                return [optgroup];
+            }),
+        );
+        this.$refs.ciudad.dispatchEvent(new Event('change', { bubbles: true }));
+    },
+}));
+
+/**
  * Foto de perfil con editor de recorte: se arrastra para mover y se acerca con el deslizador o la rueda.
  * Al aplicar, el navegador dibuja el cuadro visible en un lienzo de 512×512 y pone ese JPG en el campo
  * «foto» del formulario: así se sube ya recortada y liviana, aunque la original pese mucho.
@@ -275,7 +357,7 @@ Alpine.data('fotoPerfil', (fotoGuardada, conErrores = false, portada = {}, fotoQ
     /** Imágenes de fondo: portada del perfil público y foto de las tarjetas QSL (lado mayor máximo en px). */
     fondos: {
         portada: { previa: portada.url ?? null, quitar: false, estilo: portada.estilo ?? 'degradado', opacidad: portada.opacidad ?? 35, lado: 1800 },
-        qsl: { previa: fotoQsl.url ?? null, quitar: false, estilo: fotoQsl.estilo ?? 'degradado', opacidad: fotoQsl.opacidad ?? 35, lado: 1400 },
+        qsl: { previa: fotoQsl.url ?? null, quitar: false, estilo: fotoQsl.estilo ?? 'completa', opacidad: fotoQsl.opacidad ?? 100, lado: 1400 },
     },
     formulario: null,
     estadoInicial: null,

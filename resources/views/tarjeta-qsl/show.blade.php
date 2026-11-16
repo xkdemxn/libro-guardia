@@ -16,7 +16,10 @@
              'opacidad' => (int) old('qsl_foto_opacidad', $operador->qsl_foto_opacidad),
          ]))"
          x-on:input="revisarCambios()" x-on:change="revisarCambios()">
-        <div x-data="{ mensajeQsl: @js(old('qsl_mensaje', $operador->qsl_mensaje) ?? '') }" class="space-y-6">
+        <div x-data="{
+                mensajeQsl: @js(old('qsl_mensaje', $operador->qsl_mensaje) ?? ''),
+                get lineasQsl() { return partirMensajeQsl(this.mensajeQsl.trim() || @js(\App\Models\User::MENSAJE_QSL_PREDETERMINADO)) },
+             }" class="space-y-6">
             <div x-data="tarjetaQsl(@js($nombreArchivo))" class="space-y-4">
                 <div x-ref="tarjeta" class="overflow-hidden rounded-[1.6rem] shadow-vidrio-lg ring-1 ring-white/10 [&>svg]:h-auto [&>svg]:w-full">
                     @include('tarjeta-qsl.svg', ['editable' => true])
@@ -58,28 +61,30 @@
                                 'guardada' => $operador->qsl_foto_path !== null,
                                 'quitarTexto' => 'Quitar foto',
                                 'estilos' => [
-                                    'degradado' => ['Foto a la derecha', 'Se ve completa a la derecha y se desvanece hasta la mitad.'],
-                                    'completa' => ['Fondo completo', 'Cubre toda la tarjeta, con la transparencia que elijas.'],
+                                    'completa' => ['Foto completa', 'Cubre toda la tarjeta, como las QSL impresas.'],
+                                    'degradado' => ['Foto a la derecha', 'Se desvanece hacia la izquierda sobre el atardecer.'],
                                 ],
+                                'opacidadMaxima' => 100,
+                                'textoOpacidad' => 'Bájala si quieres que se vea el atardecer de fondo.',
                             ])
                         </div>
 
                         <div>
                             <h2 class="font-display text-base font-semibold text-white">Mensaje</h2>
-                            <p class="mt-1 text-sm text-slate-400">El texto al pie de la tarjeta.</p>
+                            <p class="mt-1 text-sm text-slate-400">Abajo a la izquierda, hasta 3 líneas: cuenta qué se ve en la foto o deja un saludo.</p>
                             <div class="mt-6">
                                 <label for="qsl_mensaje" class="sr-only">Mensaje de la tarjeta</label>
-                                <textarea id="qsl_mensaje" name="qsl_mensaje" rows="3" maxlength="{{ \App\Http\Requests\PersonalizarTarjetaQslRequest::MENSAJE_MAXIMO }}"
+                                <textarea id="qsl_mensaje" name="qsl_mensaje" rows="4" maxlength="{{ \App\Http\Requests\PersonalizarTarjetaQslRequest::MENSAJE_MAXIMO }}"
                                           x-model="mensajeQsl"
                                           placeholder="{{ \App\Models\User::MENSAJE_QSL_PREDETERMINADO }}" class="campo resize-none"></textarea>
                                 <div class="mt-1.5 flex items-center justify-between text-xs text-slate-500">
-                                    <span>Déjalo vacío para usar el mensaje por defecto.</span>
+                                    <span>Enter para cambiar de línea · vacío usa el mensaje por defecto.</span>
                                     <span class="tabular-nums" x-text="`${mensajeQsl.length} / {{ \App\Http\Requests\PersonalizarTarjetaQslRequest::MENSAJE_MAXIMO }}`"></span>
                                 </div>
                                 <div class="mt-3 flex flex-wrap gap-2">
-                                    @foreach (['¡Gracias por el QSO y 73!', 'TNX QSO · 73 desde Ecuador', 'Un placer el contacto. ¡Buen DX!'] as $sugerencia)
+                                    @foreach (['¡Gracias por el QSO y 73!', "Los Andes, serranía ecuatoriana.\nTNX QSO 73", 'Un placer el contacto. ¡Buen DX!'] as $sugerencia)
                                         <button type="button" class="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300 ring-1 ring-white/10 transition hover:bg-white/10"
-                                                x-on:click="mensajeQsl = @js($sugerencia); $nextTick(() => revisarCambios())">{{ $sugerencia }}</button>
+                                                x-on:click="mensajeQsl = @js($sugerencia); $nextTick(() => revisarCambios())">{{ str_replace("\n", ' · ', $sugerencia) }}</button>
                                     @endforeach
                                 </div>
                                 <x-input-error :messages="$errors->get('qsl_mensaje')" />

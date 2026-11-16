@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\PrefijoPais;
 use App\Models\User;
+use App\Support\Ubicaciones;
+use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -33,6 +36,19 @@ class ProfileUpdateRequest extends FormRequest
         if ($this->filled('grid_locator')) {
             $this->merge(['grid_locator' => strtoupper(trim($this->input('grid_locator')))]);
         }
+
+        // La provincia solo existe para Ecuador.
+        if (! Ubicaciones::esEcuador($this->paisEfectivo())) {
+            $this->merge(['provincia' => null]);
+        }
+    }
+
+    /**
+     * País elegido o, si se dejó vacío, el que corresponde al prefijo del indicativo.
+     */
+    public function paisEfectivo(): ?string
+    {
+        return $this->input('pais') ?: PrefijoPais::paraIndicativo($this->user()->indicativo)?->pais;
     }
 
     /**
@@ -53,8 +69,12 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
-            'pais' => ['nullable', 'string', 'max:100'],
-            'ciudad' => ['nullable', 'string', 'max:100'],
+            'pais' => ['nullable', 'string', $this->deLaLista(Ubicaciones::paises(), $this->user()->pais)],
+            'provincia' => ['nullable', 'string', Rule::in(Ubicaciones::provincias())],
+            'ciudad' => ['nullable', 'string', $this->deLaLista(
+                Ubicaciones::ciudades($this->paisEfectivo(), $this->input('provincia')),
+                $this->user()->ciudad,
+            )],
             'grid_locator' => ['nullable', 'regex:/^[A-R]{2}[0-9]{2}([A-X]{2})?$/'],
             'equipo_radio' => ['nullable', 'string', 'max:255'],
             'antena' => ['nullable', 'string', 'max:255'],
@@ -96,6 +116,7 @@ class ProfileUpdateRequest extends FormRequest
             'portada.max' => 'La portada no puede pesar más de 4 MB.',
             'portada_estilo.in' => 'Elige «Degradado» o «Tarjeta completa».',
             'portada_opacidad.between' => 'La opacidad debe estar entre 10 % y 50 %.',
+            'provincia.in' => 'Elige una provincia de la lista.',
             'grid_locator.regex' => 'El grid locator debe tener el formato FI09 o FI09AA.',
         ];
     }
@@ -107,10 +128,32 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function datosOperador(): array
     {
-        return $this->safe()->only([
-            'nombres', 'apellidos', 'email', 'pais', 'ciudad', 'grid_locator', 'equipo_radio', 'antena', 'biografia',
+        $datos = $this->safe()->only([
+            'nombres', 'apellidos', 'email', 'pais', 'provincia', 'ciudad', 'grid_locator', 'equipo_radio', 'antena', 'biografia',
             'portada_estilo', 'portada_opacidad',
         ]);
+
+        // Un cantón ecuatoriano elegido sin provincia: se completa con la suya.
+        if (empty($datos['provincia']) && ! empty($datos['ciudad']) && Ubicaciones::esEcuador($this->paisEfectivo())) {
+            $datos['provincia'] = Ubicaciones::provinciaDe($datos['ciudad']);
+        }
+
+        return $datos;
+    }
+
+    /**
+     * El valor tiene que salir del desplegable; se acepta también el que ya estaba guardado
+     * (perfiles escritos a mano antes de que existieran las listas).
+     *
+     * @param  list<string>  $opciones
+     */
+    private function deLaLista(array $opciones, ?string $guardado): Closure
+    {
+        return function (string $atributo, mixed $valor, Closure $fallar) use ($opciones, $guardado): void {
+            if (! in_array($valor, $opciones, true) && $valor !== $guardado) {
+                $fallar('Elige '.($atributo === 'pais' ? 'un país' : 'una ciudad').' de la lista.');
+            }
+        };
     }
 
     /**

@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Storage;
  * Operador: radioaficionado registrado dueño de un libro de guardia.
  */
 #[Fillable([
-    'indicativo', 'nombres', 'apellidos', 'pais', 'ciudad', 'grid_locator',
+    'indicativo', 'nombres', 'apellidos', 'pais', 'provincia', 'ciudad', 'grid_locator',
     'equipo_radio', 'antena', 'biografia', 'email', 'password', 'portada_estilo', 'portada_opacidad',
     'qsl_foto_estilo', 'qsl_foto_opacidad', 'qsl_mensaje',
 ])]
@@ -95,6 +95,34 @@ class User extends Authenticatable
     }
 
     /**
+     * El mensaje de la tarjeta partido en líneas para el SVG (los saltos de línea del operador se respetan).
+     * resources/js/app.js (partirMensajeQsl) hace lo mismo para la vista previa en vivo.
+     *
+     * @return list<string>
+     */
+    public function lineasMensajeQsl(int $ancho = 64, int $maximo = 3): array
+    {
+        $lineas = [];
+
+        foreach (preg_split('/\R/u', $this->mensajeQsl()) as $parrafo) {
+            $actual = '';
+            foreach (preg_split('/\s+/u', trim($parrafo), -1, PREG_SPLIT_NO_EMPTY) as $palabra) {
+                if ($actual !== '' && mb_strlen($actual.' '.$palabra) > $ancho) {
+                    $lineas[] = $actual;
+                    $actual = $palabra;
+                } else {
+                    $actual = $actual === '' ? $palabra : $actual.' '.$palabra;
+                }
+            }
+            if ($actual !== '') {
+                $lineas[] = $actual;
+            }
+        }
+
+        return array_slice($lineas, 0, $maximo);
+    }
+
+    /**
      * Reemplaza o quita una imagen del perfil (foto, portada o foto de la tarjeta QSL) en el disco
      * público, borrando la anterior. No guarda el modelo.
      */
@@ -138,7 +166,7 @@ class User extends Authenticatable
         return [
             'data' => 'data:'.$disco->mimeType($this->qsl_foto_path).';base64,'.base64_encode($disco->get($this->qsl_foto_path)),
             'estilo' => $this->qsl_foto_estilo,
-            'opacidad' => min(50, max(10, (int) $this->qsl_foto_opacidad)),
+            'opacidad' => min(100, max(10, (int) $this->qsl_foto_opacidad)),
         ];
     }
 

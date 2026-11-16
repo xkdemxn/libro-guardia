@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Enums\TipoQsl;
 use App\Http\Requests\PersonalizarTarjetaQslRequest;
 use App\Models\Contacto;
+use App\Models\PrefijoPais;
 use App\Models\User;
+use App\Support\Ubicaciones;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -68,7 +70,7 @@ class TarjetaQslController extends Controller
     }
 
     /**
-     * @return array{contacto: Contacto, operador: User, verificado: bool, fondo: array{data: string, estilo: string, opacidad: int}|null}
+     * @return array{contacto: Contacto, operador: User, verificado: bool, fondo: array{data: string, estilo: string, opacidad: int}|null, remitente: array{franja: string, bandera: string|null, emblema: string}}
      */
     private function datosTarjeta(Contacto $contacto): array
     {
@@ -78,9 +80,46 @@ class TarjetaQslController extends Controller
             'contacto' => $contacto,
             'operador' => $contacto->user,
             'fondo' => $contacto->user->fondoTarjetaQsl(),
+            'remitente' => $this->remitente($contacto->user),
             'verificado' => $contacto->confirmacionesQsl->contains(
                 fn ($confirmacion): bool => $confirmacion->tipo === TipoQsl::Interna,
             ),
+        ];
+    }
+
+    /**
+     * Datos del operador para la franja inferior («Ecuador, Sudamérica · Guaranda - Bolívar · ITU 12 - CQ 10 ·
+     * Grid FI08lj»), su bandera y el emblema, como imágenes incrustadas para que el archivo funcione solo.
+     *
+     * @return array{franja: string, bandera: string|null, emblema: string}
+     */
+    private function remitente(User $operador): array
+    {
+        $prefijo = PrefijoPais::paraIndicativo($operador->indicativo);
+        $pais = $operador->pais ?: $prefijo?->pais;
+        $continente = Ubicaciones::continente(
+            PrefijoPais::query()->where('pais', $pais)->value('continente') ?? $prefijo?->continente,
+        );
+        $grid = $operador->grid_locator ? substr($operador->grid_locator, 0, 4).strtolower(substr($operador->grid_locator, 4)) : null;
+        $zonas = Ubicaciones::esEcuador($pais) ? config('ubicaciones.zonas_ecuador') : null;
+
+        $franja = collect([
+            collect([$pais, $continente])->filter()->join(', '),
+            collect([$operador->ciudad, $operador->provincia])->filter()->join(' - '),
+            $zonas ? "ITU {$zonas['itu']} - CQ {$zonas['cq']}" : null,
+            $operador->zonaEcuador()?->nombre(),
+            $grid ? "Grid {$grid}" : null,
+        ])->filter()->join('   ·   ');
+
+        $codigoBandera = $operador->codigoBandera($prefijo);
+        $archivoBandera = $codigoBandera ? public_path("banderas/{$codigoBandera}.svg") : null;
+
+        return [
+            'franja' => $franja,
+            'bandera' => $archivoBandera && is_file($archivoBandera)
+                ? 'data:image/svg+xml;base64,'.base64_encode(file_get_contents($archivoBandera))
+                : null,
+            'emblema' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('img/emblema-256.png'))),
         ];
     }
 

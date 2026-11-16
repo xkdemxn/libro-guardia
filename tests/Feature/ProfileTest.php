@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Database\Seeders\PrefijoPaisSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -122,6 +123,7 @@ class ProfileTest extends TestCase
 
     public function test_station_details_and_visibility_can_be_updated(): void
     {
+        $this->seed(PrefijoPaisSeeder::class);
         $user = User::factory()->create(['indicativo' => 'HC1QRC']);
 
         $this->actingAs($user)
@@ -223,5 +225,57 @@ class ProfileTest extends TestCase
 
         Storage::disk('public')->assertMissing($portada);
         $this->assertNull($user->refresh()->portada_path);
+    }
+
+    public function test_la_ciudad_de_ecuador_se_elige_por_provincia(): void
+    {
+        $user = User::factory()->create(['indicativo' => 'HC6TVB']);
+        $datos = ['nombres' => 'Ana', 'apellidos' => 'Pérez', 'email' => $user->email, 'pais' => 'Ecuador'];
+
+        $this->actingAs($user)
+            ->patch('/profile', [...$datos, 'provincia' => 'Bolívar', 'ciudad' => 'Guaranda'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame(['Ecuador', 'Bolívar', 'Guaranda'], [$user->refresh()->pais, $user->provincia, $user->ciudad]);
+
+        $this->actingAs($user)
+            ->patch('/profile', [...$datos, 'provincia' => 'Bolívar', 'ciudad' => 'Quito'])
+            ->assertSessionHasErrors(['ciudad' => 'Elige una ciudad de la lista.']);
+    }
+
+    public function test_sin_provincia_se_completa_con_la_del_canton(): void
+    {
+        $user = User::factory()->create(['indicativo' => 'HC2AA']);
+
+        $this->actingAs($user)
+            ->patch('/profile', ['nombres' => 'Ana', 'apellidos' => 'Pérez', 'email' => $user->email, 'pais' => 'Ecuador', 'ciudad' => 'Machala'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('El Oro', $user->refresh()->provincia);
+    }
+
+    public function test_pais_y_ciudad_deben_salir_de_la_lista(): void
+    {
+        $user = User::factory()->create(['indicativo' => 'LU4BB']);
+        $datos = ['nombres' => 'Ana', 'apellidos' => 'Pérez', 'email' => $user->email];
+
+        $this->actingAs($user)
+            ->patch('/profile', [...$datos, 'pais' => 'Narnia', 'ciudad' => 'Cair Paravel'])
+            ->assertSessionHasErrors(['pais' => 'Elige un país de la lista.', 'ciudad' => 'Elige una ciudad de la lista.']);
+
+        $this->actingAs($user)
+            ->patch('/profile', [...$datos, 'pais' => 'Argentina', 'provincia' => 'Azuay', 'ciudad' => 'Rosario'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame(['Argentina', null, 'Rosario'], [$user->refresh()->pais, $user->provincia, $user->ciudad]);
+    }
+
+    public function test_se_conserva_la_ciudad_escrita_antes_de_las_listas(): void
+    {
+        $user = User::factory()->create(['pais' => 'Argentina', 'ciudad' => 'Villa Gesell']);
+
+        $this->actingAs($user)
+            ->patch('/profile', ['nombres' => 'Ana', 'apellidos' => 'Pérez', 'email' => $user->email, 'pais' => 'Argentina', 'ciudad' => 'Villa Gesell'])
+            ->assertSessionHasNoErrors();
+
+        $this->get('/profile')->assertSee('<option value="Villa Gesell" selected>', false);
     }
 }

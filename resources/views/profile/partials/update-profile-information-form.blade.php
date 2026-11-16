@@ -88,17 +88,7 @@
                     </p>
                 @endif
             </div>
-            <div>
-                <x-input-label for="pais" value="País" />
-                <x-text-input id="pais" name="pais" type="text" :value="old('pais', $user->pais)" autocomplete="country-name" placeholder="Ecuador" />
-                <p class="mt-1.5 text-xs text-slate-500">Si lo dejas vacío se toma del prefijo de tu indicativo.</p>
-                <x-input-error :messages="$errors->get('pais')" />
-            </div>
-            <div>
-                <x-input-label for="ciudad" value="Ciudad" />
-                <x-text-input id="ciudad" name="ciudad" type="text" :value="old('ciudad', $user->ciudad)" autocomplete="address-level2" />
-                <x-input-error :messages="$errors->get('ciudad')" />
-            </div>
+            @include('profile.partials.ubicacion')
         </div>
 
         <div class="mt-8 flex justify-end">
