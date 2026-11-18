@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Mail\BrevoTransport;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -22,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Mail::extend('brevo', fn (): BrevoTransport => new BrevoTransport(
+            (string) config('services.brevo.key'),
+        ));
+
         Password::defaults(fn (): Password => Password::min(8)->letters()->numbers());
 
         // Cantidad de solicitudes de confirmación pendientes para el aviso de la barra superior.

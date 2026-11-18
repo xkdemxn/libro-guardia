@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\SegundoFactor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Fortify\Fortify;
 use PragmaRX\Google2FA\Google2FA;
@@ -45,6 +46,97 @@ class TwoFactorTest extends TestCase
         ])->assertSessionHasErrorsIn('segundoFactor', ['accion']);
 
         $this->assertFalse($user->fresh()->two_factor_email_enabled);
+    }
+
+    public function test_email_factor_cannot_be_enabled_without_the_brevo_api_key(): void
+    {
+        config(['mail.default' => 'brevo', 'services.brevo.key' => '']);
+        Http::preventStrayRequests();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('two-factor.settings'), [
+            'accion' => 'activar-correo',
+            'password' => 'password',
+        ])->assertSessionHasErrorsIn('segundoFactor', ['accion' => 'El envío de correo todavía no está configurado.']);
+
+        $this->assertFalse($user->fresh()->two_factor_email_enabled);
+        Http::assertNothingSent();
+    }
+
+    public function test_email_factor_can_complete_login_with_a_code_sent_through_brevo(): void
+    {
+        config(['mail.default' => 'brevo', 'services.brevo.key' => 'clave-de-prueba']);
+        Http::preventStrayRequests();
+        Http::fake(['https://api.brevo.com/v3/smtp/email' => Http::response(['messageId' => '<acceso@brevo>'], 201)]);
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('two-factor.settings'), [
+            'accion' => 'activar-correo',
+            'password' => 'password',
+        ])->assertRedirect(route('profile.edit'))->assertSessionHasNoErrors();
+        $this->assertTrue($user->fresh()->two_factor_email_enabled);
+
+        $this->post('/logout');
+        $this->iniciarSesion($user);
+        $this->post(route('two-factor.send'))->assertRedirect(route('two-factor.show'))->assertSessionHasNoErrors();
+
+        $peticion = Http::recorded()[0][0];
+        $this->assertSame($user->email, $peticion['to'][0]['email']);
+        $this->assertSame(1, preg_match('/\b([0-9]{6})\b/', $peticion['textContent'], $coincidencias));
+        $this->assertGuest();
+
+        $this->post(route('two-factor.store'), [
+            'metodo' => 'correo',
+            'codigo' => $coincidencias[1],
+        ])->assertRedirect(route('contactos.index', absolute: false));
+
+        $this->assertAuthenticatedAs($user);
+        Http::assertSentCount(1);
+    }
+
+    public function test_a_brevo_rejection_does_not_leave_a_valid_email_code_or_authenticate_the_user(): void
+    {
+        config(['mail.default' => 'brevo', 'services.brevo.key' => 'clave-de-prueba']);
+        Http::preventStrayRequests();
+        Http::fake(['https://api.brevo.com/v3/smtp/email' => Http::response([], 401)]);
+        $user = User::factory()->create(['two_factor_email_enabled' => true]);
+        $this->iniciarSesion($user);
+
+        $this->post(route('two-factor.send'))->assertRedirect(route('two-factor.show'))
+            ->assertSessionHasErrors(['codigo' => 'No se pudo enviar el código. Puedes volver a intentarlo en un minuto.'])
+            ->assertSessionMissing(SegundoFactor::DESAFIO.'.correo_firma');
+
+        $this->assertGuest();
+        Http::assertSentCount(1);
+    }
+
+    public function test_app_setup_expires_without_enabling_the_factor(): void
+    {
+        $this->freezeTime();
+        $user = User::factory()->create();
+        $this->actingAs($user)->post(route('two-factor.settings'), [
+            'accion' => 'preparar-app',
+            'password' => 'password',
+        ])->assertRedirect(route('profile.edit'));
+
+        $this->travel(10)->minutes();
+        $this->get(route('profile.edit'))->assertOk()->assertDontSee('QR para configurar la app autenticadora');
+        $this->post(route('two-factor.confirm'), ['codigo' => '123456'])
+            ->assertSessionHasErrorsIn('segundoFactor', ['accion' => 'Vuelve a iniciar la configuración de la app.']);
+
+        $this->assertNull($user->fresh()->two_factor_secret);
+        $this->assertFalse($user->fresh()->hasEnabledTwoFactorAuthentication());
+    }
+
+    public function test_an_unconfirmed_app_secret_does_not_count_as_an_enabled_factor(): void
+    {
+        $user = User::factory()->create([
+            'two_factor_secret' => Fortify::currentEncrypter()->encrypt('JBSWY3DPEHPK3PXP'),
+            'two_factor_confirmed_at' => null,
+        ]);
+
+        $this->assertFalse($user->hasEnabledTwoFactorAuthentication());
+        $this->actingAs($user)->get(route('profile.edit'))->assertOk()->assertSee('Configurar QR de autenticación');
     }
 
     public function test_email_challenge_blocks_private_pages_until_the_received_code_is_verified(): void

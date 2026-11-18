@@ -29,7 +29,15 @@ class SegundoFactor
 
     public function envioCorreoDisponible(): bool
     {
-        return config('mail.default') !== 'log';
+        $transporte = config('mail.mailers.'.config('mail.default').'.transport');
+
+        return match ($transporte) {
+            'log', null => false,
+            'array' => app()->environment('testing'),
+            'brevo' => filled(config('services.brevo.key'))
+                && filter_var(config('mail.from.address'), FILTER_VALIDATE_EMAIL) !== false,
+            default => true,
+        };
     }
 
     public function iniciar(Request $request, User $user): void

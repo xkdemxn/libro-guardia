@@ -13,6 +13,7 @@
     @if ($codigosRecuperacion)
         <div class="space-y-2">
             <h3 class="font-medium text-white">Códigos de recuperación de un solo uso</h3>
+            <p class="text-sm text-slate-400">Guárdalos ahora en un lugar seguro. No volverán a mostrarse y te permitirán entrar si pierdes acceso a tus métodos.</p>
             <ul class="grid gap-1 font-mono text-sm text-slate-200 sm:grid-cols-2">
                 @foreach ($codigosRecuperacion as $codigo)
                     <li>{{ $codigo }}</li>
@@ -23,6 +24,7 @@
 
     <div class="space-y-2">
         <h3 class="font-medium text-white">App autenticadora</h3>
+        <p class="text-sm text-slate-400">Configura el QR con Google Authenticator, Microsoft Authenticator u otra app compatible. Después de tu contraseña, usarás el código de la app para entrar.</p>
         <p class="text-sm text-slate-400">
             {{ $user->hasEnabledTwoFactorAuthentication() ? 'Activa' : 'Desactivada' }}
         </p>
@@ -65,7 +67,7 @@
                 <x-secondary-button type="submit" name="accion" value="desactivar-app">Desactivar app</x-secondary-button>
             @else
                 <x-secondary-button type="submit" name="accion" value="preparar-app">
-                    {{ $qrSegundoFactor ? 'Generar otro QR' : 'Configurar app' }}
+                    {{ $qrSegundoFactor ? 'Generar otro QR' : 'Configurar QR de autenticación' }}
                 </x-secondary-button>
             @endif
 
