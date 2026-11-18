@@ -10,6 +10,7 @@ use App\Http\Controllers\PerfilPublicoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SolicitudConfirmacionController;
 use App\Http\Controllers\TarjetaQslController;
+use App\Http\Controllers\TwoFactorSettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -39,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::put('contactos/{contacto}/qsl', [ConfirmacionQslController::class, 'update'])->name('contactos.qsl.update');
     Route::get('contactos/{contacto}/tarjeta', [TarjetaQslController::class, 'show'])->name('contactos.tarjeta');
     Route::get('contactos/{contacto}/tarjeta.svg', [TarjetaQslController::class, 'svg'])->name('contactos.tarjeta.svg');
+    Route::post('contactos/{contacto}/tarjeta/enviar', [TarjetaQslController::class, 'enviar'])
+        ->middleware(['verified', 'throttle:5,1'])->name('contactos.tarjeta.enviar');
     Route::patch('tarjeta-qsl', [TarjetaQslController::class, 'personalizar'])->name('tarjeta-qsl.personalizar');
 
     Route::get('estadisticas', EstadisticasController::class)->name('estadisticas');
@@ -47,7 +50,9 @@ Route::middleware('auth')->group(function () {
     Route::post('solicitudes/{contacto}/aceptar', [SolicitudConfirmacionController::class, 'aceptar'])->name('solicitudes.aceptar');
     Route::post('solicitudes/{contacto}/rechazar', [SolicitudConfirmacionController::class, 'rechazar'])->name('solicitudes.rechazar');
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit')->block();
+    Route::post('/profile/two-factor', [TwoFactorSettingsController::class, 'update'])->name('two-factor.settings')->middleware('throttle:10,1')->block();
+    Route::post('/profile/two-factor/confirm', [TwoFactorSettingsController::class, 'confirm'])->name('two-factor.confirm')->middleware('throttle:10,1')->block();
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });

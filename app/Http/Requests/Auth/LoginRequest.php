@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use App\Rules\IndicativoValido;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -60,11 +62,15 @@ class LoginRequest extends FormRequest
      *
      * @throws ValidationException
      */
-    public function authenticate(): void
+    public function validarCredenciales(): User
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->credenciales(), $this->boolean('remember'))) {
+        $guard = Auth::guard('web');
+        $credenciales = $this->credenciales();
+
+        if (! $guard->validate($credenciales)) {
+            event(new Failed('web', $guard->getLastAttempted(), $credenciales));
             RateLimiter::hit($this->throttleKey(), self::SEGUNDOS_BLOQUEO);
 
             throw ValidationException::withMessages([
@@ -73,6 +79,8 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        return $guard->getLastAttempted();
     }
 
     /**
@@ -80,7 +88,7 @@ class LoginRequest extends FormRequest
      *
      * @return array{email?: string, indicativo?: string, password: string}
      */
-    private function credenciales(): array
+    public function credenciales(): array
     {
         $login = trim($this->string('login'));
 
@@ -119,6 +127,8 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower(trim($this->string('login'))).'|'.$this->ip());
+        $credenciales = $this->credenciales();
+
+        return Str::transliterate(Str::lower($credenciales['email'] ?? $credenciales['indicativo']).'|'.$this->ip());
     }
 }

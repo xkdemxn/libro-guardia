@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\TipoQsl;
 use App\Http\Requests\PersonalizarTarjetaQslRequest;
+use App\Mail\TarjetaQslMail;
 use App\Models\Contacto;
 use App\Models\PrefijoPais;
 use App\Models\User;
@@ -11,7 +12,13 @@ use App\Support\Ubicaciones;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Process\Exceptions\ProcessTimedOutException;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Process;
 use Illuminate\View\View;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Process\Exception\ProcessStartFailedException;
 
 /**
  * Tarjeta QSL digital: la versión moderna de la tarjeta postal con la que los radioaficionados
@@ -33,6 +40,7 @@ class TarjetaQslController extends Controller
         return view('tarjeta-qsl.show', [
             ...$this->datosTarjeta($contactoEncontrado),
             'nombreArchivo' => $this->nombreArchivo($contactoEncontrado),
+            'envioDisponible' => config('mail.default') !== 'log',
         ]);
     }
 
@@ -60,13 +68,78 @@ class TarjetaQslController extends Controller
             return $this->contactoInexistente();
         }
 
-        $svg = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
-            .view('tarjeta-qsl.svg', $this->datosTarjeta($contactoEncontrado))->render();
+        $svg = $this->renderizarSvg($contactoEncontrado);
 
         return response($svg, 200, [
             'Content-Type' => 'image/svg+xml; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="'.$this->nombreArchivo($contactoEncontrado).'.svg"',
         ]);
+    }
+
+    public function enviar(Request $request, string $contacto): RedirectResponse
+    {
+        $contactoEncontrado = $this->buscarContactoPropio($request, $contacto);
+
+        if ($contactoEncontrado === null) {
+            return $this->contactoInexistente();
+        }
+
+        $destino = redirect()->route('contactos.tarjeta', $contactoEncontrado);
+        if (config('mail.default') === 'log') {
+            return $destino->with('error', 'Configura el servicio de correo para enviar tarjetas QSL.');
+        }
+
+        $datos = $request->validate([
+            'destinatario' => ['required', 'string', 'max:254', 'email:rfc'],
+        ]);
+
+        $bloqueo = Cache::lock('qsl:envio:'.$contactoEncontrado->getKey(), 120);
+        if (! $bloqueo->get()) {
+            return $destino->with('error', 'Ya hay un envío en curso para este contacto.');
+        }
+
+        try {
+            $conversion = Process::timeout(15)->input($this->renderizarSvg($contactoEncontrado))->run([
+                'magick', '-background', 'none', 'svg:-', 'PNG32:-',
+            ]);
+            $png = $conversion->output();
+
+            if ($conversion->failed() || ! str_starts_with($png, "\x89PNG\r\n\x1a\n")) {
+                return $destino->with('error', 'No se pudo generar el PNG de la tarjeta.');
+            }
+
+            $enviado = Mail::to($datos['destinatario'])->send(new TarjetaQslMail(
+                $contactoEncontrado->user->indicativo,
+                $contactoEncontrado->estacion_llamada,
+                $this->nombreArchivo($contactoEncontrado).'.png',
+                $png,
+            ));
+
+            if ($enviado === null) {
+                return $destino->with('error', 'El servicio de correo no aceptó el envío.');
+            }
+
+            $contactoEncontrado->confirmacionesQsl()->upsert([[
+                'contacto_id' => $contactoEncontrado->getKey(),
+                'tipo' => TipoQsl::Tarjeta->value,
+                'enviada' => true,
+                'fecha_envio' => now('UTC')->toDateString(),
+            ]], ['contacto_id', 'tipo'], ['enviada', 'fecha_envio']);
+
+            return $destino->with('status', 'El servidor de correo aceptó la tarjeta QSL. El envío quedó registrado en el contacto.');
+        } catch (ProcessStartFailedException|ProcessTimedOutException|TransportExceptionInterface $exception) {
+            report($exception);
+
+            return $destino->with('error', 'No se pudo completar el envío de la tarjeta QSL. Inténtalo de nuevo.');
+        } finally {
+            $bloqueo->release();
+        }
+    }
+
+    private function renderizarSvg(Contacto $contacto): string
+    {
+        return '<?xml version="1.0" encoding="UTF-8"?>'."\n"
+            .view('tarjeta-qsl.svg', $this->datosTarjeta($contacto))->render();
     }
 
     /**

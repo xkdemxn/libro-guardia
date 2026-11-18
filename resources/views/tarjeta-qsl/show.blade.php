@@ -43,6 +43,25 @@
                 <p x-show="error" x-cloak role="alert" class="text-right text-sm text-rose-400" x-text="error"></p>
             </div>
 
+            <x-panel class="sm:!p-8">
+                <h2 class="font-display text-base font-semibold text-white">Enviar tarjeta por correo</h2>
+                @if (! $envioDisponible)
+                    <p class="mt-2 text-sm text-slate-400">Configura el servicio de correo para enviar la tarjeta desde Libro Guardia.</p>
+                @elseif (! $operador->hasVerifiedEmail())
+                    <a href="{{ route('verification.notice') }}" class="mt-2 inline-block text-sm text-acento-300 underline">Verifica tu correo para enviar tarjetas.</a>
+                @else
+                    <form method="POST" action="{{ route('contactos.tarjeta.enviar', $contacto) }}" class="mt-4 space-y-3">
+                        @csrf
+                        <x-input-label for="destinatario" value="Correo del destinatario" />
+                        <x-text-input id="destinatario" name="destinatario" type="email" :value="old('destinatario')"
+                            maxlength="254" required class="w-full sm:max-w-sm" />
+                        <x-input-error :messages="$errors->get('destinatario')" />
+                        <p x-show="hayCambios" x-cloak class="text-sm text-amber-300">Guarda el diseño antes de enviarlo.</p>
+                        <x-primary-button x-bind:disabled="hayCambios">Enviar PNG</x-primary-button>
+                    </form>
+                @endif
+            </x-panel>
+
             {{-- Personalización: se aplica a todas las tarjetas del operador --}}
             <form method="post" action="{{ route('tarjeta-qsl.personalizar') }}" enctype="multipart/form-data" novalidate>
                 @csrf

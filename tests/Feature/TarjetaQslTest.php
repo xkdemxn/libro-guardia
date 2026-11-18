@@ -13,6 +13,8 @@ use Database\Seeders\ModoSeeder;
 use Database\Seeders\PrefijoPaisSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -87,6 +89,54 @@ class TarjetaQslTest extends TestCase
 
         $this->assertStringStartsWith('<?xml version="1.0" encoding="UTF-8"?>', $respuesta->getContent());
         $this->assertStringContainsString('<svg xmlns="http://www.w3.org/2000/svg"', $respuesta->getContent());
+    }
+
+    public function test_envia_un_png_y_registra_el_envio_sin_alterar_la_recepcion(): void
+    {
+        [$operador, $contacto] = $this->contactoConTarjeta();
+        $recepcion = ConfirmacionQsl::factory()->for($contacto)->recibida()->create([
+            'tipo' => TipoQsl::Tarjeta,
+        ]);
+        $png = "\x89PNG\r\n\x1a\n";
+        Process::fake(['*' => Process::result(output: $png)]);
+
+        $this->actingAs($operador)->post(route('contactos.tarjeta.enviar', $contacto), [
+            'destinatario' => 'radio@example.test',
+        ])->assertRedirect(route('contactos.tarjeta', $contacto))->assertSessionHas('status');
+
+        $mensaje = Mail::mailer('array')->getSymfonyTransport()->messages()->sole()->getOriginalMessage();
+        $this->assertSame('radio@example.test', $mensaje->getTo()[0]->getAddress());
+        $adjunto = $mensaje->getAttachments()[0];
+        $this->assertSame('qsl-HC1QRC-LU4BB-20261027-1215.png', $adjunto->getFilename());
+        $this->assertSame($png, $adjunto->getBody());
+        $this->assertTrue($recepcion->fresh()->enviada);
+        $this->assertTrue($recepcion->fresh()->recibida);
+        $this->assertSame($recepcion->fecha_recepcion->toDateString(), $recepcion->fresh()->fecha_recepcion->toDateString());
+    }
+
+    public function test_un_error_del_renderizador_no_envia_ni_marca_la_tarjeta(): void
+    {
+        [$operador, $contacto] = $this->contactoConTarjeta();
+        Process::fake(['*' => Process::result(exitCode: 1)]);
+
+        $this->actingAs($operador)->post(route('contactos.tarjeta.enviar', $contacto), [
+            'destinatario' => 'radio@example.test',
+        ])->assertSessionHas('error', 'No se pudo generar el PNG de la tarjeta.');
+
+        $this->assertDatabaseMissing('confirmaciones_qsl', ['contacto_id' => $contacto->id, 'tipo' => TipoQsl::Tarjeta->value]);
+        $this->assertCount(0, Mail::mailer('array')->getSymfonyTransport()->messages());
+    }
+
+    public function test_un_operador_no_puede_enviar_tarjetas_de_otro_libro(): void
+    {
+        [, $contacto] = $this->contactoConTarjeta();
+        Process::fake();
+
+        $this->actingAs(User::factory()->create())->post(route('contactos.tarjeta.enviar', $contacto), [
+            'destinatario' => 'radio@example.test',
+        ])->assertRedirect(route('contactos.index'));
+
+        Process::assertNothingRan();
     }
 
     public function test_los_textos_se_escapan_para_no_romper_el_svg(): void

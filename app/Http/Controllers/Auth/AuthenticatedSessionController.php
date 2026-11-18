@@ -4,9 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
+use App\Services\SegundoFactor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -22,13 +26,30 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, SegundoFactor $segundoFactor): RedirectResponse
     {
-        $request->authenticate();
+        $request->session()->forget(SegundoFactor::DESAFIO);
+        $validado = $request->validarCredenciales();
 
-        $request->session()->regenerate();
+        return DB::transaction(function () use ($request, $validado, $segundoFactor): RedirectResponse {
+            $user = User::query()->lockForUpdate()->find($validado->getKey());
 
-        return redirect()->intended(route('contactos.index', absolute: false));
+            if (! $user || ! hash_equals($validado->getAuthPassword(), $user->getAuthPassword())) {
+                throw ValidationException::withMessages(['login' => 'Indicativo o contraseña incorrectos.']);
+            }
+
+            if (config('hashing.rehash_on_login', true)) {
+                Auth::guard('web')->getProvider()->rehashPasswordIfRequired($user, $request->credenciales());
+            }
+
+            if ($segundoFactor->activo($user)) {
+                $segundoFactor->iniciar($request, $user);
+
+                return redirect()->route('two-factor.show');
+            }
+
+            return $segundoFactor->completar($request, $user, $request->boolean('remember'));
+        });
     }
 
     /**
