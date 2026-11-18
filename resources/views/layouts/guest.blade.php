@@ -59,7 +59,7 @@
                     <x-emblema class="h-24 w-24" />
                     <span class="leading-tight">
                         <span class="block font-display text-lg font-semibold">Libro de Guardia</span>
-                        <span class="mt-1 block text-[11px] font-medium uppercase tracking-[0.22em] text-amber-300/90">Radioaficionados DX Ecuador</span>
+                        <span class="mt-1 block text-[0.75rem] font-medium uppercase tracking-[0.22em] text-amber-300/90">Radioaficionados DX Ecuador</span>
                     </span>
                 </a>
 

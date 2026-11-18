@@ -163,7 +163,7 @@
                     </p>
                 </div>
             </div>
-            <span class="absolute right-3 top-3 rounded-full bg-noche-950/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300 backdrop-blur">Vista previa</span>
+            <span class="absolute right-3 top-3 rounded-full bg-noche-950/60 px-2.5 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-slate-300 backdrop-blur">Vista previa</span>
         </div>
 
         @include('profile.partials.selector-fondo', [
@@ -183,33 +183,6 @@
                 <x-icono nombre="enlace-externo" class="h-4 w-4" />
             </a>
             <x-boton-guardar-perfil />
-        </div>
-    </x-panel>
-
-    {{-- Tarjeta QSL: se personaliza en la propia tarjeta, con vista previa en vivo --}}
-    @php($ultimoContacto = $user->contactos()->latest('inicio_utc')->value('id'))
-    <x-panel x-show="seccion === 'tarjeta'" x-cloak class="sm:!p-8">
-        <header>
-            <h2 class="font-display text-lg font-semibold text-white">Tarjeta QSL</h2>
-            <p class="mt-1 text-sm text-slate-400">La foto y el mensaje de tus tarjetas se cambian en la propia tarjeta, viendo el resultado en vivo. Se aplican a todas.</p>
-        </header>
-        <div class="mt-6 flex flex-wrap items-center gap-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
-            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-b from-marca-400 to-marca-600 text-blanco shadow-boton">
-                <x-icono nombre="tarjeta" class="h-6 w-6" />
-            </span>
-            <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium text-slate-100">
-                    {{ $user->qsl_foto_path ? 'Tus tarjetas tienen una foto personalizada.' : 'Tus tarjetas usan el diseño por defecto.' }}
-                </p>
-                <p class="mt-0.5 truncate text-xs text-slate-500">Mensaje: «{{ $user->mensajeQsl() }}»</p>
-            </div>
-            @if ($ultimoContacto)
-                <a href="{{ route('contactos.tarjeta', $ultimoContacto) }}" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-marca-400 to-marca-600 px-5 py-2.5 text-sm font-semibold text-blanco shadow-boton transition hover:brightness-110">
-                    Personalizar tarjeta <x-icono nombre="flecha" class="h-4 w-4" />
-                </a>
-            @else
-                <p class="text-sm text-slate-500">Registra tu primer contacto para ver y personalizar tu tarjeta.</p>
-            @endif
         </div>
     </x-panel>
 

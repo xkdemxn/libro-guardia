@@ -48,7 +48,7 @@
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-6">
             <div class="flex flex-col gap-5 sm:col-span-6 md:flex-row md:items-end">
             <div class="min-w-0 flex-1">
-                <x-input-label for="estacion_llamada" value="Estación llamada (indicativo)" />
+                <x-input-label for="estacion_llamada" value="Indicativo" class="!text-base !font-semibold !text-slate-200" />
                 <x-text-input id="estacion_llamada" name="estacion_llamada" type="text" class="!py-3 font-mono !text-2xl font-semibold uppercase tracking-wider" required autofocus maxlength="20" placeholder="LU4BB" autocomplete="off"
                               x-model="indicativo" x-on:input.debounce.350ms="buscarFicha()" aria-describedby="ficha-indicativo" />
                 <x-input-error :messages="$errors->get('estacion_llamada')" />
@@ -99,7 +99,8 @@
 
             <div class="sm:col-span-6 lg:col-span-2">
                 <x-input-label for="fecha" value="Fecha (UTC)" />
-                <x-text-input id="fecha" name="fecha" type="date" x-ref="fecha" :value="old('fecha', $contacto->inicio_utc?->format('Y-m-d'))" required />
+                <x-text-input id="fecha" name="fecha" type="date" x-ref="fecha" :value="old('fecha', $contacto->inicio_utc?->format('Y-m-d'))" required
+                              :min="\App\Http\Requests\ContactoRequest::fechaMinima($contacto->exists ? $contacto : null)" :max="now('UTC')->toDateString()" />
                 <x-input-error :messages="$errors->get('fecha')" />
             </div>
 
@@ -113,7 +114,7 @@
             </div>
 
             <div class="sm:col-span-3 lg:col-span-2">
-                <x-input-label for="hora_fin" value="Hora de fin (UTC)" />
+                <x-input-label for="hora_fin">Hora de fin (UTC) <span class="font-normal text-slate-500">· opcional</span></x-input-label>
                 <div class="flex gap-2">
                     <x-text-input id="hora_fin" name="hora_fin" type="time" x-ref="horaFin" :value="old('hora_fin', $contacto->fin_utc?->format('H:i'))" />
                     <button type="button" x-on:click="ponerAhora('fin')" class="shrink-0 rounded-xl border border-acento-400/30 bg-acento-400/10 px-3.5 text-sm font-semibold text-acento-300 transition hover:bg-acento-400/20 active:scale-95">Ahora</button>
@@ -143,7 +144,7 @@
                         class="rounded-2xl border px-3 py-2.5 text-left transition"
                         x-bind:class="banda === opcion.nombre ? 'border-acento-400/60 bg-acento-400/10 shadow-[0_0_0_3px_rgb(82_173_255/0.12)]' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05]'">
                     <span class="block font-mono text-base font-semibold text-white" x-text="opcion.nombre"></span>
-                    <span class="mt-0.5 block font-mono text-[13px] text-slate-400" x-text="`${opcion.min.toFixed(3)}–${opcion.max.toFixed(3)}`"></span>
+                    <span class="mt-0.5 block font-mono text-[0.8125rem] text-slate-400" x-text="`${opcion.min.toFixed(3)}–${opcion.max.toFixed(3)}`"></span>
                 </button>
             </template>
         </div>
@@ -170,14 +171,14 @@
             <div class="sm:col-span-4">
                 <template x-if="bandaActual">
                     <div>
-                        <div class="mb-1.5 flex items-baseline justify-between text-[13px]">
+                        <div class="mb-1.5 flex items-baseline justify-between text-[0.8125rem]">
                             <label for="deslizador-frecuencia" class="font-medium text-slate-400">Sintonía dentro de <span class="font-mono" x-text="bandaActual.nombre"></span></label>
                             <span class="font-mono text-acento-300" x-text="`${mhz.toFixed(3)} MHz`"></span>
                         </div>
                         <input id="deslizador-frecuencia" type="range" class="w-full accent-[#2a8fff]"
                                x-bind:min="bandaActual.min" x-bind:max="bandaActual.max" x-bind:step="pasoDeslizador(bandaActual)"
                                x-bind:value="mhz" x-on:input="frecuencia = Number($event.target.value).toFixed(3)">
-                        <div class="mt-1 flex justify-between font-mono text-[11px] text-slate-500">
+                        <div class="mt-1 flex justify-between font-mono text-[0.75rem] text-slate-500">
                             <span x-text="bandaActual.min.toFixed(3)"></span>
                             <span x-text="bandaActual.max.toFixed(3)"></span>
                         </div>
@@ -247,14 +248,14 @@
                                         x-bind:class="manual.{{ $lado }} ? 'border-amber-400/50 bg-amber-400/10 text-amber-200' : 'border-white/10 bg-white/[0.02] text-slate-300 hover:bg-white/[0.06]'">Otro</button>
                             </div>
                             <div x-show="manual.{{ $lado }}" x-cloak class="mt-2 grid gap-2" x-bind:class="tipo === 'RST' ? 'grid-cols-3' : 'grid-cols-2'">
-                                <label class="text-[11px] text-slate-500">R · legibilidad
+                                <label class="text-[0.75rem] text-slate-500">R · legibilidad
                                     <select class="campo mt-1 !py-2 font-mono" x-model.number="rst.{{ $lado }}.r" x-on:change="componer('{{ $lado }}')">
                                         @foreach ([5 => 'perfecta', 4 => 'casi sin dificultad', 3 => 'con dificultad', 2 => 'apenas', 1 => 'ilegible'] as $valor => $texto)
                                             <option value="{{ $valor }}">{{ $valor }} · {{ $texto }}</option>
                                         @endforeach
                                     </select>
                                 </label>
-                                <label class="text-[11px] text-slate-500">S · fuerza
+                                <label class="text-[0.75rem] text-slate-500">S · fuerza
                                     <select class="campo mt-1 !py-2 font-mono" x-model.number="rst.{{ $lado }}.s" x-on:change="componer('{{ $lado }}')">
                                         @for ($valor = 9; $valor >= 1; $valor--)
                                             <option value="{{ $valor }}">{{ $valor }}{{ $valor === 9 ? ' · muy fuerte' : ($valor === 1 ? ' · apenas perceptible' : '') }}</option>
@@ -262,7 +263,7 @@
                                     </select>
                                 </label>
                                 <template x-if="tipo === 'RST'">
-                                    <label class="text-[11px] text-slate-500">T · tono
+                                    <label class="text-[0.75rem] text-slate-500">T · tono
                                         <select class="campo mt-1 !py-2 font-mono" x-model.number="rst.{{ $lado }}.t" x-on:change="componer('{{ $lado }}')">
                                             @for ($valor = 9; $valor >= 1; $valor--)
                                                 <option value="{{ $valor }}">{{ $valor }}{{ $valor === 9 ? ' · puro' : ($valor === 1 ? ' · muy áspero' : '') }}</option>
@@ -297,7 +298,7 @@
     <details class="vidrio group p-5 sm:p-6" @if ($errors->hasAny(['nombre_operador', 'equipo', 'grid_locator', 'activacion', 'observaciones']) || $contacto->observaciones || $contacto->nombre_operador) open @endif>
         <summary class="flex cursor-pointer list-none items-center gap-4 [&::-webkit-details-marker]:hidden">
             <span class="h-px flex-1 bg-gradient-to-r from-transparent to-white/15"></span>
-            <span class="text-[11px] font-medium uppercase tracking-[0.28em] text-slate-400">04 · Datos opcionales</span>
+            <span class="text-[0.75rem] font-medium uppercase tracking-[0.28em] text-slate-400">04 · Datos opcionales</span>
             <svg class="h-4 w-4 text-slate-500 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
             <span class="h-px flex-1 bg-gradient-to-l from-transparent to-white/15"></span>
         </summary>

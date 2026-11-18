@@ -7,7 +7,6 @@
         'datos' => ['Datos personales', 'Nombre, correo, país y foto', 'usuario'],
         'estacion' => ['Mi estación', 'Grid, equipo y antena', 'antena'],
         'portada' => ['Portada', 'Fondo de tu perfil público', 'imagen'],
-        'tarjeta' => ['Tarjeta QSL', 'Foto de tus tarjetas', 'tarjeta'],
         'privacidad' => ['Privacidad', 'Lo que ven los demás', 'ojo'],
         'contrasena' => ['Contraseña', 'Cambia tu clave de acceso', 'candado'],
         'cuenta' => ['Eliminar cuenta', 'Borrar la cuenta y su libro', 'papelera'],
@@ -26,7 +25,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="mx-auto max-w-6xl">
-            <p class="text-[11px] font-medium uppercase tracking-[0.28em] text-slate-500">Cuenta</p>
+            <p class="text-[0.75rem] font-medium uppercase tracking-[0.28em] text-slate-500">Cuenta</p>
             <h1 class="mt-2 font-display text-3xl font-semibold text-white sm:text-4xl">Mi perfil</h1>
         </div>
     </x-slot>

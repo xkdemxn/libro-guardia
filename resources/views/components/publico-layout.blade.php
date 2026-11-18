@@ -19,7 +19,7 @@
                             <x-emblema class="h-10 w-10" />
                             <span class="leading-tight">
                                 <span class="block font-display text-sm font-semibold">Libro de Guardia</span>
-                                <span class="block text-[10px] font-medium uppercase tracking-[0.18em] text-amber-300/90">DX Ecuador</span>
+                                <span class="block text-[0.6875rem] font-medium uppercase tracking-[0.18em] text-amber-300/90">DX Ecuador</span>
                             </span>
                         </a>
                         <div class="flex items-center gap-2">

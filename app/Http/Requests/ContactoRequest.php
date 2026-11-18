@@ -44,8 +44,9 @@ class ContactoRequest extends FormRequest
     {
         return [
             'estacion_llamada' => ['required', 'string', 'max:20', new IndicativoValido],
-            // El contacto se registra el mismo día en que ocurre: no se aceptan fechas futuras (en UTC).
-            'fecha' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.now('UTC')->toDateString()],
+            // El contacto se registra el mismo día en que ocurre (en UTC): ni fechas pasadas ni futuras.
+            // Al editar se acepta además la fecha que ya tenía el contacto.
+            'fecha' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.self::fechaMinima($this->contactoEditado()), 'before_or_equal:'.now('UTC')->toDateString()],
             'hora_inicio' => ['required', 'date_format:H:i'],
             'hora_fin' => ['nullable', 'date_format:H:i'],
             'frecuencia_mhz' => ['required', 'numeric', 'gt:0'],
@@ -89,6 +90,7 @@ class ContactoRequest extends FormRequest
     {
         return [
             'grid_locator.regex' => 'El grid locator debe tener el formato FI09 o FI09AA.',
+            'fecha.after_or_equal' => 'La fecha no puede ser anterior a hoy ('.now('UTC')->toDateString().' UTC).',
             'fecha.before_or_equal' => 'La fecha no puede ser posterior a hoy ('.now('UTC')->toDateString().' UTC).',
         ];
     }
@@ -200,5 +202,23 @@ class ContactoRequest extends FormRequest
             'banda_id' => $this->banda->id,
             'prefijo_pais_id' => PrefijoPais::paraIndicativo($this->input('estacion_llamada'))?->id,
         ];
+    }
+
+    /**
+     * Primer día que acepta el formulario: hoy en UTC o, al editar, la fecha original del contacto si es anterior.
+     */
+    public static function fechaMinima(?Contacto $contacto = null): string
+    {
+        $hoy = now('UTC')->toDateString();
+        $original = $contacto?->inicio_utc?->format('Y-m-d');
+
+        return $original !== null && $original < $hoy ? $original : $hoy;
+    }
+
+    private function contactoEditado(): ?Contacto
+    {
+        $id = $this->route('contacto');
+
+        return is_string($id) && ctype_digit($id) ? $this->user()?->contactos()->find((int) $id) : null;
     }
 }

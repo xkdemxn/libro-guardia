@@ -9,7 +9,7 @@
                     <x-emblema class="h-10 w-10" />
                     <span class="leading-tight whitespace-nowrap lg:hidden xl:block">
                         <span class="block font-display text-sm font-semibold tracking-tight">Libro de Guardia</span>
-                        <span class="block text-[10px] font-medium uppercase tracking-[0.18em] text-amber-300/90">DX Ecuador</span>
+                        <span class="block text-[0.6875rem] font-medium uppercase tracking-[0.18em] text-amber-300/90">DX Ecuador</span>
                     </span>
                 </a>
 
@@ -43,14 +43,14 @@
                    title="Solicitudes de confirmación" aria-label="Solicitudes de confirmación{{ $solicitudesPendientes ? ': '.$solicitudesPendientes.' pendientes' : '' }}">
                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z" clip-rule="evenodd" /></svg>
                     @if ($solicitudesPendientes)
-                        <span class="absolute -right-1 -top-1 grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-blanco ring-2 ring-noche-900">{{ $solicitudesPendientes }}</span>
+                        <span class="absolute -right-1 -top-1 grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-rose-500 px-1 text-[0.75rem] font-bold text-blanco ring-2 ring-noche-900">{{ $solicitudesPendientes }}</span>
                     @endif
                 </a>
 
                 <x-dropdown align="right" width="w-72">
                     <x-slot name="trigger">
                         <button class="flex items-center gap-2 whitespace-nowrap rounded-full bg-white/5 py-1 pe-3 ps-1 text-sm text-slate-200 ring-1 ring-white/10 transition hover:bg-white/10">
-                            <span class="grid h-7 w-7 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-marca-400 to-marca-600 text-[11px] font-semibold text-blanco">
+                            <span class="grid h-7 w-7 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-marca-400 to-marca-600 text-[0.75rem] font-semibold text-blanco">
                                 @if (Auth::user()->foto_url)
                                     <img src="{{ Auth::user()->foto_url }}" alt="" class="h-full w-full object-cover">
                                 @else
@@ -77,7 +77,7 @@
                             </div>
                         </div>
 
-                        <p class="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Cuenta</p>
+                        <p class="px-3 pb-1 pt-3 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-slate-500">Cuenta</p>
                         <x-dropdown-link :href="route('profile.edit').'#datos'">
                             <x-icono nombre="usuario" class="h-4 w-4 text-slate-400" /> Mi perfil
                         </x-dropdown-link>
@@ -163,7 +163,7 @@
                     <x-icono :nombre="$icono" @class(['h-[18px] w-[18px]', 'text-acento-300' => $activo, 'text-slate-500' => ! $activo]) />
                     <span class="truncate">{{ $titulo }}</span>
                     @if ($ruta === 'solicitudes.index' && $solicitudesPendientes)
-                        <span class="ms-auto grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-blanco">{{ $solicitudesPendientes }}</span>
+                        <span class="ms-auto grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-rose-500 px-1 text-[0.75rem] font-bold text-blanco">{{ $solicitudesPendientes }}</span>
                     @endif
                 </a>
             @endforeach

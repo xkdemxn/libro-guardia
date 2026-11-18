@@ -19,6 +19,15 @@ class ConfirmadorQslTest extends TestCase
     use RefreshDatabase;
 
     /**
+     * Los contactos de ejemplo son del 27 de octubre: se registran el mismo día (UTC).
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->travelTo(now('UTC')->setDate(2026, 10, 27)->setTime(20, 0));
+    }
+
+    /**
      * @param  array<string, mixed>  $cambios
      * @return array<string, mixed>
      */

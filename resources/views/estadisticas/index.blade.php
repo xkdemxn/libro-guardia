@@ -7,7 +7,7 @@
     <x-slot name="header">
         <div class="flex flex-wrap items-end justify-between gap-6">
             <div>
-                <p class="text-[11px] font-medium uppercase tracking-[0.28em] text-slate-500">
+                <p class="text-[0.75rem] font-medium uppercase tracking-[0.28em] text-slate-500">
                     Actividad · <span class="font-mono text-acento-300">{{ Auth::user()->indicativo }}</span>
                 </p>
                 <h1 class="mt-2 font-display text-3xl font-semibold text-white sm:text-4xl">Estadísticas</h1>
@@ -64,7 +64,7 @@
                         <x-ceja class="mb-4">{{ $titulo }}</x-ceja>
                         <div class="flex items-end justify-between">
                             <p class="font-display text-3xl font-semibold tabular-nums text-white sm:text-4xl">{{ number_format($valor) }}</p>
-                            <p class="pb-1 font-mono text-[11px] text-slate-600">{{ sprintf('%02d', $indice + 1) }} / 04</p>
+                            <p class="pb-1 font-mono text-[0.75rem] text-slate-600">{{ sprintf('%02d', $indice + 1) }} / 04</p>
                         </div>
                     </div>
                 @endforeach
@@ -143,10 +143,10 @@
                                 <span class="flex flex-wrap items-center gap-x-2 text-base font-medium {{ $zona['contactos'] > 0 ? 'text-slate-100' : 'text-slate-400' }}">
                                     HC{{ $zona['numero'] }} · HD{{ $zona['numero'] }}
                                     @if ($zona['propia'])
-                                        <span class="rounded-full bg-acento-400/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-acento-300">Tu zona</span>
+                                        <span class="rounded-full bg-acento-400/15 px-2 py-0.5 text-[0.75rem] font-semibold uppercase tracking-wider text-acento-300">Tu zona</span>
                                     @endif
                                 </span>
-                                <span class="mt-1 block text-[13px] leading-relaxed text-slate-400">{{ implode(', ', $zona['provincias']) }}</span>
+                                <span class="mt-1 block text-[0.8125rem] leading-relaxed text-slate-400">{{ implode(', ', $zona['provincias']) }}</span>
                             </span>
                             <span class="shrink-0 text-right">
                                 <span class="block font-mono text-base tabular-nums {{ $zona['contactos'] > 0 ? 'text-amber-200' : 'text-slate-600' }}">{{ $zona['contactos'] }}</span>

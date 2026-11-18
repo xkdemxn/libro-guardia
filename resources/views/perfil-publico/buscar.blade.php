@@ -1,7 +1,7 @@
 {{-- Buscador público de indicativos (US-15). Si viene $buscado, es porque ese indicativo no está registrado. --}}
 <x-publico-layout>
     <div class="text-center">
-        <p class="text-[11px] font-medium uppercase tracking-[0.28em] text-slate-500">Directorio de operadores</p>
+        <p class="text-[0.75rem] font-medium uppercase tracking-[0.28em] text-slate-500">Directorio de operadores</p>
         <h1 class="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">Buscar un indicativo</h1>
         <p class="mt-2 text-slate-400">Conoce a la persona con quien hiciste contacto.</p>
     </div>

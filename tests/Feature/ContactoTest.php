@@ -18,6 +18,15 @@ class ContactoTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Los datos de ejemplo son del 27 de octubre: el contacto se registra el mismo día (UTC).
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->travelTo(now('UTC')->setDate(2026, 10, 27)->setTime(20, 0));
+    }
+
     private function sembrarCatalogos(): void
     {
         $this->seed([BandaSeeder::class, ModoSeeder::class, PrefijoPaisSeeder::class]);
@@ -177,6 +186,31 @@ class ContactoTest extends TestCase
         $this->actingAs(User::factory()->create())
             ->post(route('contactos.store'), $this->datosValidos(['fecha' => '2026-11-15']))
             ->assertSessionHasErrors(['fecha' => 'La fecha no puede ser posterior a hoy (2026-11-14 UTC).']);
+    }
+
+    public function test_no_acepta_una_fecha_pasada_al_registrar(): void
+    {
+        $this->sembrarCatalogos();
+
+        $this->actingAs(User::factory()->create())
+            ->post(route('contactos.store'), $this->datosValidos(['fecha' => '2026-10-26']))
+            ->assertSessionHasErrors(['fecha' => 'La fecha no puede ser anterior a hoy (2026-10-27 UTC).']);
+    }
+
+    public function test_al_editar_conserva_la_fecha_original_aunque_sea_pasada(): void
+    {
+        $this->sembrarCatalogos();
+        $operador = User::factory()->create();
+        $this->actingAs($operador)->post(route('contactos.store'), $this->datosValidos());
+        $contacto = $operador->contactos()->sole();
+
+        $this->travelTo(now('UTC')->setDate(2026, 11, 3));
+
+        $this->get(route('contactos.edit', $contacto))->assertSee('min="2026-10-27"', false);
+        $this->put(route('contactos.update', $contacto), $this->datosValidos(['observaciones' => 'Corregido']))
+            ->assertSessionHasNoErrors();
+        $this->put(route('contactos.update', $contacto), $this->datosValidos(['fecha' => '2026-10-20']))
+            ->assertSessionHasErrors('fecha');
     }
 
     #[TestWith(['146.520', 'FM', '2 m'], 'VHF')]

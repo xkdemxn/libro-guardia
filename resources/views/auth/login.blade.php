@@ -18,7 +18,7 @@
             <div class="flex items-baseline justify-between">
                 <x-input-label for="password" value="Contraseña" />
                 @if (Route::has('password.request'))
-                    <a class="text-[13px] text-acento-300 transition hover:text-acento-200" href="{{ route('password.request') }}">¿La olvidaste?</a>
+                    <a class="text-[0.8125rem] text-acento-300 transition hover:text-acento-200" href="{{ route('password.request') }}">¿La olvidaste?</a>
                 @endif
             </div>
             <x-text-input id="password" type="password" name="password" required autocomplete="current-password" />

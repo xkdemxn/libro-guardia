@@ -27,7 +27,7 @@
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead>
-                        <tr class="border-y border-white/5 text-left text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+                        <tr class="border-y border-white/5 text-left text-[0.75rem] font-medium uppercase tracking-[0.18em] text-slate-500">
                             <th scope="col" class="py-3 pl-6 pr-3 font-medium">#</th>
                             <th scope="col" class="px-3 py-3 font-medium">Estado</th>
                             <th scope="col" class="px-3 py-3 font-medium">Estación</th>
