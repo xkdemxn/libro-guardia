@@ -10,11 +10,13 @@
         'tarjeta' => ['Tarjeta QSL', 'Foto de tus tarjetas', 'tarjeta'],
         'privacidad' => ['Privacidad', 'Lo que ven los demás', 'ojo'],
         'contrasena' => ['Contraseña', 'Cambia tu clave de acceso', 'candado'],
+        'seguridad' => ['Seguridad', 'Verificación en dos pasos', 'candado'],
         'cuenta' => ['Eliminar cuenta', 'Borrar la cuenta y su libro', 'papelera'],
     ];
 
     $seccionInicial = match (true) {
         $errors->updatePassword->isNotEmpty() => 'contrasena',
+        $errors->segundoFactor->isNotEmpty() => 'seguridad',
         $errors->userDeletion->isNotEmpty() => 'cuenta',
         $errors->hasAny(['foto', 'nombres', 'apellidos', 'email', 'pais', 'provincia', 'ciudad']) => 'datos',
         $errors->hasAny(['grid_locator', 'equipo_radio', 'antena', 'biografia']) => 'estacion',
@@ -106,6 +108,14 @@
 
                 <x-panel x-show="seccion === 'contrasena'" x-cloak class="sm:!p-8">
                     @include('profile.partials.update-password-form')
+                </x-panel>
+
+                <x-panel x-show="seccion === 'seguridad'" x-cloak class="sm:!p-8">
+                    @include('profile.partials.two-factor', [
+                        'envioCorreoDisponible' => $envioCorreoDisponible ?? false,
+                        'qrSegundoFactor' => $qrSegundoFactor ?? null,
+                        'codigosRecuperacion' => $codigosRecuperacion ?? [],
+                    ])
                 </x-panel>
 
                 <x-panel x-show="seccion === 'cuenta'" x-cloak class="sm:!p-8">

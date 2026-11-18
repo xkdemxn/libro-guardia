@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
+use App\Services\SegundoFactor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 
 class ProfileController extends Controller
 {
@@ -27,11 +30,23 @@ class ProfileController extends Controller
     /**
      * Display the user's profile form.
      */
-    public function edit(Request $request): View
+    public function edit(Request $request, SegundoFactor $segundoFactor): Response
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+        $user = $request->user();
+        $secreto = $segundoFactor->secretoPendiente($request, $user);
+        $codigos = $request->session()->pull('two_factor_recovery');
+
+        return response()->view('profile.edit', [
+            'user' => $user,
+            'envioCorreoDisponible' => $segundoFactor->envioCorreoDisponible(),
+            'qrSegundoFactor' => $secreto
+                ? (clone $user)->forceFill(['two_factor_secret' => $secreto])->twoFactorQrCodeSvg()
+                : null,
+            'codigosRecuperacion' => $codigos && $user->two_factor_recovery_codes
+                && hash_equals($codigos, hash('sha256', $user->two_factor_recovery_codes))
+                ? $user->recoveryCodes()
+                : [],
+        ])->header('Cache-Control', 'no-store, private');
     }
 
     /**
@@ -39,19 +54,27 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $user = $request->user();
-        $user->fill($request->datosOperador());
+        DB::transaction(function () use ($request): void {
+            $user = User::query()->lockForUpdate()->findOrFail($request->user()->getKey());
+            $user->fill($request->datosOperador());
 
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
+            if ($user->isDirty('email')) {
+                if ($user->two_factor_email_enabled) {
+                    throw ValidationException::withMessages([
+                        'email' => 'Desactiva la verificación por correo en Seguridad antes de cambiar tu dirección.',
+                    ]);
+                }
 
-        foreach (self::IMAGENES as $campo => [$columna, $carpeta]) {
-            $user->cambiarImagen($columna, $carpeta, $request->file($campo), $request->boolean('quitar_'.$campo));
-        }
+                $user->email_verified_at = null;
+            }
 
-        $user->save();
-        $user->visibilidad()->updateOrCreate([], $request->visibilidad());
+            foreach (self::IMAGENES as $campo => [$columna, $carpeta]) {
+                $user->cambiarImagen($columna, $carpeta, $request->file($campo), $request->boolean('quitar_'.$campo));
+            }
+
+            $user->save();
+            $user->visibilidad()->updateOrCreate([], $request->visibilidad());
+        });
 
         return Redirect::route('profile.edit')
             ->with('status', 'Perfil actualizado.')
