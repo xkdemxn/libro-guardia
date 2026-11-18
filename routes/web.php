@@ -40,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::put('contactos/{contacto}/qsl', [ConfirmacionQslController::class, 'update'])->name('contactos.qsl.update');
     Route::get('contactos/{contacto}/tarjeta', [TarjetaQslController::class, 'show'])->name('contactos.tarjeta');
     Route::get('contactos/{contacto}/tarjeta.svg', [TarjetaQslController::class, 'svg'])->name('contactos.tarjeta.svg');
+    Route::post('contactos/{contacto}/tarjeta/enviar', [TarjetaQslController::class, 'enviar'])
+        ->middleware(['verified', 'throttle:5,1'])->name('contactos.tarjeta.enviar');
     Route::patch('tarjeta-qsl', [TarjetaQslController::class, 'personalizar'])->name('tarjeta-qsl.personalizar');
 
     Route::get('estadisticas', EstadisticasController::class)->name('estadisticas');
