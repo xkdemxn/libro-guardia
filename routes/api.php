@@ -7,11 +7,16 @@ use App\Http\Controllers\Api\Auth\EnlaceRestablecimientoController;
 use App\Http\Controllers\Api\Auth\RegistroController;
 use App\Http\Controllers\Api\Auth\SesionController;
 use App\Http\Controllers\Api\Auth\VerificacionCorreoController;
+use App\Http\Controllers\Api\CatalogosController;
 use App\Http\Controllers\Api\ConfiguracionSegundoFactorController;
+use App\Http\Controllers\Api\ConfirmacionQslController;
+use App\Http\Controllers\Api\ContactoController;
 use App\Http\Controllers\Api\ContrasenaController;
 use App\Http\Controllers\Api\EstadisticasController;
+use App\Http\Controllers\Api\FichaIndicativoController;
 use App\Http\Controllers\Api\PerfilController;
 use App\Http\Controllers\Api\PerfilPublicoController;
+use App\Http\Controllers\Api\SolicitudConfirmacionController;
 use App\Http\Controllers\Api\UbicacionesController;
 use App\Http\Controllers\Api\UsuarioActualController;
 use Illuminate\Support\Facades\Route;
@@ -54,4 +59,15 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('throttle:10,1')->name('api.segundo-factor.confirmar')->block();
 
     Route::get('estadisticas', EstadisticasController::class)->name('api.estadisticas');
+
+    Route::get('catalogos', CatalogosController::class)->name('api.catalogos');
+
+    // Antes del resource para que «ficha» no se tome como el id de un contacto.
+    Route::get('contactos/ficha', FichaIndicativoController::class)->name('api.contactos.ficha');
+    Route::apiResource('contactos', ContactoController::class)->names('api.contactos');
+    Route::put('contactos/{contacto}/qsl', [ConfirmacionQslController::class, 'update'])->name('api.contactos.qsl');
+
+    Route::get('solicitudes', [SolicitudConfirmacionController::class, 'index'])->name('api.solicitudes.index');
+    Route::post('solicitudes/{contacto}/aceptar', [SolicitudConfirmacionController::class, 'aceptar'])->name('api.solicitudes.aceptar');
+    Route::post('solicitudes/{contacto}/rechazar', [SolicitudConfirmacionController::class, 'rechazar'])->name('api.solicitudes.rechazar');
 });
