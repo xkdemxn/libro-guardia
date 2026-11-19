@@ -11,25 +11,15 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Laravel\Fortify\Fortify;
 use PragmaRX\Google2FA\Google2FA;
-use Tests\TestCase;
 
 /**
  * Autenticación de la SPA de React: sesión por cookie con Sanctum.
  */
-class AutenticacionApiTest extends TestCase
+class AutenticacionApiTest extends ApiTestCase
 {
     use RefreshDatabase;
 
     private const SECRETO_APP = 'JBSWY3DPEHPK3PXP';
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // Las peticiones de la SPA llegan desde su propio origen, que Sanctum trata como "stateful".
-        config(['sanctum.stateful' => ['localhost:5173']]);
-        $this->withHeader('Origin', 'http://localhost:5173');
-    }
 
     public function test_without_a_session_the_current_user_is_unauthorized(): void
     {
