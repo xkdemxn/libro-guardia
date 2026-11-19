@@ -3,8 +3,8 @@
     indicativo grande arriba, el mensaje abajo a la izquierda, el emblema y la bandera abajo a la derecha y una
     franja amarilla con país, ciudad y zonas. El recuadro de arriba a la derecha confirma el QSO.
     Variables: $contacto, $operador, $verificado, $fondo (foto del operador o null), $remitente (datos de la franja,
-    bandera y emblema) y $editable (opcional): en la página de la tarjeta la foto y el mensaje se enlazan con Alpine
-    para verlos cambiar en vivo. El archivo descargado nunca lleva esos enlaces.
+    bandera y emblema) y $editable (opcional): para la vista previa de la SPA la foto y las líneas del mensaje llevan
+    id / data-linea, así se ven cambiar en vivo. El archivo descargado nunca los lleva.
 --}}
 @php
     $editable ??= false;
@@ -79,12 +79,11 @@
 
     {{-- Foto del operador --}}
     @if ($editable)
-        <g clip-path="url(#recorteFoto)" x-show="fondos.qsl.previa && ! fondos.qsl.quitar" @unless ($fondo) style="display: none" @endunless>
-            <rect width="1400" height="840" fill="#05070d" x-show="fondos.qsl.estilo === 'completa'" />
-            <image x="0" y="0" width="1400" height="840" preserveAspectRatio="xMidYMid slice"
-                   x-bind:href="fondos.qsl.previa"
-                   x-bind:mask="fondos.qsl.estilo === 'degradado' ? 'url(#mascaraFoto)' : null"
-                   x-bind:opacity="fondos.qsl.estilo === 'completa' ? fondos.qsl.opacidad / 100 : 1" />
+        {{-- Siempre presente para la vista previa en vivo: la SPA cambia la foto, el estilo y la opacidad por id. --}}
+        <g id="qsl-foto" clip-path="url(#recorteFoto)" @unless ($fondo) style="display: none" @endunless>
+            <rect id="qsl-foto-fondo" width="1400" height="840" fill="#05070d" @if (($fondo['estilo'] ?? null) !== 'completa') style="display: none" @endif />
+            <image id="qsl-foto-imagen" x="0" y="0" width="1400" height="840" preserveAspectRatio="xMidYMid slice"
+                   @if ($fondo) href="{{ $fondo['data'] }}" @if ($fondo['estilo'] === 'degradado') mask="url(#mascaraFoto)" @else opacity="{{ $fondo['opacidad'] / 100 }}" @endif @endif />
         </g>
     @elseif ($fondo)
         <g clip-path="url(#recorteFoto)">
@@ -132,7 +131,7 @@
     {{-- Mensaje (hasta 3 líneas) y pie --}}
     @foreach ([0, 1, 2] as $i)
         <text x="40" y="{{ 788 - (count($lineas) - 1 - $i) * 34 }}" font-family="{{ $fuenteTexto }}" font-size="24" fill="#ffffff" filter="url(#sombraTexto)"
-              @if ($editable) x-text="lineasQsl[{{ $i }}] ?? ''" x-bind:y="788 - (lineasQsl.length - 1 - {{ $i }}) * 34" @endif>{{ $lineas[$i] ?? '' }}</text>
+              @if ($editable) data-linea="{{ $i }}" @endif>{{ $lineas[$i] ?? '' }}</text>
     @endforeach
     <text x="40" y="822" font-family="{{ $fuenteMono }}" font-size="17" fill="#ffffff" fill-opacity="0.7">{{ $recibida ? 'TNX QSL' : 'PSE QSL TNX' }}  ·  QSO #{{ $contacto->id }}</text>
 

@@ -13,10 +13,13 @@ use App\Http\Controllers\Api\ConfirmacionQslController;
 use App\Http\Controllers\Api\ContactoController;
 use App\Http\Controllers\Api\ContrasenaController;
 use App\Http\Controllers\Api\EstadisticasController;
+use App\Http\Controllers\Api\ExportacionController;
 use App\Http\Controllers\Api\FichaIndicativoController;
+use App\Http\Controllers\Api\ImportacionController;
 use App\Http\Controllers\Api\PerfilController;
 use App\Http\Controllers\Api\PerfilPublicoController;
 use App\Http\Controllers\Api\SolicitudConfirmacionController;
+use App\Http\Controllers\Api\TarjetaQslController;
 use App\Http\Controllers\Api\UbicacionesController;
 use App\Http\Controllers\Api\UsuarioActualController;
 use Illuminate\Support\Facades\Route;
@@ -62,12 +65,24 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('catalogos', CatalogosController::class)->name('api.catalogos');
 
-    // Antes del resource para que «ficha» no se tome como el id de un contacto.
+    // Antes del resource para que «ficha» y «exportar» no se tomen como el id de un contacto.
     Route::get('contactos/ficha', FichaIndicativoController::class)->name('api.contactos.ficha');
+    Route::post('contactos/exportar', [ExportacionController::class, 'store'])->name('api.contactos.exportar');
     Route::apiResource('contactos', ContactoController::class)->names('api.contactos');
     Route::put('contactos/{contacto}/qsl', [ConfirmacionQslController::class, 'update'])->name('api.contactos.qsl');
 
     Route::get('solicitudes', [SolicitudConfirmacionController::class, 'index'])->name('api.solicitudes.index');
     Route::post('solicitudes/{contacto}/aceptar', [SolicitudConfirmacionController::class, 'aceptar'])->name('api.solicitudes.aceptar');
     Route::post('solicitudes/{contacto}/rechazar', [SolicitudConfirmacionController::class, 'rechazar'])->name('api.solicitudes.rechazar');
+
+    Route::get('contactos/{contacto}/tarjeta', [TarjetaQslController::class, 'show'])->name('api.tarjeta.show');
+    Route::get('contactos/{contacto}/tarjeta.svg', [TarjetaQslController::class, 'svg'])->name('api.tarjeta.svg');
+    Route::post('contactos/{contacto}/tarjeta/enviar', [TarjetaQslController::class, 'enviar'])
+        ->middleware(['verified', 'throttle:5,1'])->name('api.tarjeta.enviar');
+    Route::patch('tarjeta-qsl', [TarjetaQslController::class, 'personalizar'])->name('api.tarjeta.personalizar');
+
+    Route::post('importaciones', [ImportacionController::class, 'store'])->name('api.importaciones.store');
+    Route::get('importaciones/pendiente', [ImportacionController::class, 'show'])->name('api.importaciones.show');
+    Route::post('importaciones/pendiente/confirmar', [ImportacionController::class, 'confirmar'])->name('api.importaciones.confirmar');
+    Route::delete('importaciones/pendiente', [ImportacionController::class, 'destroy'])->name('api.importaciones.destroy');
 });
