@@ -9,9 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class TwoFactorChallengeController extends Controller
 {
@@ -44,34 +42,11 @@ class TwoFactorChallengeController extends Controller
 
         abort_unless($this->segundoFactor->correoDisponible($user), 403);
 
-        if (! $this->segundoFactor->envioCorreoDisponible()) {
-            return redirect()->route('two-factor.show')->withErrors(['codigo' => 'El envío de correo no está disponible. Usa la app o un código de recuperación.']);
+        $error = $this->segundoFactor->enviarCodigoCorreo($request, $user, $desafio);
+
+        if ($error !== null) {
+            return redirect()->route('two-factor.show')->withErrors(['codigo' => $error]);
         }
-
-        $limite = 'two-factor:correo:'.$user->getKey();
-
-        if (RateLimiter::increment($limite, 60) > 1) {
-            return redirect()->route('two-factor.show')->withErrors(['codigo' => 'Espera un minuto antes de pedir otro código.']);
-        }
-
-        do {
-            $codigo = (string) random_int(100000, 999999);
-            $firma = $this->segundoFactor->firmaCorreo($desafio['nonce'], $codigo);
-        } while (hash_equals($desafio['correo_firma'] ?? '', $firma));
-
-        try {
-            Mail::raw("Tu código de acceso a Libro Guardia es {$codigo}. Vence en 5 minutos.", function ($mensaje) use ($user): void {
-                $mensaje->to($user->email)->subject('Código de acceso a Libro Guardia');
-            });
-        } catch (TransportExceptionInterface $exception) {
-            report($exception);
-
-            return redirect()->route('two-factor.show')->withErrors(['codigo' => 'No se pudo enviar el código. Puedes volver a intentarlo en un minuto.']);
-        }
-
-        $desafio['correo_firma'] = $firma;
-        $desafio['correo_vence'] = now()->addMinutes(5)->timestamp;
-        $request->session()->put(SegundoFactor::DESAFIO, $desafio);
 
         return redirect()->route('two-factor.show')->with('status', 'Enviamos un código a tu correo verificado.');
     }
@@ -104,7 +79,7 @@ class TwoFactorChallengeController extends Controller
                 return redirect()->route('two-factor.show')->withErrors(['codigo' => 'Demasiados intentos. Espera cinco minutos.']);
             }
 
-            if (! $this->verificar($user, $datos['metodo'], $datos['codigo'], $desafio)) {
+            if (! $this->segundoFactor->verificarDesafio($user, $datos['metodo'], $datos['codigo'], $desafio)) {
                 RateLimiter::hit($limite, 300);
 
                 return redirect()->route('two-factor.show')->withErrors(['codigo' => 'El código es inválido o ha vencido.'])->withInput(['metodo' => $datos['metodo']]);
@@ -118,31 +93,5 @@ class TwoFactorChallengeController extends Controller
         return $resultado instanceof User
             ? $this->segundoFactor->completar($request, $resultado, $desafio['recordar'])
             : $resultado;
-    }
-
-    /** @param array{nonce: string, correo_vence?: int, correo_firma?: string} $desafio */
-    private function verificar(User $user, string $metodo, #[\SensitiveParameter] string $codigo, array $desafio): bool
-    {
-        return match ($metodo) {
-            'app' => $user->hasEnabledTwoFactorAuthentication() && preg_match('/^[0-9]{6}$/D', $codigo)
-                && $this->segundoFactor->verificarApp($user->two_factor_secret, $codigo),
-            'correo' => $this->segundoFactor->correoDisponible($user)
-                && now()->timestamp < ($desafio['correo_vence'] ?? 0)
-                && hash_equals($desafio['correo_firma'], $this->segundoFactor->firmaCorreo($desafio['nonce'], $codigo)),
-            'recuperacion' => $this->consumirCodigoRecuperacion($user, $codigo),
-        };
-    }
-
-    private function consumirCodigoRecuperacion(User $user, #[\SensitiveParameter] string $codigo): bool
-    {
-        foreach ($user->two_factor_recovery_codes ? $user->recoveryCodes() : [] as $codigoGuardado) {
-            if (hash_equals($codigoGuardado, $codigo)) {
-                $user->replaceRecoveryCode($codigoGuardado);
-
-                return true;
-            }
-        }
-
-        return false;
     }
 }

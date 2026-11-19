@@ -55,6 +55,13 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+    | Dirección de la SPA de React. Los enlaces de los correos (restablecer contraseña)
+    | apuntan aquí.
+    */
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
