@@ -104,3 +104,112 @@ export interface Estadisticas {
     puntos: { lat: number; lon: number; lugar: string; cantidad: number; indicativos: string[] }[];
     mas_lejano: { indicativo: string; lugar: string; km: number } | null;
 }
+
+export interface BandaCatalogo {
+    id: number;
+    nombre: string;
+    min: number;
+    max: number;
+    rango: 'MF' | 'HF' | 'VHF' | 'UHF';
+}
+
+export interface ModoCatalogo {
+    id: number;
+    nombre: string;
+    etiqueta: string;
+    tipo: 'RS' | 'RST' | 'dB';
+    ejemplo: string;
+}
+
+export interface Catalogos {
+    bandas: BandaCatalogo[];
+    modos: ModoCatalogo[];
+    hoy_utc: string;
+}
+
+export type EstadoQsl = 'confirmado' | 'enviada' | 'pendiente';
+
+/** Un contacto del libro (App\Http\Resources\ContactoResource). */
+export interface Contacto {
+    id: number;
+    estacion_llamada: string;
+    fecha: string;
+    hora_inicio: string;
+    hora_fin: string | null;
+    frecuencia_mhz: number;
+    banda: { id: number; nombre: string };
+    modo: { id: number; nombre: string; etiqueta: string };
+    pais: { nombre: string; codigo_bandera: string | null } | null;
+    zona: { nombre: string; descripcion: string } | null;
+    reporte_enviado: string;
+    reporte_recibido: string;
+    estado_qsl: EstadoQsl;
+}
+
+export type TipoQslManual = 'tarjeta' | 'eqsl' | 'lotw';
+
+export interface ConfirmacionQsl {
+    etiqueta: string;
+    enviada: boolean;
+    fecha_envio: string | null;
+    recibida: boolean;
+    fecha_recepcion: string | null;
+}
+
+/** El contacto con todo lo del detalle y el formulario de edición. */
+export interface ContactoDetalle extends Contacto {
+    potencia_w: number | null;
+    grid_locator: string | null;
+    nombre_operador: string | null;
+    equipo: string | null;
+    activacion: string | null;
+    observaciones: string | null;
+    distancia_km: number | null;
+    es_usuario: boolean;
+    rechazado_por_contraparte: string | null;
+    confirmado_internamente: boolean;
+    confirmaciones: Record<TipoQslManual, ConfirmacionQsl>;
+    fecha_minima: string;
+}
+
+export interface ResumenLibro {
+    contactos: number;
+    paises: number;
+    confirmados: number;
+    bandas: number;
+    solicitudes_pendientes: number;
+}
+
+/** Página de resultados de Laravel (ResourceCollection paginada). */
+export interface Paginado<T> {
+    data: T[];
+    meta: { current_page: number; last_page: number; total: number; from: number | null; to: number | null };
+}
+
+export interface Solicitud {
+    id: number;
+    indicativo: string;
+    fecha: string;
+    hora_inicio: string;
+    hora_fin: string | null;
+    frecuencia_mhz: number;
+    banda: string;
+    modo: string;
+    reporte_enviado: string;
+    reporte_recibido: string;
+}
+
+/** Ficha rápida del indicativo (innovación 3). */
+export type Ficha =
+    | { valido: false }
+    | {
+          valido: true;
+          indicativo: string;
+          pais: string | null;
+          zona: string | null;
+          codigo_bandera: string | null;
+          contactos_previos: number;
+          ultimo: { fecha: string; hace: string; banda: string; modo: string } | null;
+          registrado: boolean;
+          perfil: { nombre: string | null; ciudad: string | null; foto_url: string | null } | null;
+      };

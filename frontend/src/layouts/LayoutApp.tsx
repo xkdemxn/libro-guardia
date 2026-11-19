@@ -6,6 +6,7 @@ import { Icono, type NombreIcono } from '@/componentes/Icono';
 import { RelojUtc } from '@/componentes/RelojUtc';
 import { SelectorTema } from '@/componentes/SelectorTema';
 import { useCerrarSesion } from '@/hooks/useCerrarSesion';
+import { useSolicitudes } from '@/hooks/useSolicitudes';
 import type { Usuario } from '@/lib/tipos';
 
 const SECCIONES: { ruta: string; titulo: string; fin?: boolean }[] = [
@@ -45,6 +46,7 @@ export function LayoutApp({ usuario }: { usuario: Usuario }) {
 
 function BarraSuperior({ usuario }: { usuario: Usuario }) {
     const [menuAbierto, setMenuAbierto] = useState(false);
+    const pendientes = useSolicitudes().data?.length ?? 0;
     const [desplazado, setDesplazado] = useState(() => window.scrollY > 4);
     const ubicacion = useLocation();
 
@@ -98,12 +100,17 @@ function BarraSuperior({ usuario }: { usuario: Usuario }) {
                         <NavLink
                             to="/solicitudes"
                             title="Solicitudes de confirmación"
-                            aria-label="Solicitudes de confirmación"
+                            aria-label={`Solicitudes de confirmación${pendientes ? `: ${pendientes} pendientes` : ''}`}
                             className={({ isActive }) =>
                                 `relative grid h-9 w-9 place-items-center rounded-full text-slate-300 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-white ${isActive ? 'bg-white/10 text-white' : ''}`
                             }
                         >
                             <Icono nombre="campana" />
+                            {pendientes > 0 && (
+                                <span className="absolute -right-1 -top-1 grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-rose-500 px-1 text-[0.75rem] font-bold text-blanco ring-2 ring-noche-900">
+                                    {pendientes}
+                                </span>
+                            )}
                         </NavLink>
                         <MenuUsuario usuario={usuario} />
                     </div>
@@ -123,11 +130,12 @@ function BarraSuperior({ usuario }: { usuario: Usuario }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7h16M4 12h16M4 17h16" />
                             )}
                         </svg>
+                        {pendientes > 0 && <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-noche-900" />}
                     </button>
                 </div>
             </div>
 
-            {menuAbierto && <MenuCelular usuario={usuario} />}
+            {menuAbierto && <MenuCelular usuario={usuario} pendientes={pendientes} />}
         </nav>
     );
 }
@@ -213,7 +221,7 @@ function MenuUsuario({ usuario }: { usuario: Usuario }) {
 }
 
 /** Menú en celular: compacto, con accesos en cuadrícula en lugar de una lista larga. */
-function MenuCelular({ usuario }: { usuario: Usuario }) {
+function MenuCelular({ usuario, pendientes }: { usuario: Usuario; pendientes: number }) {
     const cerrarSesion = useCerrarSesion();
 
     return (
@@ -255,6 +263,9 @@ function MenuCelular({ usuario }: { usuario: Usuario }) {
                             <>
                                 <Icono nombre={acceso.icono} className={`h-[18px] w-[18px] ${isActive ? 'text-acento-300' : 'text-slate-500'}`} />
                                 <span className="truncate">{acceso.titulo}</span>
+                                {acceso.ruta === '/solicitudes' && pendientes > 0 && (
+                                    <span className="ms-auto grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-rose-500 px-1 text-[0.75rem] font-bold text-blanco">{pendientes}</span>
+                                )}
                             </>
                         )}
                     </NavLink>

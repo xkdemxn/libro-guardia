@@ -9,11 +9,16 @@ import { OlvideContrasena } from '@/paginas/auth/OlvideContrasena';
 import { Registro } from '@/paginas/auth/Registro';
 import { RestablecerContrasena } from '@/paginas/auth/RestablecerContrasena';
 import { EnConstruccion } from '@/paginas/EnConstruccion';
+import { DetalleContacto } from '@/paginas/contactos/DetalleContacto';
+import { EditarContacto } from '@/paginas/contactos/EditarContacto';
+import { Libro } from '@/paginas/contactos/Libro';
+import { NuevoContacto } from '@/paginas/contactos/NuevoContacto';
 import { Estadisticas } from '@/paginas/Estadisticas';
 import { NoEncontrada } from '@/paginas/NoEncontrada';
 import { MiPerfil } from '@/paginas/perfil/MiPerfil';
 import { BuscarIndicativo } from '@/paginas/publico/BuscarIndicativo';
 import { PerfilPublico } from '@/paginas/publico/PerfilPublico';
+import { Solicitudes } from '@/paginas/Solicitudes';
 
 export function App() {
     return (
@@ -37,12 +42,14 @@ export function App() {
 
             {/* Con sesión */}
             <Route element={<RequiereSesion />}>
-                <Route path="contactos" element={<EnConstruccion titulo="Libro de guardia" rutaBlade="/contactos" />} />
-                <Route path="contactos/nuevo" element={<EnConstruccion titulo="Nuevo contacto" rutaBlade="/contactos/create" />} />
+                <Route path="contactos" element={<Libro />} />
+                <Route path="contactos/nuevo" element={<NuevoContacto />} />
                 <Route path="contactos/importar" element={<EnConstruccion titulo="Importar ADIF" rutaBlade="/contactos/importar" />} />
                 <Route path="contactos/exportar" element={<EnConstruccion titulo="Exportar" rutaBlade="/contactos/exportar" />} />
                 <Route path="estadisticas" element={<Estadisticas />} />
-                <Route path="solicitudes" element={<EnConstruccion titulo="Solicitudes de confirmación" rutaBlade="/solicitudes" />} />
+                <Route path="solicitudes" element={<Solicitudes />} />
+                <Route path="contactos/:id" element={<DetalleContacto />} />
+                <Route path="contactos/:id/editar" element={<EditarContacto />} />
                 <Route path="perfil" element={<MiPerfil />} />
             </Route>
 
