@@ -8,7 +8,7 @@ import { MapaContactos } from '@/componentes/MapaContactos';
 import { Panel } from '@/componentes/Panel';
 import { useUsuario } from '@/hooks/useUsuario';
 import { api, erroresDeValidacion, mensajeDeError } from '@/lib/api';
-import { descargar } from '@/lib/descargas';
+import { descargar, errorDeDescarga } from '@/lib/descargas';
 import type { Estadisticas as Datos } from '@/lib/tipos';
 
 /** Estadísticas (US-16), mapa de contactos (innovación 2) y diplomas (innovación 4). */
@@ -41,7 +41,8 @@ export function Estadisticas() {
         try {
             await descargar('/contactos/exportar', { formato: 'pdf', ...rango }, 'reporte.pdf');
         } catch (error) {
-            setErrorPdf(mensajeDeError(error));
+            const { errores, mensaje } = await errorDeDescarga(error);
+            setErrorPdf(mensaje ?? Object.values(errores)[0]?.[0] ?? null);
         } finally {
             setDescargando(false);
         }

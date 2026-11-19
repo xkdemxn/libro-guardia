@@ -213,3 +213,46 @@ export type Ficha =
           registrado: boolean;
           perfil: { nombre: string | null; ciudad: string | null; foto_url: string | null } | null;
       };
+
+export interface FilaImportacion {
+    numero: number;
+    estado: 'nuevo' | 'duplicado' | 'error';
+    indicativo: string | null;
+    fecha: string | null;
+    banda: string | null;
+    modo: string | null;
+    errores: string[];
+}
+
+export interface VistaPreviaImportacion {
+    nombre_archivo: string;
+    total_filas: number;
+    nuevos: number;
+    duplicados: number;
+    errores: number;
+    filas: FilaImportacion[];
+}
+
+export interface ResultadoImportacion {
+    importados: number;
+    omitidos: number;
+    fallidos: number;
+    errores: { numero: number; indicativo: string | null; errores: string[] }[];
+}
+
+export interface PersonalizacionTarjeta {
+    /** Foto como data URI (la tarjeta se exporta a PNG en el navegador y no puede cargar imágenes externas). */
+    foto: string | null;
+    estilo: EstiloFondo;
+    opacidad: number;
+    mensaje: string | null;
+    mensaje_predeterminado: string;
+    mensaje_maximo: number;
+}
+
+export interface Tarjeta {
+    svg: string;
+    nombre_archivo: string;
+    envio_disponible: boolean;
+    personalizacion: PersonalizacionTarjeta;
+}

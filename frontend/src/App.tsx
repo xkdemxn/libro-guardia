@@ -8,11 +8,13 @@ import { IniciarSesion } from '@/paginas/auth/IniciarSesion';
 import { OlvideContrasena } from '@/paginas/auth/OlvideContrasena';
 import { Registro } from '@/paginas/auth/Registro';
 import { RestablecerContrasena } from '@/paginas/auth/RestablecerContrasena';
-import { EnConstruccion } from '@/paginas/EnConstruccion';
 import { DetalleContacto } from '@/paginas/contactos/DetalleContacto';
 import { EditarContacto } from '@/paginas/contactos/EditarContacto';
+import { Exportar } from '@/paginas/contactos/Exportar';
+import { Importar } from '@/paginas/contactos/Importar';
 import { Libro } from '@/paginas/contactos/Libro';
 import { NuevoContacto } from '@/paginas/contactos/NuevoContacto';
+import { TarjetaQsl } from '@/paginas/contactos/TarjetaQsl';
 import { Estadisticas } from '@/paginas/Estadisticas';
 import { NoEncontrada } from '@/paginas/NoEncontrada';
 import { MiPerfil } from '@/paginas/perfil/MiPerfil';
@@ -44,12 +46,13 @@ export function App() {
             <Route element={<RequiereSesion />}>
                 <Route path="contactos" element={<Libro />} />
                 <Route path="contactos/nuevo" element={<NuevoContacto />} />
-                <Route path="contactos/importar" element={<EnConstruccion titulo="Importar ADIF" rutaBlade="/contactos/importar" />} />
-                <Route path="contactos/exportar" element={<EnConstruccion titulo="Exportar" rutaBlade="/contactos/exportar" />} />
+                <Route path="contactos/importar" element={<Importar />} />
+                <Route path="contactos/exportar" element={<Exportar />} />
                 <Route path="estadisticas" element={<Estadisticas />} />
                 <Route path="solicitudes" element={<Solicitudes />} />
                 <Route path="contactos/:id" element={<DetalleContacto />} />
                 <Route path="contactos/:id/editar" element={<EditarContacto />} />
+                <Route path="contactos/:id/tarjeta" element={<TarjetaQsl />} />
                 <Route path="perfil" element={<MiPerfil />} />
             </Route>
 
