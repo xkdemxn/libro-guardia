@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { Ceja } from '@/componentes/Ceja';
+import { CampoContrasena } from '@/componentes/CampoContrasena';
 import { Aviso, BotonPrimario, Campo } from '@/componentes/Formulario';
 import { useFijarUsuario } from '@/hooks/useUsuario';
 import { LayoutInvitado } from '@/layouts/LayoutInvitado';
@@ -69,10 +70,9 @@ export function IniciarSesion() {
 
             <form onSubmit={enviar} className="mt-6 space-y-5" noValidate>
                 <Campo id="login" etiqueta="Indicativo o correo" type="text" required autoFocus autoComplete="username" placeholder="HC1QRC" errores={errores.login} />
-                <Campo
+                <CampoContrasena
                     id="password"
                     etiqueta="Contraseña"
-                    type="password"
                     required
                     autoComplete="current-password"
                     errores={errores.password}

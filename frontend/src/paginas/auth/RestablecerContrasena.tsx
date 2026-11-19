@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Ceja } from '@/componentes/Ceja';
+import { CampoContrasena } from '@/componentes/CampoContrasena';
 import { Aviso, BotonPrimario, Campo } from '@/componentes/Formulario';
 import { LayoutInvitado } from '@/layouts/LayoutInvitado';
 import { api, erroresDeValidacion, mensajeDeError, type ErroresValidacion } from '@/lib/api';
@@ -59,16 +60,23 @@ export function RestablecerContrasena() {
                     defaultValue={parametros.get('email') ?? ''}
                     errores={errores.email}
                 />
-                <Campo id="password" etiqueta="Contraseña nueva" type="password" required autoFocus autoComplete="new-password" errores={errores.password} />
-                <Campo
+                <CampoContrasena
+                    id="password"
+                    etiqueta="Contraseña nueva"
+                    required
+                    autoFocus
+                    autoComplete="new-password"
+                    medirSeguridad
+                    datosPersonales={[parametros.get('email')?.split('@')[0] ?? '']}
+                    errores={errores.password}
+                />
+                <CampoContrasena
                     id="password_confirmation"
                     etiqueta="Confirmar contraseña"
-                    type="password"
                     required
                     autoComplete="new-password"
                     errores={errores.password_confirmation}
                 />
-                <p className="-mt-2 text-xs text-slate-500">Mínimo 8 caracteres, con letras y números.</p>
 
                 <BotonPrimario className="w-full !py-3" disabled={enviando}>
                     {enviando ? 'Guardando…' : 'Guardar contraseña'}

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Ceja } from '@/componentes/Ceja';
+import { CampoContrasena } from '@/componentes/CampoContrasena';
 import { Aviso, BotonPrimario, Campo } from '@/componentes/Formulario';
 import { useFijarUsuario } from '@/hooks/useUsuario';
 import { LayoutInvitado } from '@/layouts/LayoutInvitado';
@@ -14,6 +15,7 @@ export function Registro() {
     const [errores, setErrores] = useState<ErroresValidacion>({});
     const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
     const [enviando, setEnviando] = useState(false);
+    const [datosPersonales, setDatosPersonales] = useState<string[]>([]);
 
     async function enviar(evento: FormEvent<HTMLFormElement>) {
         evento.preventDefault();
@@ -48,7 +50,18 @@ export function Registro() {
                 </Aviso>
             )}
 
-            <form onSubmit={enviar} className="mt-6 space-y-5" noValidate>
+            <form
+                onSubmit={enviar}
+                className="mt-6 space-y-5"
+                noValidate
+                onChange={(evento) => {
+                    const datos = new FormData(evento.currentTarget);
+                    const email = String(datos.get('email') ?? '');
+                    setDatosPersonales(
+                        [datos.get('indicativo'), datos.get('nombres'), datos.get('apellidos'), email.split('@')[0]].map((dato) => String(dato ?? '').trim()),
+                    );
+                }}
+            >
                 <Campo
                     id="indicativo"
                     etiqueta="Indicativo"
@@ -67,18 +80,22 @@ export function Registro() {
 
                 <Campo id="email" etiqueta="Correo electrónico" type="email" required autoComplete="username" errores={errores.email} />
 
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <Campo id="password" etiqueta="Contraseña" type="password" required autoComplete="new-password" errores={errores.password} />
-                    <Campo
-                        id="password_confirmation"
-                        etiqueta="Confirmar"
-                        type="password"
-                        required
-                        autoComplete="new-password"
-                        errores={errores.password_confirmation}
-                    />
-                </div>
-                <p className="-mt-2 text-xs text-slate-500">Mínimo 8 caracteres, con letras y números.</p>
+                <CampoContrasena
+                    id="password"
+                    etiqueta="Contraseña"
+                    required
+                    autoComplete="new-password"
+                    medirSeguridad
+                    datosPersonales={datosPersonales}
+                    errores={errores.password}
+                />
+                <CampoContrasena
+                    id="password_confirmation"
+                    etiqueta="Confirmar contraseña"
+                    required
+                    autoComplete="new-password"
+                    errores={errores.password_confirmation}
+                />
 
                 <BotonPrimario className="w-full !py-3" disabled={enviando}>
                     {enviando ? 'Creando…' : 'Crear mi cuenta'}

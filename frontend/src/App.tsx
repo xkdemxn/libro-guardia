@@ -2,13 +2,18 @@ import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router';
 import { Cargando } from '@/componentes/Cargando';
 import { useUsuario } from '@/hooks/useUsuario';
 import { LayoutApp } from '@/layouts/LayoutApp';
+import { LayoutPublico } from '@/layouts/LayoutPublico';
 import { DesafioSegundoFactor } from '@/paginas/auth/DesafioSegundoFactor';
 import { IniciarSesion } from '@/paginas/auth/IniciarSesion';
 import { OlvideContrasena } from '@/paginas/auth/OlvideContrasena';
 import { Registro } from '@/paginas/auth/Registro';
 import { RestablecerContrasena } from '@/paginas/auth/RestablecerContrasena';
 import { EnConstruccion } from '@/paginas/EnConstruccion';
+import { Estadisticas } from '@/paginas/Estadisticas';
 import { NoEncontrada } from '@/paginas/NoEncontrada';
+import { MiPerfil } from '@/paginas/perfil/MiPerfil';
+import { BuscarIndicativo } from '@/paginas/publico/BuscarIndicativo';
+import { PerfilPublico } from '@/paginas/publico/PerfilPublico';
 
 export function App() {
     return (
@@ -26,8 +31,8 @@ export function App() {
 
             {/* Públicas: con o sin sesión (US-15) */}
             <Route element={<LayoutSegunSesion />}>
-                <Route path="indicativos" element={<EnConstruccion titulo="Directorio de indicativos" rutaBlade="/indicativos" />} />
-                <Route path="indicativos/:indicativo" element={<EnConstruccion titulo="Perfil público" rutaBlade="/indicativos" />} />
+                <Route path="indicativos" element={<BuscarIndicativo />} />
+                <Route path="indicativos/:indicativo" element={<PerfilPublico />} />
             </Route>
 
             {/* Con sesión */}
@@ -36,9 +41,9 @@ export function App() {
                 <Route path="contactos/nuevo" element={<EnConstruccion titulo="Nuevo contacto" rutaBlade="/contactos/create" />} />
                 <Route path="contactos/importar" element={<EnConstruccion titulo="Importar ADIF" rutaBlade="/contactos/importar" />} />
                 <Route path="contactos/exportar" element={<EnConstruccion titulo="Exportar" rutaBlade="/contactos/exportar" />} />
-                <Route path="estadisticas" element={<EnConstruccion titulo="Estadísticas" rutaBlade="/estadisticas" />} />
+                <Route path="estadisticas" element={<Estadisticas />} />
                 <Route path="solicitudes" element={<EnConstruccion titulo="Solicitudes de confirmación" rutaBlade="/solicitudes" />} />
-                <Route path="perfil" element={<EnConstruccion titulo="Mi perfil" rutaBlade="/profile" />} />
+                <Route path="perfil" element={<MiPerfil />} />
             </Route>
 
             <Route path="*" element={<NoEncontrada />} />
@@ -94,12 +99,5 @@ function LayoutSegunSesion() {
         return <LayoutApp usuario={usuario} />;
     }
 
-    return (
-        <>
-            <div className="fondo-noche" aria-hidden="true">
-                <span />
-            </div>
-            <Outlet />
-        </>
-    );
+    return <LayoutPublico />;
 }
