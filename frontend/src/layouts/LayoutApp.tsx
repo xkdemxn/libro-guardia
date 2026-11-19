@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { Avatar } from '@/componentes/Avatar';
+import { Cargando } from '@/componentes/Cargando';
 import { Emblema } from '@/componentes/Emblema';
 import { Icono, type NombreIcono } from '@/componentes/Icono';
 import { RelojUtc } from '@/componentes/RelojUtc';
@@ -37,7 +38,10 @@ export function LayoutApp({ usuario }: { usuario: Usuario }) {
             <div className="min-h-screen pb-16">
                 <BarraSuperior usuario={usuario} />
                 <main>
-                    <Outlet />
+                    {/* Mientras se descarga una sección, la barra superior sigue visible. */}
+                    <Suspense fallback={<Cargando />}>
+                        <Outlet />
+                    </Suspense>
                 </main>
             </div>
         </>

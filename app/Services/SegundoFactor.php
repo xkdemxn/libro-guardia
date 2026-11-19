@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -62,16 +61,8 @@ class SegundoFactor
             && hash_equals($desafio['firma'], $this->firma($user));
     }
 
-    public function completar(Request $request, User $user, bool $recordar): RedirectResponse
-    {
-        $this->iniciarSesion($request, $user, $recordar);
-
-        return redirect()->intended(route('contactos.index', absolute: false));
-    }
-
     /**
-     * Cierra el desafío y deja la sesión iniciada. La API (SPA de React) lo usa directamente;
-     * la versión Blade lo hace a través de completar(), que además redirige.
+     * Cierra el desafío y deja la sesión iniciada.
      */
     public function iniciarSesion(Request $request, User $user, bool $recordar): void
     {

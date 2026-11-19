@@ -6,7 +6,6 @@ use App\Mail\BrevoTransport;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Fortify\Fortify;
@@ -35,10 +34,5 @@ class AppServiceProvider extends ServiceProvider
             .'/restablecer-contrasena/'.$token.'?'.http_build_query(['email' => $user->getEmailForPasswordReset()]));
 
         Password::defaults(fn (): Password => Password::min(8)->letters()->numbers());
-
-        // Cantidad de solicitudes de confirmación pendientes para el aviso de la barra superior.
-        View::composer(['layouts.navigation', 'contactos.index'], function (\Illuminate\View\View $view): void {
-            $view->with('solicitudesPendientes', auth()->user()?->solicitudesPendientes()->count() ?? 0);
-        });
     }
 }

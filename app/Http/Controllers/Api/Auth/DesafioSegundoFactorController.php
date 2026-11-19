@@ -45,31 +45,41 @@ class DesafioSegundoFactorController extends Controller
             'codigo' => ['required', 'string', 'max:40'],
         ]);
 
-        $user = DB::transaction(function () use ($request, $desafio, $datos): User {
+        // Los errores se devuelven desde la transacción y se lanzan afuera: si se lanzaran dentro,
+        // con la caché en base de datos el rollback borraría también el intento fallido contado.
+        $resultado = DB::transaction(function () use ($request, $desafio, $datos): User|string|null {
             $user = User::query()->lockForUpdate()->find($desafio['usuario']);
 
             if (! $this->segundoFactor->vigente($user, $desafio)) {
                 $request->session()->forget(SegundoFactor::DESAFIO);
 
-                abort(404, 'El inicio de sesión venció. Vuelve a ingresar tu contraseña.');
+                return null;
             }
 
             $limite = 'two-factor:verificar:'.$user->getKey();
 
             if (RateLimiter::tooManyAttempts($limite, 5)) {
-                throw ValidationException::withMessages(['codigo' => 'Demasiados intentos. Espera cinco minutos.']);
+                return 'Demasiados intentos. Espera cinco minutos.';
             }
 
             if (! $this->segundoFactor->verificarDesafio($user, $datos['metodo'], $datos['codigo'], $desafio)) {
                 RateLimiter::hit($limite, 300);
 
-                throw ValidationException::withMessages(['codigo' => 'El código es inválido o ha vencido.']);
+                return 'El código es inválido o ha vencido.';
             }
 
             RateLimiter::clear($limite);
 
             return $user;
         });
+
+        abort_if($resultado === null, 404, 'El inicio de sesión venció. Vuelve a ingresar tu contraseña.');
+
+        if (is_string($resultado)) {
+            throw ValidationException::withMessages(['codigo' => $resultado]);
+        }
+
+        $user = $resultado;
 
         $this->segundoFactor->iniciarSesion($request, $user, $desafio['recordar']);
 

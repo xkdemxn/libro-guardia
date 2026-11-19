@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -179,5 +180,32 @@ class AutenticacionApiTest extends ApiTestCase
         $this->actingAs($user)->postJson(route('api.correo.verificacion'))->assertAccepted();
 
         Notification::assertSentTo($user, VerifyEmail::class);
+    }
+
+    public function test_access_is_locked_after_too_many_failed_attempts(): void
+    {
+        $user = User::factory()->create();
+
+        for ($intento = 1; $intento <= LoginRequest::MAXIMO_INTENTOS; $intento++) {
+            $this->postJson(route('api.sesion.store'), ['login' => $user->indicativo, 'password' => 'incorrecta']);
+        }
+
+        $this->postJson(route('api.sesion.store'), ['login' => $user->indicativo, 'password' => 'password'])
+            ->assertJsonValidationErrors('login');
+        $this->assertGuest();
+    }
+
+    public function test_weak_passwords_are_rejected_at_registration(): void
+    {
+        $this->postJson(route('api.registro.store'), [
+            'indicativo' => 'HC1ABC',
+            'nombres' => 'Ana',
+            'apellidos' => 'Torres',
+            'email' => 'ana@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertJsonValidationErrors('password');
+
+        $this->assertGuest();
     }
 }

@@ -99,23 +99,26 @@ class ConfiguracionSegundoFactorController extends Controller
             'codigo' => ['required', 'string', 'regex:/^[0-9]{6}$/D'],
         ], ['codigo.regex' => 'El código tiene 6 dígitos.']);
 
-        return DB::transaction(function () use ($request, $datos): JsonResponse {
+        // El error se devuelve desde la transacción y se lanza afuera: así el rollback no borra
+        // el intento fallido cuando la caché está en la base de datos.
+        /** @var array{0: User, 1: bool}|string $resultado */
+        $resultado = DB::transaction(function () use ($request, $datos): array|string {
             $user = User::query()->lockForUpdate()->findOrFail($request->user()->getKey());
             $secreto = $this->segundoFactor->secretoPendiente($request, $user);
 
             if (! $secreto || $user->hasEnabledTwoFactorAuthentication()) {
-                throw ValidationException::withMessages(['codigo' => 'Vuelve a iniciar la configuración de la app.']);
+                return 'Vuelve a iniciar la configuración de la app.';
             }
 
             $limite = 'two-factor:configurar:'.$user->getKey();
             if (RateLimiter::tooManyAttempts($limite, 5)) {
-                throw ValidationException::withMessages(['codigo' => 'Demasiados intentos. Espera cinco minutos.']);
+                return 'Demasiados intentos. Espera cinco minutos.';
             }
 
             if (! $this->segundoFactor->verificarApp($secreto, $datos['codigo'])) {
                 RateLimiter::hit($limite, 300);
 
-                throw ValidationException::withMessages(['codigo' => 'El código de la app es inválido.']);
+                return 'El código de la app es inválido.';
             }
 
             $antes = $this->segundoFactor->activo($user);
@@ -129,14 +132,22 @@ class ConfiguracionSegundoFactorController extends Controller
             RateLimiter::clear($limite);
             $request->session()->forget(SegundoFactor::CONFIGURACION);
 
-            if ($antes) {
-                return $this->respuesta($request, $user, 'App autenticadora activada.');
+            if (! $antes) {
+                ($this->generarCodigos)($user);
             }
 
-            ($this->generarCodigos)($user);
-
-            return $this->respuesta($request, $user, 'Guarda tus códigos de recuperación en un lugar seguro.', codigos: true);
+            return [$user, ! $antes];
         });
+
+        if (is_string($resultado)) {
+            throw ValidationException::withMessages(['codigo' => $resultado]);
+        }
+
+        [$user, $codigosNuevos] = $resultado;
+
+        return $codigosNuevos
+            ? $this->respuesta($request, $user, 'Guarda tus códigos de recuperación en un lugar seguro.', codigos: true)
+            : $this->respuesta($request, $user, 'App autenticadora activada.');
     }
 
     private function respuesta(Request $request, User $user, string $mensaje, bool $codigos = false): JsonResponse

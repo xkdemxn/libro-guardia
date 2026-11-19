@@ -24,7 +24,15 @@ export function Libro() {
     const catalogos = useCatalogos();
     const cliente = useQueryClient();
     const [porEliminar, setPorEliminar] = useState<Contacto | null>(null);
-    const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(state?.estado ? { tipo: 'exito', texto: state.estado } : null);
+    const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(() => {
+        if (state?.estado) {
+            return { tipo: 'exito', texto: state.estado };
+        }
+        // Al volver del enlace de verificación que llega por correo.
+        const verificado = parametros.get('verificado');
+
+        return verificado === null ? null : verificado === '1' ? { tipo: 'exito', texto: 'Tu correo quedó verificado.' } : { tipo: 'error', texto: 'El enlace de verificación no es válido.' };
+    });
 
     const filtros = Object.fromEntries(FILTROS.map((campo) => [campo, parametros.get(campo) ?? '']));
     const pagina = parametros.get('page') ?? '1';

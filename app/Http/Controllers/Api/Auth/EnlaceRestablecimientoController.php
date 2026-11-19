@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
-use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -10,6 +9,8 @@ use Illuminate\Support\Facades\Password;
 
 class EnlaceRestablecimientoController extends Controller
 {
+    public const MENSAJE_NEUTRO = 'Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña. El enlace caduca en 60 minutos.';
+
     /**
      * Envía el enlace para restablecer la contraseña (US-18). La respuesta es la misma
      * exista o no el correo, para no revelar quién está registrado.
@@ -22,6 +23,6 @@ class EnlaceRestablecimientoController extends Controller
 
         Password::sendResetLink($request->only('email'));
 
-        return response()->json(['mensaje' => PasswordResetLinkController::MENSAJE_NEUTRO]);
+        return response()->json(['mensaje' => self::MENSAJE_NEUTRO]);
     }
 }

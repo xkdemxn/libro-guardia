@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Link, Outlet } from 'react-router';
+import { Cargando } from '@/componentes/Cargando';
 import { Emblema } from '@/componentes/Emblema';
 import { RelojUtc } from '@/componentes/RelojUtc';
 import { SelectorTema } from '@/componentes/SelectorTema';
@@ -43,7 +44,10 @@ export function LayoutPublico() {
                 </nav>
 
                 <main>
-                    <Outlet />
+                    {/* Mientras se descarga una sección, la barra superior sigue visible. */}
+                    <Suspense fallback={<Cargando />}>
+                        <Outlet />
+                    </Suspense>
                 </main>
             </div>
         </>

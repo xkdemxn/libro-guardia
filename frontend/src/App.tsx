@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router';
 import { Cargando } from '@/componentes/Cargando';
 import { useUsuario } from '@/hooks/useUsuario';
@@ -8,56 +9,60 @@ import { IniciarSesion } from '@/paginas/auth/IniciarSesion';
 import { OlvideContrasena } from '@/paginas/auth/OlvideContrasena';
 import { Registro } from '@/paginas/auth/Registro';
 import { RestablecerContrasena } from '@/paginas/auth/RestablecerContrasena';
-import { DetalleContacto } from '@/paginas/contactos/DetalleContacto';
-import { EditarContacto } from '@/paginas/contactos/EditarContacto';
-import { Exportar } from '@/paginas/contactos/Exportar';
-import { Importar } from '@/paginas/contactos/Importar';
-import { Libro } from '@/paginas/contactos/Libro';
-import { NuevoContacto } from '@/paginas/contactos/NuevoContacto';
-import { TarjetaQsl } from '@/paginas/contactos/TarjetaQsl';
-import { Estadisticas } from '@/paginas/Estadisticas';
 import { NoEncontrada } from '@/paginas/NoEncontrada';
-import { MiPerfil } from '@/paginas/perfil/MiPerfil';
-import { BuscarIndicativo } from '@/paginas/publico/BuscarIndicativo';
-import { PerfilPublico } from '@/paginas/publico/PerfilPublico';
-import { Solicitudes } from '@/paginas/Solicitudes';
+
+// Cada sección se descarga al abrirla por primera vez: la carga inicial queda liviana.
+const DetalleContacto = lazy(() => import('@/paginas/contactos/DetalleContacto').then((modulo) => ({ default: modulo.DetalleContacto })));
+const EditarContacto = lazy(() => import('@/paginas/contactos/EditarContacto').then((modulo) => ({ default: modulo.EditarContacto })));
+const Exportar = lazy(() => import('@/paginas/contactos/Exportar').then((modulo) => ({ default: modulo.Exportar })));
+const Importar = lazy(() => import('@/paginas/contactos/Importar').then((modulo) => ({ default: modulo.Importar })));
+const Libro = lazy(() => import('@/paginas/contactos/Libro').then((modulo) => ({ default: modulo.Libro })));
+const NuevoContacto = lazy(() => import('@/paginas/contactos/NuevoContacto').then((modulo) => ({ default: modulo.NuevoContacto })));
+const TarjetaQsl = lazy(() => import('@/paginas/contactos/TarjetaQsl').then((modulo) => ({ default: modulo.TarjetaQsl })));
+const Estadisticas = lazy(() => import('@/paginas/Estadisticas').then((modulo) => ({ default: modulo.Estadisticas })));
+const MiPerfil = lazy(() => import('@/paginas/perfil/MiPerfil').then((modulo) => ({ default: modulo.MiPerfil })));
+const BuscarIndicativo = lazy(() => import('@/paginas/publico/BuscarIndicativo').then((modulo) => ({ default: modulo.BuscarIndicativo })));
+const PerfilPublico = lazy(() => import('@/paginas/publico/PerfilPublico').then((modulo) => ({ default: modulo.PerfilPublico })));
+const Solicitudes = lazy(() => import('@/paginas/Solicitudes').then((modulo) => ({ default: modulo.Solicitudes })));
 
 export function App() {
     return (
-        <Routes>
-            <Route index element={<Inicio />} />
+        <Suspense fallback={<Cargando />}>
+            <Routes>
+                <Route index element={<Inicio />} />
 
-            {/* Sin sesión */}
-            <Route element={<SoloInvitados />}>
-                <Route path="iniciar-sesion" element={<IniciarSesion />} />
-                <Route path="registro" element={<Registro />} />
-                <Route path="segundo-factor" element={<DesafioSegundoFactor />} />
-                <Route path="olvide-contrasena" element={<OlvideContrasena />} />
-                <Route path="restablecer-contrasena/:token" element={<RestablecerContrasena />} />
-            </Route>
+                {/* Sin sesión */}
+                <Route element={<SoloInvitados />}>
+                    <Route path="iniciar-sesion" element={<IniciarSesion />} />
+                    <Route path="registro" element={<Registro />} />
+                    <Route path="segundo-factor" element={<DesafioSegundoFactor />} />
+                    <Route path="olvide-contrasena" element={<OlvideContrasena />} />
+                    <Route path="restablecer-contrasena/:token" element={<RestablecerContrasena />} />
+                </Route>
 
-            {/* Públicas: con o sin sesión (US-15) */}
-            <Route element={<LayoutSegunSesion />}>
-                <Route path="indicativos" element={<BuscarIndicativo />} />
-                <Route path="indicativos/:indicativo" element={<PerfilPublico />} />
-            </Route>
+                {/* Públicas: con o sin sesión (US-15) */}
+                <Route element={<LayoutSegunSesion />}>
+                    <Route path="indicativos" element={<BuscarIndicativo />} />
+                    <Route path="indicativos/:indicativo" element={<PerfilPublico />} />
+                </Route>
 
-            {/* Con sesión */}
-            <Route element={<RequiereSesion />}>
-                <Route path="contactos" element={<Libro />} />
-                <Route path="contactos/nuevo" element={<NuevoContacto />} />
-                <Route path="contactos/importar" element={<Importar />} />
-                <Route path="contactos/exportar" element={<Exportar />} />
-                <Route path="estadisticas" element={<Estadisticas />} />
-                <Route path="solicitudes" element={<Solicitudes />} />
-                <Route path="contactos/:id" element={<DetalleContacto />} />
-                <Route path="contactos/:id/editar" element={<EditarContacto />} />
-                <Route path="contactos/:id/tarjeta" element={<TarjetaQsl />} />
-                <Route path="perfil" element={<MiPerfil />} />
-            </Route>
+                {/* Con sesión */}
+                <Route element={<RequiereSesion />}>
+                    <Route path="contactos" element={<Libro />} />
+                    <Route path="contactos/nuevo" element={<NuevoContacto />} />
+                    <Route path="contactos/importar" element={<Importar />} />
+                    <Route path="contactos/exportar" element={<Exportar />} />
+                    <Route path="estadisticas" element={<Estadisticas />} />
+                    <Route path="solicitudes" element={<Solicitudes />} />
+                    <Route path="contactos/:id" element={<DetalleContacto />} />
+                    <Route path="contactos/:id/editar" element={<EditarContacto />} />
+                    <Route path="contactos/:id/tarjeta" element={<TarjetaQsl />} />
+                    <Route path="perfil" element={<MiPerfil />} />
+                </Route>
 
-            <Route path="*" element={<NoEncontrada />} />
-        </Routes>
+                <Route path="*" element={<NoEncontrada />} />
+            </Routes>
+        </Suspense>
     );
 }
 
