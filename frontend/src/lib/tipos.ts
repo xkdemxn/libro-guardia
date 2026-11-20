@@ -259,3 +259,19 @@ export interface Tarjeta {
     envio_disponible: boolean;
     personalizacion: PersonalizacionTarjeta;
 }
+
+/** Resultado de «Consulta una QSL». */
+export interface QslVerificada {
+    qso: number;
+    de: string;
+    para: string;
+    fecha: string;
+    hora_utc: string;
+    frecuencia_mhz: number;
+    banda: string;
+    modo: string;
+    reporte: string;
+    estado_qsl: EstadoQsl;
+    verificado: boolean;
+    svg: string;
+}

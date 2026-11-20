@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Ceja } from '@/componentes/Ceja';
 import { Icono } from '@/componentes/Icono';
 import { Emblema } from '@/componentes/Emblema';
+import { FormularioConsultaQsl } from '@/componentes/FormularioConsultaQsl';
 import { RelojUtc } from '@/componentes/RelojUtc';
 import { SelectorTema } from '@/componentes/SelectorTema';
 import { PAGINAS_INFORMATIVAS } from '@/paginas/informacion/PaginaInformativa';
@@ -50,35 +51,21 @@ export function LayoutInvitado({ children }: { children: ReactNode }) {
                     </Link>
 
                     <h1 className="mt-10 font-display text-4xl font-semibold leading-tight text-white xl:text-5xl">
-                        Cada contacto,
+                        Tu estación,
                         <br />
-                        <span className="bg-gradient-to-r from-acento-300 to-sky-200 bg-clip-text text-transparent">en su lugar.</span>
+                        <span className="bg-gradient-to-r from-acento-300 to-sky-200 bg-clip-text text-transparent">conectada.</span>
                     </h1>
                     <p className="mt-5 max-w-md text-lg leading-relaxed text-slate-400">
-                        Registra, busca y confirma tus QSO. La banda y el país se calculan solos, y todo queda en hora UTC.
+                        Registra tus QSO, confírmalos con otras estaciones, crea tus tarjetas QSL y sigue tu camino a los diplomas, todo en un solo lugar.
                     </p>
 
                     <RelojUtc grande className="mt-8" />
 
-                    {/* QSO de ejemplo */}
+                    {/* Consulta una QSL sin iniciar sesión */}
                     <div className="vidrio mt-10 max-w-md p-5">
-                        <Ceja className="mb-4">QSO de ejemplo</Ceja>
-                        <div className="flex items-center justify-between">
-                            <p className="font-display text-2xl font-semibold text-white">LU4BB</p>
-                            <p className="font-mono text-xs text-slate-500">01 / 05</p>
-                        </div>
-                        <p className="mt-1 text-sm text-slate-400">Argentina · 20 m · USB · 59 / 59</p>
-                        <div className="mt-4 flex items-center justify-between font-mono text-sm">
-                            <span className="text-acento-300">14.225 MHz</span>
-                            <span className="text-slate-500">12:15 → 12:20 UTC</span>
-                        </div>
-                        <div className="mt-5 flex justify-center gap-1.5" aria-hidden="true">
-                            <span className="punto bg-white" />
-                            <span className="punto bg-slate-500" />
-                            <span className="punto bg-rose-400" />
-                            <span className="punto bg-amber-400" />
-                            <span className="punto bg-emerald-400" />
-                        </div>
+                        <Ceja className="mb-4">Consulta una QSL</Ceja>
+                        <p className="mb-4 text-sm text-slate-400">¿Recibiste una tarjeta? Verifica el contacto sin crear una cuenta.</p>
+                        <FormularioConsultaQsl compacto />
                     </div>
                 </div>
 
@@ -100,6 +87,14 @@ export function LayoutInvitado({ children }: { children: ReactNode }) {
 
                     {/* En pantallas sin espacio a los lados, los mismos accesos van debajo del formulario */}
                     <nav className="mt-6 flex flex-wrap justify-center gap-2 2xl:hidden" aria-label="Información">
+                        {/* En el celular la columna izquierda (con la consulta) no se muestra */}
+                        <Link
+                            to="/qsl"
+                            className="inline-flex items-center gap-2 rounded-full bg-acento-400/10 px-4 py-2 text-sm text-acento-200 ring-1 ring-acento-400/25 transition hover:bg-acento-400/20 lg:hidden"
+                        >
+                            <Icono nombre="lupa" className="h-4 w-4" />
+                            Consulta una QSL
+                        </Link>
                         {PAGINAS_INFORMATIVAS.map((pagina) => (
                             <Link
                                 key={pagina.ruta}

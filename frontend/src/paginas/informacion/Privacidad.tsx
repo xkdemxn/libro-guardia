@@ -34,7 +34,11 @@ export function Privacidad() {
                             </Link>
                             .
                         </>,
-                        <>Tu <strong>correo y tus contactos nunca</strong> se muestran a otros usuarios.</>,
+                        <>Tu <strong>correo y tu libro nunca</strong> se muestran a otros usuarios.</>,
+                        <>
+                            Quien recibe una de tus tarjetas puede consultar <strong>ese único contacto</strong> en «Consulta una QSL», con el número de QSO impreso en la tarjeta y su
+                            propio indicativo.
+                        </>,
                         <>Si otra estación registra un contacto contigo, puede ver si lo confirmaste o lo rechazaste, pero no el resto de tu libro.</>,
                     ]}
                 />

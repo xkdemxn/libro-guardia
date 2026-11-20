@@ -149,6 +149,14 @@ class TarjetaQslController extends Controller
         }
     }
 
+    /**
+     * La tarjeta tal como se descarga, para la consulta pública de una QSL.
+     */
+    public function svgPublico(Contacto $contacto): string
+    {
+        return view('tarjeta-qsl.svg', $this->datosTarjeta($contacto))->render();
+    }
+
     private function renderizarSvg(Contacto $contacto): string
     {
         return '<?xml version="1.0" encoding="UTF-8"?>'."\n"
