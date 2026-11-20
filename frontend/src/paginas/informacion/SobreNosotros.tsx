@@ -102,25 +102,25 @@ export function SobreNosotros() {
             </Seccion>
 
             <Seccion numero={3} titulo={c.equipo[0]}>
-                <ul className="grid gap-2 sm:grid-cols-2">
+                <ul className="grid grid-cols-2 gap-3 min-[400px]:grid-cols-3 sm:grid-cols-5">
                     {EQUIPO.map((usuario) => (
                         <li key={usuario}>
                             <a
                                 href={`https://github.com/${usuario}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="flex items-center gap-3 rounded-xl bg-white/[0.03] px-3 py-2 ring-1 ring-white/10 transition hover:bg-white/[0.07] hover:ring-acento-400/30"
+                                title={c.equipo[1]}
+                                className="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl bg-white/[0.03] p-3 text-center ring-1 ring-white/10 transition hover:bg-white/[0.07] hover:ring-acento-400/30"
                             >
                                 <img
-                                    src={`https://github.com/${usuario}.png?size=80`}
+                                    src={`https://github.com/${usuario}.png?size=128`}
                                     alt=""
                                     loading="lazy"
-                                    width={36}
-                                    height={36}
-                                    className="h-9 w-9 shrink-0 rounded-full bg-noche-800 object-cover ring-1 ring-white/10"
+                                    width={64}
+                                    height={64}
+                                    className="h-16 w-16 rounded-full bg-noche-800 object-cover ring-2 ring-white/10"
                                 />
-                                <span className="min-w-0 flex-1 truncate font-mono text-sm font-semibold text-slate-100">@{usuario}</span>
-                                <span className="shrink-0 text-xs text-slate-500">{c.equipo[1]}</span>
+                                <span className="w-full truncate font-mono text-xs font-semibold text-slate-100">@{usuario}</span>
                             </a>
                         </li>
                     ))}
