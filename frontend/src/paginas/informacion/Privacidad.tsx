@@ -49,6 +49,7 @@ export function Privacidad() {
                     elementos={[
                         <><strong>Brevo</strong> envía los correos: recibe tu dirección y el contenido de cada mensaje.</>,
                         <>El <strong>mapa</strong> de estadísticas carga sus imágenes desde los servidores de Esri, y las <strong>tipografías</strong> desde Bunny Fonts; tu navegador se conecta a ellos al abrir esas páginas.</>,
+                        <>Las fotos del equipo en «Sobre nosotros» se cargan desde <strong>GitHub</strong>.</>,
                     ]}
                 />
             </Seccion>

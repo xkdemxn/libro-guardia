@@ -1,6 +1,9 @@
 import { Emblema } from '@/componentes/Emblema';
 import { Lista, PaginaInformativa, Seccion } from '@/paginas/informacion/PaginaInformativa';
 
+/** Integrantes del proyecto (usuarios de GitHub). */
+const EQUIPO = ['xkdemxn', 'juanpcoba-wq', 'emilyvelasco-art', 'Dorian1741'];
+
 export function SobreNosotros() {
     return (
         <PaginaInformativa
@@ -33,9 +36,35 @@ export function SobreNosotros() {
                 />
             </Seccion>
 
-            <Seccion numero={3} titulo="El proyecto">
+            <Seccion numero={3} titulo="El equipo">
+                <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {EQUIPO.map((usuario) => (
+                        <li key={usuario}>
+                            <a
+                                href={`https://github.com/${usuario}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex flex-col items-center gap-3 rounded-2xl bg-white/[0.03] p-4 text-center ring-1 ring-white/10 transition hover:bg-white/[0.07] hover:ring-acento-400/30"
+                            >
+                                <img
+                                    src={`https://github.com/${usuario}.png?size=160`}
+                                    alt=""
+                                    loading="lazy"
+                                    width={80}
+                                    height={80}
+                                    className="h-20 w-20 rounded-full bg-noche-800 object-cover ring-2 ring-white/10"
+                                />
+                                <span className="break-all font-mono text-sm font-semibold text-slate-100">@{usuario}</span>
+                                <span className="text-xs text-slate-500">Ver en GitHub ›</span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </Seccion>
+
+            <Seccion numero={4} titulo="El proyecto">
                 <p>
-                    Libro de Guardia nació como proyecto académico de la asignatura AD4, a partir de historias de usuario y diagramas del sistema, y se amplió con innovaciones propias
+                    Libro de Guardia nació como proyecto académico de la Universidad Estatal de BOlivar Relizada por estudiantes de la carrera de Ingenieria de software, a partir de historias de usuario y diagramas del sistema, y se amplió con innovaciones propias
                     como la confirmación automática y el mapa de contactos.
                 </p>
                 <p className="text-sm text-slate-400">Es software en desarrollo: si encuentras un error o tienes una idea, cuéntanos.</p>
