@@ -240,18 +240,21 @@ function MenuCelular({ usuario, pendientes }: { usuario: Usuario; pendientes: nu
     return (
         <div className="vidrio-fuerte mx-auto mt-2 max-w-7xl rounded-3xl p-3 lg:hidden">
             <div className="flex items-center justify-between gap-3 px-1">
-                <div className="flex min-w-0 items-center gap-2.5">
-                    <Avatar usuario={usuario} className="h-9 w-9 rounded-xl text-xs" />
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                    <Avatar usuario={usuario} className="h-9 w-9 shrink-0 rounded-xl text-xs" />
                     <div className="min-w-0 leading-tight">
                         <p className="font-mono text-sm font-semibold text-white">{usuario.indicativo}</p>
                         <p className="truncate text-xs text-slate-400">{usuario.nombre_completo}</p>
                     </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
-                    <RelojUtc />
                     <SelectorIdioma />
-                        <SelectorTema />
+                    <SelectorTema />
                 </div>
+            </div>
+
+            <div className="mt-3 flex justify-center">
+                <RelojUtc />
             </div>
 
             <Link

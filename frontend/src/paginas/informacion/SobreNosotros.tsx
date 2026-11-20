@@ -102,7 +102,7 @@ export function SobreNosotros() {
             </Seccion>
 
             <Seccion numero={3} titulo={c.equipo[0]}>
-                <ul className="flex flex-wrap justify-center gap-3">
+                <ul className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:justify-center">
                     {EQUIPO.map((usuario) => (
                         <li key={usuario}>
                             <a
@@ -110,7 +110,7 @@ export function SobreNosotros() {
                                 target="_blank"
                                 rel="noreferrer"
                                 title={c.equipo[1]}
-                                className="flex aspect-square w-[8.5rem] flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/[0.03] p-2 text-center ring-1 ring-white/10 transition hover:bg-white/[0.07] hover:ring-acento-400/30"
+                                className="mx-auto flex aspect-square w-full max-w-[8.5rem] flex-col sm:w-[8.5rem] items-center justify-center gap-1.5 rounded-2xl bg-white/[0.03] p-2 text-center ring-1 ring-white/10 transition hover:bg-white/[0.07] hover:ring-acento-400/30"
                             >
                                 <img
                                     src={`https://github.com/${usuario}.png?size=200`}

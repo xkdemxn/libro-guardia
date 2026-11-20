@@ -119,11 +119,11 @@ function Contenido({ datos }: { datos: Datos }) {
     return (
         <>
             {/* Resumen */}
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 {resumen.map(([titulo, valor]) => (
-                    <div key={titulo} className="vidrio p-5">
-                        <Ceja className="mb-4">{titulo}</Ceja>
-                        <p className="font-display text-3xl font-semibold tabular-nums text-white sm:text-4xl">{valor.toLocaleString(configuracionRegional())}</p>
+                    <div key={titulo} className="vidrio !rounded-2xl p-3.5 sm:!rounded-3xl sm:p-5">
+                        <Ceja className="mb-2 sm:mb-4">{titulo}</Ceja>
+                        <p className="font-display text-2xl font-semibold tabular-nums text-white sm:text-4xl">{valor.toLocaleString(configuracionRegional())}</p>
                     </div>
                 ))}
             </div>
