@@ -62,6 +62,13 @@ return [
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
 
     /*
+    | index.html de la SPA compilada (npm run build). Si existe, Laravel la entrega él mismo
+    | y la app queda en un solo dominio; si no, redirige a FRONTEND_URL (Vite en desarrollo).
+    */
+
+    'spa_index' => env('SPA_INDEX', public_path('spa/index.html')),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
