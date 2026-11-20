@@ -12,10 +12,10 @@ export const PAGINAS_INFORMATIVAS: { ruta: string; titulo: string; corto: string
 /** Marco común de las páginas informativas: encabezado, secciones numeradas y enlaces a las otras dos. */
 export function PaginaInformativa({ ceja, titulo, introduccion, children }: { ceja: string; titulo: string; introduccion: ReactNode; children: ReactNode }) {
     return (
-        <div className="mx-auto box-content max-w-3xl px-4 pb-8 pt-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 pb-8 pt-10 sm:px-6 lg:px-8">
             <p className="text-[0.75rem] font-medium uppercase tracking-[0.28em] text-slate-500">{ceja}</p>
             <h1 className="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">{titulo}</h1>
-            <div className="mt-3 text-lg leading-relaxed text-slate-400">{introduccion}</div>
+            <div className="mt-3 max-w-3xl text-lg leading-relaxed text-slate-400">{introduccion}</div>
 
             <div className="mt-10 space-y-6">{children}</div>
 
