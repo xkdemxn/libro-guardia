@@ -3,10 +3,10 @@ import { Link } from 'react-router';
 import { Ceja } from '@/componentes/Ceja';
 import { Icono, type NombreIcono } from '@/componentes/Icono';
 
-export const PAGINAS_INFORMATIVAS: { ruta: string; titulo: string; detalle: string; icono: NombreIcono }[] = [
-    { ruta: '/que-es-una-qsl', titulo: '¿Qué es una QSL?', detalle: 'Indicativos, QSO y confirmaciones', icono: 'tarjeta' },
-    { ruta: '/sobre-nosotros', titulo: 'Sobre nosotros', detalle: 'Quiénes somos y por qué', icono: 'antena' },
-    { ruta: '/privacidad', titulo: 'Privacidad', detalle: 'Qué datos guardamos y para qué', icono: 'candado' },
+export const PAGINAS_INFORMATIVAS: { ruta: string; titulo: string; corto: string; detalle: string; icono: NombreIcono }[] = [
+    { ruta: '/que-es-una-qsl', titulo: '¿Qué es una QSL?', corto: 'QSL', detalle: 'Indicativos, QSO y confirmaciones', icono: 'tarjeta' },
+    { ruta: '/sobre-nosotros', titulo: 'Sobre nosotros', corto: 'Nosotros', detalle: 'Quiénes somos y por qué', icono: 'antena' },
+    { ruta: '/privacidad', titulo: 'Privacidad', corto: 'Privacidad', detalle: 'Qué datos guardamos y para qué', icono: 'candado' },
 ];
 
 /** Marco común de las páginas informativas: encabezado, secciones numeradas y enlaces a las otras dos. */

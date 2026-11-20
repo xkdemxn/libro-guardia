@@ -26,12 +26,17 @@ export function LayoutInvitado({ children }: { children: ReactNode }) {
                     <Link
                         key={pagina.ruta}
                         to={pagina.ruta}
-                        title={pagina.detalle}
-                        className="vidrio-fuerte group flex h-44 w-12 flex-col items-center gap-3 rounded-l-none rounded-r-2xl py-4 transition-all hover:w-14 hover:bg-noche-800/80"
+                        title={`${pagina.titulo} · ${pagina.detalle}`}
+                        aria-label={pagina.titulo}
+                        className="vidrio-fuerte group flex w-12 flex-col items-center gap-3 rounded-l-none rounded-r-2xl py-4 transition-all hover:w-14 hover:bg-noche-800/80"
                     >
                         <Icono nombre={pagina.icono} className="h-[18px] w-[18px] shrink-0 text-acento-300" />
-                        <span className="rotate-180 whitespace-nowrap text-[0.8125rem] font-semibold tracking-wide text-slate-200 [writing-mode:vertical-rl] group-hover:text-white">
-                            {pagina.titulo}
+                        {/* Letras una debajo de otra, sin girar: Q · S · L */}
+                        <span
+                            aria-hidden="true"
+                            className="font-display text-[0.8125rem] font-semibold uppercase leading-none tracking-[0.18em] text-slate-200 [text-orientation:upright] [writing-mode:vertical-rl] group-hover:text-white"
+                        >
+                            {pagina.corto}
                         </span>
                     </Link>
                 ))}
