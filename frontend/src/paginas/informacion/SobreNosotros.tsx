@@ -102,7 +102,7 @@ export function SobreNosotros() {
             </Seccion>
 
             <Seccion numero={3} titulo={c.equipo[0]}>
-                <ul className="grid grid-cols-2 gap-3 min-[400px]:grid-cols-3 sm:grid-cols-5">
+                <ul className="flex flex-wrap justify-center gap-3">
                     {EQUIPO.map((usuario) => (
                         <li key={usuario}>
                             <a
@@ -110,17 +110,17 @@ export function SobreNosotros() {
                                 target="_blank"
                                 rel="noreferrer"
                                 title={c.equipo[1]}
-                                className="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl bg-white/[0.03] p-3 text-center ring-1 ring-white/10 transition hover:bg-white/[0.07] hover:ring-acento-400/30"
+                                className="flex aspect-square w-[8.5rem] flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/[0.03] p-2 text-center ring-1 ring-white/10 transition hover:bg-white/[0.07] hover:ring-acento-400/30"
                             >
                                 <img
-                                    src={`https://github.com/${usuario}.png?size=128`}
+                                    src={`https://github.com/${usuario}.png?size=200`}
                                     alt=""
                                     loading="lazy"
-                                    width={64}
-                                    height={64}
-                                    className="h-16 w-16 rounded-full bg-noche-800 object-cover ring-2 ring-white/10"
+                                    width={96}
+                                    height={96}
+                                    className="h-24 w-24 rounded-full bg-noche-800 object-cover ring-2 ring-white/10"
                                 />
-                                <span className="w-full truncate font-mono text-xs font-semibold text-slate-100">@{usuario}</span>
+                                <span className="w-full truncate font-mono text-[0.86rem] font-semibold text-slate-100">@{usuario}</span>
                             </a>
                         </li>
                     ))}
