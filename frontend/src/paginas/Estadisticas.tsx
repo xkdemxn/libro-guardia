@@ -120,13 +120,10 @@ function Contenido({ datos }: { datos: Datos }) {
         <>
             {/* Resumen */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {resumen.map(([titulo, valor], indice) => (
+                {resumen.map(([titulo, valor]) => (
                     <div key={titulo} className="vidrio p-5">
                         <Ceja className="mb-4">{titulo}</Ceja>
-                        <div className="flex items-end justify-between">
-                            <p className="font-display text-3xl font-semibold tabular-nums text-white sm:text-4xl">{valor.toLocaleString(configuracionRegional())}</p>
-                            <p className="pb-1 font-mono text-[0.75rem] text-slate-600">{String(indice + 1).padStart(2, '0')} / 04</p>
-                        </div>
+                        <p className="font-display text-3xl font-semibold tabular-nums text-white sm:text-4xl">{valor.toLocaleString(configuracionRegional())}</p>
                     </div>
                 ))}
             </div>

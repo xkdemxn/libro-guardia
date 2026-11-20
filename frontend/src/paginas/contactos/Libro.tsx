@@ -15,7 +15,7 @@ import type { Contacto, Paginado, ResumenLibro } from '@/lib/tipos';
 import { Trans, useTranslation } from 'react-i18next';
 import { configuracionRegional } from '@/i18n';
 
-const FILTROS = ['indicativo', 'desde', 'hasta', 'banda_id', 'modo_id', 'qsl'] as const;
+const FILTROS = ['indicativo', 'inicial', 'desde', 'hasta', 'banda_id', 'modo_id', 'qsl'] as const;
 
 /** Libro de guardia: resumen, búsqueda y filtros (US-09), listado paginado (US-06) y eliminar (US-08). */
 export function Libro() {
@@ -66,6 +66,18 @@ export function Libro() {
             setPorEliminar(null);
         },
     });
+
+    /** Filtra por la letra con que empieza el indicativo; la misma letra otra vez la quita. */
+    function elegirInicial(inicial: string) {
+        const nuevos = new URLSearchParams(parametros);
+        nuevos.delete('page');
+        if (inicial && inicial !== filtros.inicial) {
+            nuevos.set('inicial', inicial);
+        } else {
+            nuevos.delete('inicial');
+        }
+        setParametros(nuevos);
+    }
 
     function buscar(evento: FormEvent<HTMLFormElement>) {
         evento.preventDefault();
@@ -145,13 +157,10 @@ export function Libro() {
                                     [t('Confirmados'), resumen.confirmados, t('con QSL recibida')],
                                     [t('Bandas'), resumen.bandas, t('en las que operaste')],
                                 ] as const
-                            ).map(([titulo, valor, detalle], indice) => (
+                            ).map(([titulo, valor, detalle]) => (
                                 <div key={titulo} className="vidrio p-5">
                                     <Ceja className="mb-4">{titulo}</Ceja>
-                                    <div className="flex items-end justify-between gap-2">
-                                        <p className="font-display text-3xl font-semibold tabular-nums text-white sm:text-4xl">{valor.toLocaleString(configuracionRegional())}</p>
-                                        <p className="pb-1 font-mono text-xs text-slate-500">{String(indice + 1).padStart(2, '0')} / 04</p>
-                                    </div>
+                                    <p className="font-display text-3xl font-semibold tabular-nums text-white sm:text-4xl">{valor.toLocaleString(configuracionRegional())}</p>
                                     <p className="mt-1 text-sm text-slate-400">{detalle}</p>
                                 </div>
                             ))}
@@ -159,6 +168,7 @@ export function Libro() {
 
                         <Panel ceja={t('Buscar y filtrar')}>
                             <form key={parametros.toString()} onSubmit={buscar}>
+                                <input type="hidden" name="inicial" value={filtros.inicial} />
                                 <div className="grid grid-cols-2 items-end gap-4 md:grid-cols-6">
                                     <div className="col-span-2">
                                         <Etiqueta htmlFor="indicativo">{t('Indicativo')}</Etiqueta>
@@ -200,7 +210,7 @@ export function Libro() {
                                 </div>
 
                                 <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                    <div className="grid w-full grid-cols-4 gap-1 rounded-full bg-black/25 p-1 ring-1 ring-white/5 sm:inline-flex sm:w-auto" role="radiogroup" aria-label={t('Estado de QSL')}>
+                                    <div className="grid w-full grid-cols-2 gap-1 rounded-2xl bg-black/25 p-1 ring-1 ring-white/5 sm:inline-flex sm:w-auto sm:rounded-full" role="radiogroup" aria-label={t('Estado de QSL')}>
                                         {(
                                             [
                                                 ['', t('Todas')],
@@ -211,7 +221,7 @@ export function Libro() {
                                         ).map(([valor, etiqueta]) => (
                                             <label key={valor} className="cursor-pointer">
                                                 <input type="radio" name="qsl" value={valor} className="peer sr-only" defaultChecked={filtros.qsl === valor} />
-                                                <span className="flex justify-center rounded-full px-1 py-1.5 text-[0.8125rem] text-slate-400 transition hover:text-white peer-checked:bg-white/10 peer-checked:font-semibold peer-checked:text-white peer-checked:ring-1 peer-checked:ring-white/10 peer-focus-visible:ring-2 peer-focus-visible:ring-acento-400 sm:px-3.5 sm:text-sm">
+                                                <span className="flex justify-center rounded-xl px-3 py-2 text-sm text-slate-400 sm:rounded-full sm:py-1.5 transition hover:text-white peer-checked:bg-white/10 peer-checked:font-semibold peer-checked:text-white peer-checked:ring-1 peer-checked:ring-white/10 peer-focus-visible:ring-2 peer-focus-visible:ring-acento-400 sm:px-3.5 sm:text-sm">
                                                     {etiqueta}
                                                 </span>
                                             </label>
@@ -260,10 +270,14 @@ export function Libro() {
 
                 {resumen && tieneContactos && (
                     <section className="vidrio overflow-hidden !p-0">
-                        <div className="px-6 pb-4 pt-6">
+                        <div className="space-y-4 px-6 pb-4 pt-6">
                             <Ceja>
                                 {hayFiltros ? t('Resultados') : t('Registro')} · {total === 1 ? t('1 contacto') : t('{{n}} contactos', { n: total.toLocaleString(configuracionRegional()) })}
                             </Ceja>
+                            <FiltroInicial iniciales={resumen.iniciales} actual={filtros.inicial} onElegir={elegirInicial} />
+                            {consulta.data!.meta.last_page > 1 && (
+                                <Paginacion actual={consulta.data!.meta.current_page} ultima={consulta.data!.meta.last_page} enlace={enlacePagina} />
+                            )}
                         </div>
 
                         {contactos.length === 0 ? (
@@ -305,6 +319,45 @@ export function Libro() {
                 </div>
             </Dialogo>
         </>
+    );
+}
+
+/** Búsqueda por letra: solo las letras con las que empieza algún indicativo del libro. */
+function FiltroInicial({ iniciales, actual, onElegir }: { iniciales: string[]; actual: string; onElegir: (inicial: string) => void }) {
+    const { t } = useTranslation();
+
+    if (iniciales.length < 2) {
+        return null;
+    }
+
+    const boton = 'grid h-8 min-w-8 place-items-center rounded-lg px-2 font-mono text-sm font-semibold transition';
+
+    return (
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t('Buscar por letra inicial')}>
+            <button
+                type="button"
+                onClick={() => onElegir('')}
+                aria-pressed={!actual}
+                className={`${boton} font-sans text-xs ${!actual ? 'bg-white/10 text-white ring-1 ring-white/15' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+            >
+                {t('Todas')}
+            </button>
+            {iniciales.map((inicial) => (
+                <button
+                    key={inicial}
+                    type="button"
+                    onClick={() => onElegir(inicial)}
+                    aria-pressed={actual.toUpperCase() === inicial}
+                    className={`${boton} ${
+                        actual.toUpperCase() === inicial
+                            ? 'bg-gradient-to-b from-marca-400 to-marca-600 text-blanco shadow-boton'
+                            : 'bg-white/[0.03] text-slate-300 ring-1 ring-white/10 hover:bg-white/10 hover:text-white'
+                    }`}
+                >
+                    {inicial}
+                </button>
+            ))}
+        </div>
     );
 }
 

@@ -178,6 +178,8 @@ export interface ResumenLibro {
     confirmados: number;
     bandas: number;
     solicitudes_pendientes: number;
+    /** Letras con las que empieza algún indicativo del libro. */
+    iniciales: string[];
 }
 
 /** Página de resultados de Laravel (ResourceCollection paginada). */

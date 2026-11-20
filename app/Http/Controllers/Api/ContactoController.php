@@ -113,7 +113,7 @@ class ContactoController extends Controller
     /**
      * Cifras del libro completo (sin filtros) para las tarjetas de resumen.
      *
-     * @return array{contactos: int, paises: int, confirmados: int, bandas: int, solicitudes_pendientes: int}
+     * @return array{contactos: int, paises: int, confirmados: int, bandas: int, solicitudes_pendientes: int, iniciales: list<string>}
      */
     private function resumen(Request $request): array
     {
@@ -128,6 +128,11 @@ class ContactoController extends Controller
             'confirmados' => (clone $contactos)->filtrar(['qsl' => 'confirmado'])->count(),
             'bandas' => (clone $contactos)->distinct()->count('banda_id'),
             'solicitudes_pendientes' => $request->user()->solicitudesPendientes()->count(),
+            // Letras con las que empieza algún indicativo del libro, para la búsqueda por inicial.
+            'iniciales' => (clone $contactos)->selectRaw('distinct substr(estacion_llamada, 1, 1) as inicial')
+                ->orderBy('inicial')
+                ->pluck('inicial')
+                ->all(),
         ];
     }
 

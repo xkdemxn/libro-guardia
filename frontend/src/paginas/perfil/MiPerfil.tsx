@@ -127,23 +127,7 @@ export function MiPerfil() {
                             </Link>
                         </div>
 
-                        <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden" aria-label={t('Secciones del perfil')}>
-                            {SECCIONES.map(([clave, titulo, , icono]) => (
-                                <button
-                                    key={clave}
-                                    type="button"
-                                    onClick={() => irA(clave)}
-                                    className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ring-1 transition ${
-                                        seccion === clave
-                                            ? 'bg-gradient-to-b from-marca-400 to-marca-600 text-blanco shadow-boton ring-transparent'
-                                            : 'bg-white/5 text-slate-300 ring-white/10'
-                                    }`}
-                                >
-                                    <Icono nombre={icono} className="h-4 w-4" />
-                                    {t(titulo)}
-                                </button>
-                            ))}
-                        </nav>
+                        <SelectorSeccion seccion={seccion} irA={irA} />
                     </aside>
 
                     {/* Contenido de la sección elegida */}
@@ -169,5 +153,69 @@ export function MiPerfil() {
                 </div>
             </div>
         </>
+    );
+}
+
+/**
+ * En el celular: un botón con la sección actual que despliega la lista completa (en lugar de una
+ * fila de pestañas que hay que deslizar).
+ */
+function SelectorSeccion({ seccion, irA }: { seccion: string; irA: (seccion: string) => void }) {
+    const { t } = useTranslation();
+    const [abierto, setAbierto] = useState(false);
+    const actual = SECCIONES.find(([clave]) => clave === seccion) ?? SECCIONES[0];
+
+    return (
+        <div className="relative lg:hidden">
+            <button
+                type="button"
+                onClick={() => setAbierto((valor) => !valor)}
+                aria-expanded={abierto}
+                aria-haspopup="menu"
+                className="vidrio flex w-full items-center gap-3 !rounded-2xl px-4 py-3 text-left"
+            >
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-b from-marca-400 to-marca-600 text-blanco shadow-boton">
+                    <Icono nombre={actual[3]} className="h-[18px] w-[18px]" />
+                </span>
+                <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">{t(actual[1])}</span>
+                    <span className="block truncate text-xs text-slate-500">{t(actual[2])}</span>
+                </span>
+                <svg className={`h-5 w-5 shrink-0 text-slate-400 transition ${abierto ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" />
+                </svg>
+            </button>
+
+            {abierto && (
+                <nav role="menu" aria-label={t('Secciones del perfil')} className="menu-flotante absolute inset-x-0 z-30 mt-2 grid grid-cols-2 gap-1.5 p-2">
+                    {SECCIONES.map(([clave, titulo, , icono]) => {
+                        const peligro = clave === 'cuenta';
+
+                        return (
+                            <button
+                                key={clave}
+                                type="button"
+                                role="menuitem"
+                                onClick={() => {
+                                    irA(clave);
+                                    setAbierto(false);
+                                }}
+                                aria-current={seccion === clave ? 'page' : undefined}
+                                className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition ${
+                                    seccion === clave
+                                        ? 'bg-acento-400/15 text-white ring-1 ring-acento-400/30'
+                                        : peligro
+                                          ? 'text-rose-300 hover:bg-rose-500/10'
+                                          : 'text-slate-300 hover:bg-white/10'
+                                }`}
+                            >
+                                <Icono nombre={icono} className={`h-4 w-4 shrink-0 ${peligro ? 'text-rose-300' : 'text-slate-400'}`} />
+                                <span className="truncate">{t(titulo)}</span>
+                            </button>
+                        );
+                    })}
+                </nav>
+            )}
+        </div>
     );
 }

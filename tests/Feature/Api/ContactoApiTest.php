@@ -445,4 +445,21 @@ class ContactoApiTest extends ApiTestCase
 
         $this->assertModelMissing($contacto);
     }
+
+    public function test_filtra_por_la_letra_inicial_y_lista_las_iniciales_del_libro(): void
+    {
+        $this->sembrarCatalogos();
+        $operador = User::factory()->create();
+        Contacto::factory()->for($operador)->create(['estacion_llamada' => 'LU4BB']);
+        Contacto::factory()->for($operador)->create(['estacion_llamada' => 'HC1QRC']);
+        Contacto::factory()->for($operador)->create(['estacion_llamada' => 'HC5EV']);
+        Contacto::factory()->for(User::factory())->create(['estacion_llamada' => 'W1AW']);
+
+        $this->actingAs($operador)
+            ->getJson(route('api.contactos.index', ['inicial' => 'h']))
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('resumen.iniciales', ['H', 'L']);
+
+        $this->getJson(route('api.contactos.index', ['inicial' => 'HC']))->assertJsonValidationErrors('inicial');
+    }
 }

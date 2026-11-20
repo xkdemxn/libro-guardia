@@ -22,6 +22,8 @@ class FiltroContactosRequest extends FormRequest
     {
         return [
             'indicativo' => ['nullable', 'string', 'max:20'],
+            // Letra o dígito con el que empieza el indicativo (búsqueda por inicial).
+            'inicial' => ['nullable', 'string', 'regex:/^[A-Za-z0-9]$/'],
             'desde' => ['nullable', 'date_format:Y-m-d'],
             'hasta' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:desde'],
             'banda_id' => ['bail', 'nullable', 'integer', 'exists:bandas,id'],

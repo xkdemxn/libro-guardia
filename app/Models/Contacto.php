@@ -158,7 +158,7 @@ class Contacto extends Model
      * Aplica los filtros del listado: indicativo parcial, rango de fechas, banda, modo y estado de QSL.
      *
      * @param  Builder<Contacto>  $query
-     * @param  array{indicativo?: ?string, desde?: ?string, hasta?: ?string, banda_id?: ?int, modo_id?: ?int, qsl?: ?string}  $filtros
+     * @param  array{indicativo?: ?string, inicial?: ?string, desde?: ?string, hasta?: ?string, banda_id?: ?int, modo_id?: ?int, qsl?: ?string}  $filtros
      */
     #[Scope]
     protected function filtrar(Builder $query, array $filtros): void
@@ -167,6 +167,7 @@ class Contacto extends Model
             ->when($filtros['indicativo'] ?? null, function (Builder $query, string $indicativo): void {
                 $query->where('estacion_llamada', 'like', '%'.IndicativoValido::normalizar($indicativo).'%');
             })
+            ->when($filtros['inicial'] ?? null, fn (Builder $query, string $inicial) => $query->where('estacion_llamada', 'like', strtoupper($inicial).'%'))
             ->when($filtros['desde'] ?? null, fn (Builder $query, string $desde) => $query->where('inicio_utc', '>=', $desde.' 00:00:00'))
             ->when($filtros['hasta'] ?? null, fn (Builder $query, string $hasta) => $query->where('inicio_utc', '<=', $hasta.' 23:59:59'))
             ->when($filtros['banda_id'] ?? null, fn (Builder $query, int|string $bandaId) => $query->where('banda_id', $bandaId))
