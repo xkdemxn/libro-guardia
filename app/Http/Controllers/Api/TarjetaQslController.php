@@ -17,6 +17,7 @@ use Illuminate\Process\Exceptions\ProcessTimedOutException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Validation\Rule;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Process\Exception\ProcessStartFailedException;
 
@@ -28,13 +29,17 @@ class TarjetaQslController extends Controller
 {
     /**
      * La tarjeta para la vista previa (con ids para editarla en vivo) y lo que necesita la página.
+     * Con ?diseno= se previsualiza otra distribución sin guardarla.
      */
     public function show(Request $request, string $contacto): JsonResponse
     {
         $contactoEncontrado = $this->buscarContactoPropio($request, $contacto);
+        $diseno = $request->validate([
+            'diseno' => ['nullable', Rule::in(User::DISENOS_QSL)],
+        ])['diseno'] ?? null;
 
         return response()->json([
-            'svg' => view('tarjeta-qsl.svg', [...$this->datosTarjeta($contactoEncontrado), 'editable' => true])->render(),
+            'svg' => view('tarjeta-qsl.svg', [...$this->datosTarjeta($contactoEncontrado), 'editable' => true, 'diseno' => $diseno])->render(),
             'nombre_archivo' => $this->nombreArchivo($contactoEncontrado),
             'envio_disponible' => config('mail.default') !== 'log',
             'personalizacion' => $this->personalizacion($request->user()),
@@ -48,7 +53,7 @@ class TarjetaQslController extends Controller
     {
         $operador = $request->user();
         $operador->cambiarImagen('qsl_foto_path', 'qsl', $request->file('qsl_foto'), $request->boolean('quitar_qsl_foto'));
-        $operador->fill($request->safe()->only(['qsl_foto_estilo', 'qsl_foto_opacidad', 'qsl_mensaje']));
+        $operador->fill($request->safe()->only(['qsl_foto_estilo', 'qsl_foto_opacidad', 'qsl_mensaje', 'qsl_diseno']));
         $operador->save();
 
         return response()->json([
@@ -58,7 +63,7 @@ class TarjetaQslController extends Controller
     }
 
     /**
-     * @return array{foto: string|null, estilo: string, opacidad: int, mensaje: string|null, mensaje_predeterminado: string, mensaje_maximo: int}
+     * @return array{foto: string|null, estilo: string, opacidad: int, mensaje: string|null, diseno: string, mensaje_predeterminado: string, mensaje_maximo: int}
      */
     private function personalizacion(User $operador): array
     {
@@ -67,6 +72,7 @@ class TarjetaQslController extends Controller
             'estilo' => $operador->qsl_foto_estilo,
             'opacidad' => (int) $operador->qsl_foto_opacidad,
             'mensaje' => $operador->qsl_mensaje,
+            'diseno' => $operador->qsl_diseno ?? 'clasico',
             'mensaje_predeterminado' => User::MENSAJE_QSL_PREDETERMINADO,
             'mensaje_maximo' => PersonalizarTarjetaQslRequest::MENSAJE_MAXIMO,
         ];

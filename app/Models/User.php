@@ -27,7 +27,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 #[Fillable([
     'indicativo', 'nombres', 'apellidos', 'pais', 'provincia', 'ciudad', 'grid_locator',
     'equipo_radio', 'antena', 'biografia', 'email', 'password', 'portada_estilo', 'portada_opacidad',
-    'qsl_foto_estilo', 'qsl_foto_opacidad', 'qsl_mensaje',
+    'qsl_foto_estilo', 'qsl_foto_opacidad', 'qsl_mensaje', 'qsl_diseno',
 ])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements MustVerifyEmail
@@ -91,6 +91,11 @@ class User extends Authenticatable implements MustVerifyEmail
      * Mensaje del pie de las tarjetas QSL cuando el operador no escribió uno propio.
      */
     public const MENSAJE_QSL_PREDETERMINADO = 'Confirmando nuestro QSO. ¡Gracias y 73!';
+
+    /**
+     * Distribuciones de la tarjeta QSL que puede elegir el operador (ver tarjeta-qsl/svg.blade.php).
+     */
+    public const DISENOS_QSL = ['clasico', 'invertido', 'inferior', 'centrado'];
 
     public function mensajeQsl(): string
     {

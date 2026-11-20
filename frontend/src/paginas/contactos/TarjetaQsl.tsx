@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Cargando } from '@/componentes/Cargando';
 import { Aviso, BotonPrimario, Campo, ErrorCampo } from '@/componentes/Formulario';
 import { Icono } from '@/componentes/Icono';
@@ -9,8 +9,39 @@ import { SelectorFondo, type EstadoFondo } from '@/componentes/SelectorFondo';
 import { useUsuario } from '@/hooks/useUsuario';
 import { api, erroresDeValidacion, mensajeDeError, type ErroresValidacion } from '@/lib/api';
 import { guardarBlob } from '@/lib/descargas';
-import type { PersonalizacionTarjeta, Tarjeta } from '@/lib/tipos';
+import type { DisenoTarjeta, PersonalizacionTarjeta, Tarjeta } from '@/lib/tipos';
 import { ContactoNoEncontrado } from '@/paginas/contactos/DetalleContacto';
+
+/**
+ * Distribuciones de la tarjeta. La miniatura dibuja dónde va cada bloque: indicativo (blanco),
+ * recuadro del QSO (azul), mensaje (gris) y sello con la bandera (ámbar).
+ */
+const DISENOS: { valor: DisenoTarjeta; titulo: string; detalle: string; bloques: [number, number, number, number, string][] }[] = [
+    {
+        valor: 'clasico',
+        titulo: 'Clásico',
+        detalle: 'Indicativo arriba a la izquierda y el QSO a la derecha.',
+        bloques: [[4, 5, 30, 9, 'bg-white'], [62, 5, 34, 22, 'bg-acento-400'], [4, 70, 34, 6, 'bg-slate-400'], [78, 60, 18, 18, 'bg-amber-400']],
+    },
+    {
+        valor: 'invertido',
+        titulo: 'Invertido',
+        detalle: 'El QSO a la izquierda y tu indicativo a la derecha.',
+        bloques: [[66, 5, 30, 9, 'bg-white'], [4, 5, 34, 22, 'bg-acento-400'], [62, 70, 34, 6, 'bg-slate-400'], [4, 60, 18, 18, 'bg-amber-400']],
+    },
+    {
+        valor: 'inferior',
+        titulo: 'Foto arriba',
+        detalle: 'Deja libre la parte de arriba para lucir la foto.',
+        bloques: [[4, 44, 30, 9, 'bg-white'], [62, 33, 34, 22, 'bg-acento-400'], [4, 70, 34, 6, 'bg-slate-400'], [78, 60, 18, 18, 'bg-amber-400']],
+    },
+    {
+        valor: 'centrado',
+        titulo: 'Centrado',
+        detalle: 'Indicativo grande al centro y el QSO debajo.',
+        bloques: [[30, 5, 40, 11, 'bg-white'], [32, 33, 36, 22, 'bg-acento-400'], [4, 70, 34, 6, 'bg-slate-400'], [78, 60, 18, 18, 'bg-amber-400']],
+    },
+];
 
 const SUGERENCIAS = ['¡Gracias por el QSO y 73!', 'Los Andes, serranía ecuatoriana.\nTNX QSO 73', 'Un placer el contacto. ¡Buen DX!'];
 
@@ -75,6 +106,17 @@ function PaginaTarjeta({ id, tarjeta }: { id: string; tarjeta: Tarjeta }) {
 
     const [fondo, setFondo] = useState(() => fondoDe(original));
     const [mensaje, setMensaje] = useState(original.mensaje ?? '');
+    const [diseno, setDiseno] = useState<DisenoTarjeta>(original.diseno);
+
+    // Otro diseño necesita que el servidor vuelva a dibujar la tarjeta (sin guardarlo todavía).
+    const vistaDiseno = useQuery({
+        queryKey: ['tarjeta-diseno', id, diseno],
+        queryFn: async () => (await api.get<Tarjeta>(`/contactos/${id}/tarjeta`, { params: { diseno } })).data.svg,
+        enabled: diseno !== original.diseno,
+        placeholderData: keepPreviousData,
+        staleTime: Infinity,
+    });
+    const svg = diseno === original.diseno ? tarjeta.svg : (vistaDiseno.data ?? tarjeta.svg);
     const [errores, setErrores] = useState<ErroresValidacion>({});
     const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
     const [guardando, setGuardando] = useState(false);
@@ -83,6 +125,7 @@ function PaginaTarjeta({ id, tarjeta }: { id: string; tarjeta: Tarjeta }) {
 
     const lineas = useMemo(() => partirMensajeQsl(mensaje.trim() || original.mensaje_predeterminado), [mensaje, original.mensaje_predeterminado]);
     const hayCambios =
+        diseno !== original.diseno ||
         fondo.archivo !== null || fondo.quitar || fondo.estilo !== original.estilo || fondo.opacidad !== original.opacidad || mensaje.trim() !== (original.mensaje ?? '');
 
     // Vista previa en vivo: la foto y el mensaje se cambian directamente en el SVG de la tarjeta.
@@ -117,7 +160,7 @@ function PaginaTarjeta({ id, tarjeta }: { id: string; tarjeta: Tarjeta }) {
             texto.textContent = lineas[indice] ?? '';
             texto.setAttribute('y', String(788 - (lineas.length - 1 - indice) * 34));
         });
-    }, [fondo, lineas]);
+    }, [fondo, lineas, svg]);
 
     async function descargarPng() {
         setGenerando(true);
@@ -171,6 +214,7 @@ function PaginaTarjeta({ id, tarjeta }: { id: string; tarjeta: Tarjeta }) {
         datos.append('qsl_foto_estilo', fondo.estilo);
         datos.append('qsl_foto_opacidad', String(fondo.opacidad));
         datos.append('qsl_mensaje', mensaje);
+        datos.append('qsl_diseno', diseno);
 
         try {
             const { data } = await api.post<{ mensaje: string }>('/tarjeta-qsl', datos);
@@ -203,7 +247,7 @@ function PaginaTarjeta({ id, tarjeta }: { id: string; tarjeta: Tarjeta }) {
                     <div
                         ref={contenedor}
                         className="overflow-hidden rounded-[1.6rem] shadow-vidrio-lg ring-1 ring-white/10 [&>svg]:h-auto [&>svg]:w-full"
-                        dangerouslySetInnerHTML={{ __html: tarjeta.svg }}
+                        dangerouslySetInnerHTML={{ __html: svg }}
                     />
 
                     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -255,7 +299,37 @@ function PaginaTarjeta({ id, tarjeta }: { id: string; tarjeta: Tarjeta }) {
                             </Aviso>
                         )}
 
-                        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+                        <fieldset className="mt-6">
+                            <legend className="font-display text-base font-semibold text-white">Diseño</legend>
+                            <p className="mt-1 text-sm text-slate-400">Dónde va cada parte. Elige según tu foto, para no tapar lo más bonito.</p>
+                            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                                {DISENOS.map((opcion) => (
+                                    <label
+                                        key={opcion.valor}
+                                        className={`cursor-pointer rounded-2xl p-3 ring-1 transition ${
+                                            diseno === opcion.valor ? 'bg-acento-400/10 ring-acento-400/50' : 'bg-white/[0.02] ring-white/10 hover:bg-white/[0.05]'
+                                        }`}
+                                    >
+                                        <input type="radio" name="qsl_diseno" value={opcion.valor} checked={diseno === opcion.valor} onChange={() => setDiseno(opcion.valor)} className="sr-only" />
+                                        <span className="relative block aspect-[14/9] overflow-hidden rounded-lg bg-gradient-to-b from-noche-700 via-rose-900/60 to-amber-700/60 ring-1 ring-white/10" aria-hidden="true">
+                                            {opcion.bloques.map(([x, y, ancho, alto, color], indice) => (
+                                                <span
+                                                    key={indice}
+                                                    className={`absolute rounded-[3px] ${color} ${color === 'bg-acento-400' ? 'opacity-80' : 'opacity-90'}`}
+                                                    style={{ left: `${x}%`, top: `${y}%`, width: `${ancho}%`, height: `${alto}%` }}
+                                                />
+                                            ))}
+                                            <span className="absolute inset-x-0 bottom-0 h-[7%] bg-amber-400" />
+                                        </span>
+                                        <span className="mt-2.5 block text-sm font-medium text-slate-100">{opcion.titulo}</span>
+                                        <span className="mt-0.5 block text-xs text-slate-500">{opcion.detalle}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            <ErrorCampo mensajes={errores.qsl_diseno} />
+                        </fieldset>
+
+                        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
                             <div>
                                 <h2 className="font-display text-base font-semibold text-white">Foto</h2>
                                 <p className="mt-1 text-sm text-slate-400">De ti, de tu estación o de tu ciudad, como las tarjetas impresas de siempre.</p>

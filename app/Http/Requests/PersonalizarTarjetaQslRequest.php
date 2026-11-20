@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -33,6 +34,7 @@ class PersonalizarTarjetaQslRequest extends FormRequest
             'qsl_foto_estilo' => ['sometimes', Rule::in(ProfileUpdateRequest::ESTILOS_PORTADA)],
             'qsl_foto_opacidad' => ['sometimes', 'integer', 'between:10,100'],
             'qsl_mensaje' => ['nullable', 'string', 'max:'.self::MENSAJE_MAXIMO],
+            'qsl_diseno' => ['sometimes', Rule::in(User::DISENOS_QSL)],
         ];
     }
 
@@ -46,6 +48,7 @@ class PersonalizarTarjetaQslRequest extends FormRequest
             'qsl_foto.max' => 'La foto no puede pesar más de 4 MB.',
             'qsl_foto_estilo.in' => 'Elige «Foto a la derecha» o «Fondo completo».',
             'qsl_foto_opacidad.between' => 'La opacidad debe estar entre 10 % y 100 %.',
+            'qsl_diseno.in' => 'Elige uno de los diseños de la tarjeta.',
             'qsl_mensaje.max' => 'El mensaje puede tener hasta '.self::MENSAJE_MAXIMO.' caracteres.',
         ];
     }

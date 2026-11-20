@@ -3,7 +3,7 @@
     indicativo grande arriba, el mensaje abajo a la izquierda, el emblema y la bandera abajo a la derecha y una
     franja amarilla con país, ciudad y zonas. El recuadro de arriba a la derecha confirma el QSO.
     Variables: $contacto, $operador, $verificado, $fondo (foto del operador o null), $remitente (datos de la franja,
-    bandera y emblema) y $editable (opcional): para la vista previa de la SPA la foto y las líneas del mensaje llevan
+    bandera y emblema), $diseno (opcional; si no, el guardado por el operador) y $editable (opcional): para la vista previa de la SPA la foto y las líneas del mensaje llevan
     id / data-linea, así se ven cambiar en vivo. El archivo descargado nunca los lleva.
 --}}
 @php
@@ -28,6 +28,47 @@
     $fuenteTexto = 'Inter, Arial, Helvetica, sans-serif';
     $fuenteMono = "'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace";
     $mensajePredeterminado = \App\Models\User::MENSAJE_QSL_PREDETERMINADO;
+
+    // Distribución elegida por el operador (o la que se está previsualizando). Todas dejan el recuadro del QSO
+    // completo y legible; solo cambian de lugar los bloques. La franja inferior es igual en todas.
+    $diseno ??= $operador->qsl_diseno;
+    $t = $tamanoIndicativo;
+    $d = match ($diseno) {
+        // Recuadro a la izquierda, indicativo a la derecha; mensaje a la derecha y sello a la izquierda.
+        'invertido' => [
+            'indicativo' => ['x' => 1340, 'y' => 50 + $t, 'anclaje' => 'end', 'sangria' => -6],
+            'recuadro' => [60, 50], 'verificado' => [60, 362],
+            'mensaje' => ['x' => 1360, 'anclaje' => 'end'], 'sello' => 'izquierda',
+            'sombras' => [[0, 300], [560, 280]],
+        ],
+        // Arriba queda libre para la foto: indicativo y recuadro bajan a la mitad inferior.
+        'inferior' => [
+            'indicativo' => ['x' => 60, 'y' => 590, 'anclaje' => 'start', 'sangria' => 6],
+            'recuadro' => [840, 300], 'verificado' => [1000, 272],
+            'mensaje' => ['x' => 40, 'anclaje' => 'start'], 'sello' => 'derecha',
+            'sombras' => [[0, 0], [300, 540]],
+        ],
+        // Indicativo grande al centro y el recuadro debajo.
+        'centrado' => [
+            'indicativo' => ['x' => 700, 'y' => 40 + $t, 'anclaje' => 'middle', 'sangria' => 0],
+            'recuadro' => [450, 300], 'verificado' => [530, 610],
+            'mensaje' => ['x' => 40, 'anclaje' => 'start'], 'sello' => 'derecha',
+            'sombras' => [[0, 300], [480, 360]],
+        ],
+        // Clásico: indicativo arriba a la izquierda y recuadro arriba a la derecha.
+        default => [
+            'indicativo' => ['x' => 60, 'y' => 50 + $t, 'anclaje' => 'start', 'sangria' => 6],
+            'recuadro' => [840, 50], 'verificado' => [1000, 362],
+            'mensaje' => ['x' => 40, 'anclaje' => 'start'], 'sello' => 'derecha',
+            'sombras' => [[0, 300], [560, 280]],
+        ],
+    };
+    $ind = $d['indicativo'];
+    // En «inferior» el nombre y el equipo van debajo del indicativo, igual que en los demás, pero más juntos.
+    $separacion = $diseno === 'inferior' ? [44, 78] : [50, 90];
+    $selloIzquierda = $d['sello'] === 'izquierda';
+    $xBandera = $selloIzquierda ? 50 : 1200;
+    $xEmblema = $remitente['bandera'] ? ($selloIzquierda ? 218 : 1005) : ($selloIzquierda ? 50 : 1175);
 @endphp
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900" role="img"
      aria-label="Tarjeta QSL de {{ $miIndicativo }} para {{ $contacto->estacion_llamada }}">
@@ -96,19 +137,21 @@
     @endif
 
     {{-- Sombras suaves para que el texto se lea sobre cualquier foto --}}
-    <rect width="1400" height="300" fill="url(#sombraSuperior)" />
-    <rect y="560" width="1400" height="280" fill="url(#sombraInferior)" />
+    @if ($d['sombras'][0][1] > 0)
+        <rect y="{{ $d['sombras'][0][0] }}" width="1400" height="{{ $d['sombras'][0][1] }}" fill="url(#sombraSuperior)" />
+    @endif
+    <rect y="{{ $d['sombras'][1][0] }}" width="1400" height="{{ $d['sombras'][1][1] }}" fill="url(#sombraInferior)" />
 
-    {{-- Mi indicativo --}}
-    <text x="60" y="{{ 50 + $tamanoIndicativo }}" font-family="{{ $fuenteTitulo }}" font-size="{{ $tamanoIndicativo }}" font-weight="900"
+    {{-- Mi indicativo, mi nombre y mi estación --}}
+    <text x="{{ $ind['x'] }}" y="{{ $ind['y'] }}" text-anchor="{{ $ind['anclaje'] }}" font-family="{{ $fuenteTitulo }}" font-size="{{ $tamanoIndicativo }}" font-weight="900"
           fill="#ffffff" letter-spacing="10" filter="url(#sombraTexto)">{{ $miIndicativo }}</text>
-    <text x="66" y="{{ 100 + $tamanoIndicativo }}" font-family="{{ $fuenteTexto }}" font-size="30" font-weight="600" fill="#ffffff" fill-opacity="0.92" filter="url(#sombraTexto)">{{ $operador->nombre_completo }}</text>
+    <text x="{{ $ind['x'] + $ind['sangria'] }}" y="{{ $ind['y'] + $separacion[0] }}" text-anchor="{{ $ind['anclaje'] }}" font-family="{{ $fuenteTexto }}" font-size="30" font-weight="600" fill="#ffffff" fill-opacity="0.92" filter="url(#sombraTexto)">{{ $operador->nombre_completo }}</text>
     @if ($estacion)
-        <text x="66" y="{{ 140 + $tamanoIndicativo }}" font-family="{{ $fuenteMono }}" font-size="20" fill="#ffffff" fill-opacity="0.75" filter="url(#sombraTexto)">{{ $estacion }}</text>
+        <text x="{{ $ind['x'] + $ind['sangria'] }}" y="{{ $ind['y'] + $separacion[1] }}" text-anchor="{{ $ind['anclaje'] }}" font-family="{{ $fuenteMono }}" font-size="20" fill="#ffffff" fill-opacity="0.75" filter="url(#sombraTexto)">{{ $estacion }}</text>
     @endif
 
     {{-- Recuadro del QSO --}}
-    <g transform="translate(840 50)">
+    <g transform="translate({{ $d['recuadro'][0] }} {{ $d['recuadro'][1] }})">
         <rect width="500" height="270" rx="20" fill="#000000" fill-opacity="0.5" stroke="#ffffff" stroke-opacity="0.2" stroke-width="2" />
         <text x="30" y="44" font-family="{{ $fuenteTexto }}" font-size="16" font-weight="600" fill="#cbd5e1" letter-spacing="4">CONFIRMANDO QSO CON</text>
         <text x="30" y="102" font-family="{{ $fuenteMono }}" font-size="{{ mb_strlen($contacto->estacion_llamada) > 10 ? 40 : 52 }}" font-weight="700" fill="#ffc928">{{ $contacto->estacion_llamada }}</text>
@@ -121,24 +164,24 @@
         @endforeach
     </g>
     @if ($verificado)
-        <g transform="translate(1340 362)">
-            <rect x="-340" y="-28" width="340" height="44" rx="22" fill="#052e1f" fill-opacity="0.75" stroke="#34d399" stroke-opacity="0.6" stroke-width="2" />
-            <circle cx="-316" cy="-6" r="6" fill="#34d399" />
-            <text x="-20" y="0" text-anchor="end" font-family="{{ $fuenteTexto }}" font-size="18" font-weight="600" fill="#a7f3d0">Verificado en Libro de Guardia</text>
+        <g transform="translate({{ $d['verificado'][0] }} {{ $d['verificado'][1] }})">
+            <rect y="-28" width="340" height="44" rx="22" fill="#052e1f" fill-opacity="0.75" stroke="#34d399" stroke-opacity="0.6" stroke-width="2" />
+            <circle cx="24" cy="-6" r="6" fill="#34d399" />
+            <text x="320" y="0" text-anchor="end" font-family="{{ $fuenteTexto }}" font-size="18" font-weight="600" fill="#a7f3d0">Verificado en Libro de Guardia</text>
         </g>
     @endif
 
     {{-- Mensaje (hasta 3 líneas) y pie --}}
     @foreach ([0, 1, 2] as $i)
-        <text x="40" y="{{ 788 - (count($lineas) - 1 - $i) * 34 }}" font-family="{{ $fuenteTexto }}" font-size="24" fill="#ffffff" filter="url(#sombraTexto)"
+        <text x="{{ $d['mensaje']['x'] }}" y="{{ 788 - (count($lineas) - 1 - $i) * 34 }}" text-anchor="{{ $d['mensaje']['anclaje'] }}" font-family="{{ $fuenteTexto }}" font-size="24" fill="#ffffff" filter="url(#sombraTexto)"
               @if ($editable) data-linea="{{ $i }}" @endif>{{ $lineas[$i] ?? '' }}</text>
     @endforeach
-    <text x="40" y="822" font-family="{{ $fuenteMono }}" font-size="17" fill="#ffffff" fill-opacity="0.7">{{ $recibida ? 'TNX QSL' : 'PSE QSL TNX' }}  ·  QSO #{{ $contacto->id }}</text>
+    <text x="{{ $d['mensaje']['x'] }}" y="822" text-anchor="{{ $d['mensaje']['anclaje'] }}" font-family="{{ $fuenteMono }}" font-size="17" fill="#ffffff" fill-opacity="0.7">{{ $recibida ? 'TNX QSL' : 'PSE QSL TNX' }}  ·  QSO #{{ $contacto->id }}</text>
 
     {{-- Emblema y escudo con la bandera --}}
-    <image href="{{ $remitente['emblema'] }}" x="{{ $remitente['bandera'] ? 1005 : 1175 }}" y="640" width="172" height="172" />
+    <image href="{{ $remitente['emblema'] }}" x="{{ $xEmblema }}" y="640" width="172" height="172" />
     @if ($remitente['bandera'])
-        <g transform="translate(1200 638)">
+        <g transform="translate({{ $xBandera }} 638)">
             <g clip-path="url(#recorteInsignia)">
                 <rect width="150" height="182" fill="#ffffff" />
                 <image href="{{ $remitente['bandera'] }}" y="46" width="150" height="136" preserveAspectRatio="xMidYMid slice" />

@@ -240,12 +240,15 @@ export interface ResultadoImportacion {
     errores: { numero: number; indicativo: string | null; errores: string[] }[];
 }
 
+export type DisenoTarjeta = 'clasico' | 'invertido' | 'inferior' | 'centrado';
+
 export interface PersonalizacionTarjeta {
     /** Foto como data URI (la tarjeta se exporta a PNG en el navegador y no puede cargar imágenes externas). */
     foto: string | null;
     estilo: EstiloFondo;
     opacidad: number;
     mensaje: string | null;
+    diseno: DisenoTarjeta;
     mensaje_predeterminado: string;
     mensaje_maximo: number;
 }

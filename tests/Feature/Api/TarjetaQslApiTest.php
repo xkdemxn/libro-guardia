@@ -16,6 +16,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class TarjetaQslApiTest extends ApiTestCase
 {
@@ -242,5 +243,61 @@ class TarjetaQslApiTest extends ApiTestCase
         $this->actingAs(User::factory()->create())
             ->getJson(route('api.tarjeta.show', $contacto))
             ->assertNotFound();
+    }
+
+    public function test_el_diseno_elegido_cambia_la_distribucion_y_se_aplica_a_todas_las_tarjetas(): void
+    {
+        [$operador, $contacto] = $this->contactoConTarjeta();
+        $this->assertStringContainsString('<g transform="translate(840 50)">', $this->actingAs($operador)->get(route('api.tarjeta.svg', $contacto))->getContent());
+
+        $this->patchJson(route('api.tarjeta.personalizar'), ['qsl_diseno' => 'invertido'])
+            ->assertOk()
+            ->assertJsonPath('personalizacion.diseno', 'invertido');
+
+        $svg = $this->get(route('api.tarjeta.svg', $contacto))->getContent();
+        $this->assertStringContainsString('<g transform="translate(60 50)">', $svg, 'En «invertido» el recuadro del QSO pasa a la izquierda.');
+        $this->assertStringContainsString('<text x="1340" y="200" text-anchor="end"', $svg, 'Y el indicativo a la derecha.');
+    }
+
+    public function test_la_vista_previa_de_otro_diseno_no_lo_guarda(): void
+    {
+        [$operador, $contacto] = $this->contactoConTarjeta();
+
+        $svg = $this->actingAs($operador)->getJson(route('api.tarjeta.show', [$contacto, 'diseno' => 'inferior']))->assertOk()->json('svg');
+
+        $this->assertStringContainsString('<g transform="translate(840 300)">', $svg);
+        $this->assertSame('clasico', $operador->fresh()->qsl_diseno);
+        $this->getJson(route('api.tarjeta.show', [$contacto, 'diseno' => 'diagonal']))->assertJsonValidationErrors('diseno');
+    }
+
+    public function test_un_diseno_desconocido_se_rechaza(): void
+    {
+        [$operador] = $this->contactoConTarjeta();
+
+        $this->actingAs($operador)->patchJson(route('api.tarjeta.personalizar'), ['qsl_diseno' => 'diagonal'])
+            ->assertJsonValidationErrors(['qsl_diseno' => 'Elige uno de los diseños de la tarjeta.']);
+    }
+
+    #[DataProvider('disenos')]
+    public function test_cada_diseno_genera_un_svg_valido_con_el_recuadro_completo(string $diseno): void
+    {
+        [$operador, $contacto] = $this->contactoConTarjeta();
+        ConfirmacionQsl::factory()->for($contacto)->recibida()->create(['tipo' => TipoQsl::Interna]);
+        $operador->update(['qsl_diseno' => $diseno]);
+
+        $svg = $this->actingAs($operador)->get(route('api.tarjeta.svg', $contacto))->getContent();
+
+        $this->assertNotFalse(simplexml_load_string($svg), "El diseño {$diseno} debe ser XML válido.");
+        foreach (['CONFIRMANDO QSO CON', 'LU4BB', 'HORA UTC', 'Verificado en Libro de Guardia'] as $texto) {
+            $this->assertStringContainsString($texto, $svg);
+        }
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function disenos(): array
+    {
+        return array_combine(User::DISENOS_QSL, array_map(fn (string $diseno): array => [$diseno], User::DISENOS_QSL));
     }
 }
