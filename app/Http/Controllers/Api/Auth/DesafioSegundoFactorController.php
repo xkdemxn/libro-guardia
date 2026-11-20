@@ -28,7 +28,7 @@ class DesafioSegundoFactorController extends Controller
         $desafio = $request->session()->get(SegundoFactor::DESAFIO);
         $user = $desafio ? User::find($desafio['usuario']) : null;
 
-        abort_unless($desafio && $this->segundoFactor->vigente($user, $desafio), 404, 'No hay un inicio de sesión pendiente.');
+        abort_unless($desafio && $this->segundoFactor->vigente($user, $desafio), 404, __('No hay un inicio de sesión pendiente.'));
 
         return response()->json(['metodos' => $this->segundoFactor->metodos($user, $desafio)])
             ->header('Cache-Control', 'no-store, private');
@@ -38,7 +38,7 @@ class DesafioSegundoFactorController extends Controller
     {
         $desafio = $request->session()->get(SegundoFactor::DESAFIO);
 
-        abort_unless($desafio, 404, 'No hay un inicio de sesión pendiente.');
+        abort_unless($desafio, 404, __('No hay un inicio de sesión pendiente.'));
 
         $datos = $request->validate([
             'metodo' => ['required', 'in:app,correo,recuperacion'],
@@ -59,13 +59,13 @@ class DesafioSegundoFactorController extends Controller
             $limite = 'two-factor:verificar:'.$user->getKey();
 
             if (RateLimiter::tooManyAttempts($limite, 5)) {
-                return 'Demasiados intentos. Espera cinco minutos.';
+                return __('Demasiados intentos. Espera cinco minutos.');
             }
 
             if (! $this->segundoFactor->verificarDesafio($user, $datos['metodo'], $datos['codigo'], $desafio)) {
                 RateLimiter::hit($limite, 300);
 
-                return 'El código es inválido o ha vencido.';
+                return __('El código es inválido o ha vencido.');
             }
 
             RateLimiter::clear($limite);
@@ -73,7 +73,7 @@ class DesafioSegundoFactorController extends Controller
             return $user;
         });
 
-        abort_if($resultado === null, 404, 'El inicio de sesión venció. Vuelve a ingresar tu contraseña.');
+        abort_if($resultado === null, 404, __('El inicio de sesión venció. Vuelve a ingresar tu contraseña.'));
 
         if (is_string($resultado)) {
             throw ValidationException::withMessages(['codigo' => $resultado]);

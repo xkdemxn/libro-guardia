@@ -38,23 +38,23 @@ class ConfiguracionSegundoFactorController extends Controller
             $user = User::query()->lockForUpdate()->findOrFail($request->user()->getKey());
 
             if (! hash_equals($request->user()->getAuthPassword(), $user->getAuthPassword())) {
-                throw ValidationException::withMessages(['password' => 'Confirma tu contraseña actual.']);
+                throw ValidationException::withMessages(['password' => __('Confirma tu contraseña actual.')]);
             }
 
             if ($datos['accion'] === 'preparar-app') {
                 abort_if($user->hasEnabledTwoFactorAuthentication(), 409);
                 $this->segundoFactor->prepararApp($request, $user);
 
-                return $this->respuesta($request, $user, 'Escanea el QR con tu app autenticadora.');
+                return $this->respuesta($request, $user, __('Escanea el QR con tu app autenticadora.'));
             }
 
             if ($datos['accion'] === 'activar-correo') {
                 if (! $user->hasVerifiedEmail()) {
-                    throw ValidationException::withMessages(['accion' => 'Verifica tu correo antes de activar este método.']);
+                    throw ValidationException::withMessages(['accion' => __('Verifica tu correo antes de activar este método.')]);
                 }
 
                 if (! $this->segundoFactor->envioCorreoDisponible()) {
-                    throw ValidationException::withMessages(['accion' => 'El envío de correo todavía no está configurado.']);
+                    throw ValidationException::withMessages(['accion' => __('El envío de correo todavía no está configurado.')]);
                 }
             }
 
@@ -83,10 +83,10 @@ class ConfiguracionSegundoFactorController extends Controller
             if ($activo && (! $antes || $datos['accion'] === 'recuperacion')) {
                 ($this->generarCodigos)($user);
 
-                return $this->respuesta($request, $user, 'Guarda tus códigos de recuperación en un lugar seguro.', codigos: true);
+                return $this->respuesta($request, $user, __('Guarda tus códigos de recuperación en un lugar seguro.'), codigos: true);
             }
 
-            return $this->respuesta($request, $user, 'Métodos de verificación actualizados.');
+            return $this->respuesta($request, $user, __('Métodos de verificación actualizados.'));
         });
     }
 
@@ -97,7 +97,7 @@ class ConfiguracionSegundoFactorController extends Controller
     {
         $datos = $request->validate([
             'codigo' => ['required', 'string', 'regex:/^[0-9]{6}$/D'],
-        ], ['codigo.regex' => 'El código tiene 6 dígitos.']);
+        ], ['codigo.regex' => __('El código tiene 6 dígitos.')]);
 
         // El error se devuelve desde la transacción y se lanza afuera: así el rollback no borra
         // el intento fallido cuando la caché está en la base de datos.
@@ -107,18 +107,18 @@ class ConfiguracionSegundoFactorController extends Controller
             $secreto = $this->segundoFactor->secretoPendiente($request, $user);
 
             if (! $secreto || $user->hasEnabledTwoFactorAuthentication()) {
-                return 'Vuelve a iniciar la configuración de la app.';
+                return __('Vuelve a iniciar la configuración de la app.');
             }
 
             $limite = 'two-factor:configurar:'.$user->getKey();
             if (RateLimiter::tooManyAttempts($limite, 5)) {
-                return 'Demasiados intentos. Espera cinco minutos.';
+                return __('Demasiados intentos. Espera cinco minutos.');
             }
 
             if (! $this->segundoFactor->verificarApp($secreto, $datos['codigo'])) {
                 RateLimiter::hit($limite, 300);
 
-                return 'El código de la app es inválido.';
+                return __('El código de la app es inválido.');
             }
 
             $antes = $this->segundoFactor->activo($user);
@@ -146,8 +146,8 @@ class ConfiguracionSegundoFactorController extends Controller
         [$user, $codigosNuevos] = $resultado;
 
         return $codigosNuevos
-            ? $this->respuesta($request, $user, 'Guarda tus códigos de recuperación en un lugar seguro.', codigos: true)
-            : $this->respuesta($request, $user, 'App autenticadora activada.');
+            ? $this->respuesta($request, $user, __('Guarda tus códigos de recuperación en un lugar seguro.'), codigos: true)
+            : $this->respuesta($request, $user, __('App autenticadora activada.'));
     }
 
     private function respuesta(Request $request, User $user, string $mensaje, bool $codigos = false): JsonResponse

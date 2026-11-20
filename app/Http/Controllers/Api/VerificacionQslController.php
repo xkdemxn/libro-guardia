@@ -24,9 +24,9 @@ class VerificacionQslController extends Controller
             'qso' => ['required', 'integer', 'min:1'],
             'indicativo' => ['required', 'string', 'max:20'],
         ], [
-            'qso.required' => 'Escribe el número de QSO que aparece al pie de la tarjeta.',
-            'qso.integer' => 'El número de QSO son solo dígitos (el que va después de «QSO #»).',
-            'indicativo.required' => 'Escribe tu indicativo.',
+            'qso.required' => __('Escribe el número de QSO que aparece al pie de la tarjeta.'),
+            'qso.integer' => __('El número de QSO son solo dígitos (el que va después de «QSO #»).'),
+            'indicativo.required' => __('Escribe tu indicativo.'),
         ]);
 
         $contacto = Contacto::query()
@@ -35,7 +35,7 @@ class VerificacionQslController extends Controller
             ->where('estacion_llamada', IndicativoValido::normalizar($datos['indicativo']))
             ->first();
 
-        abort_if($contacto === null, 404, 'No encontramos un QSO con ese número para ese indicativo. Revisa los dos datos en la tarjeta.');
+        abort_if($contacto === null, 404, __('No encontramos un QSO con ese número para ese indicativo. Revisa los dos datos en la tarjeta.'));
 
         return response()->json([
             'data' => [

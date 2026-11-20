@@ -54,7 +54,7 @@ class LoginRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['login' => 'indicativo o correo'];
+        return ['login' => __('indicativo o correo')];
     }
 
     /**
@@ -74,7 +74,7 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey(), self::SEGUNDOS_BLOQUEO);
 
             throw ValidationException::withMessages([
-                'login' => 'Indicativo o contraseña incorrectos.',
+                'login' => __('Indicativo o contraseña incorrectos.'),
             ]);
         }
 

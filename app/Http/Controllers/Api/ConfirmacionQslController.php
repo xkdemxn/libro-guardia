@@ -20,7 +20,7 @@ class ConfirmacionQslController extends Controller
     {
         $contactoEncontrado = ctype_digit($contacto) ? $request->user()->contactos()->find((int) $contacto) : null;
 
-        abort_if($contactoEncontrado === null, 404, 'El contacto no existe o no pertenece a tu libro de guardia.');
+        abort_if($contactoEncontrado === null, 404, __('El contacto no existe o no pertenece a tu libro de guardia.'));
 
         $this->validarFechasPosterioresAlContacto($request, $contactoEncontrado);
 
@@ -39,7 +39,7 @@ class ConfirmacionQslController extends Controller
         $contactoEncontrado->load(['user', 'banda', 'modo', 'prefijoPais', 'confirmacionesQsl']);
 
         return (new ContactoResource($contactoEncontrado))->detalle()
-            ->additional(['mensaje' => 'Estado de QSL actualizado.'])
+            ->additional(['mensaje' => __('Estado de QSL actualizado.')])
             ->response();
     }
 
@@ -58,7 +58,7 @@ class ConfirmacionQslController extends Controller
                 $fecha = $request->estadoPara($tipo)[$campo];
 
                 if ($fecha !== null && $fecha < $fechaContacto) {
-                    $errores["qsl.{$tipo->value}.{$campo}"] = 'La fecha de QSL no puede ser anterior a la del contacto ('.$fechaContacto.').';
+                    $errores["qsl.{$tipo->value}.{$campo}"] = __('La fecha de QSL no puede ser anterior a la del contacto (:fecha).', ['fecha' => $fechaContacto]);
                 }
             }
         }

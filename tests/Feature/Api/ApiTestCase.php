@@ -16,5 +16,7 @@ abstract class ApiTestCase extends TestCase
 
         config(['sanctum.stateful' => ['localhost:5173']]);
         $this->withHeader('Origin', 'http://localhost:5173');
+        // El cliente de pruebas de Symfony manda «en-us» por defecto; la SPA manda el idioma elegido.
+        $this->withHeader('Accept-Language', 'es');
     }
 }

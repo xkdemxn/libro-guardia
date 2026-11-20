@@ -57,7 +57,7 @@ class TarjetaQslController extends Controller
         $operador->save();
 
         return response()->json([
-            'mensaje' => 'Tarjeta actualizada. Se aplica a todas tus tarjetas QSL.',
+            'mensaje' => __('Tarjeta actualizada. Se aplica a todas tus tarjetas QSL.'),
             'personalizacion' => $this->personalizacion($operador),
         ]);
     }
@@ -100,7 +100,7 @@ class TarjetaQslController extends Controller
     {
         $contactoEncontrado = $this->buscarContactoPropio($request, $contacto);
 
-        abort_if(config('mail.default') === 'log', 503, 'Configura el servicio de correo para enviar tarjetas QSL.');
+        abort_if(config('mail.default') === 'log', 503, __('Configura el servicio de correo para enviar tarjetas QSL.'));
 
         $datos = $request->validate([
             'destinatario' => ['required', 'string', 'max:254', 'email:rfc'],
@@ -108,7 +108,7 @@ class TarjetaQslController extends Controller
 
         $bloqueo = Cache::lock('qsl:envio:'.$contactoEncontrado->getKey(), 120);
         if (! $bloqueo->get()) {
-            abort(409, 'Ya hay un envío en curso para este contacto.');
+            abort(409, __('Ya hay un envío en curso para este contacto.'));
         }
 
         try {
@@ -118,7 +118,7 @@ class TarjetaQslController extends Controller
             $png = $conversion->output();
 
             if ($conversion->failed() || ! str_starts_with($png, "\x89PNG\r\n\x1a\n")) {
-                abort(500, 'No se pudo generar el PNG de la tarjeta.');
+                abort(500, __('No se pudo generar el PNG de la tarjeta.'));
             }
 
             $enviado = Mail::to($datos['destinatario'])->send(new TarjetaQslMail(
@@ -129,7 +129,7 @@ class TarjetaQslController extends Controller
             ));
 
             if ($enviado === null) {
-                abort(502, 'El servicio de correo no aceptó el envío.');
+                abort(502, __('El servicio de correo no aceptó el envío.'));
             }
 
             $contactoEncontrado->confirmacionesQsl()->upsert([[
@@ -139,11 +139,11 @@ class TarjetaQslController extends Controller
                 'fecha_envio' => now('UTC')->toDateString(),
             ]], ['contacto_id', 'tipo'], ['enviada', 'fecha_envio']);
 
-            return response()->json(['mensaje' => 'El servidor de correo aceptó la tarjeta QSL. El envío quedó registrado en el contacto.']);
+            return response()->json(['mensaje' => __('El servidor de correo aceptó la tarjeta QSL. El envío quedó registrado en el contacto.')]);
         } catch (ProcessStartFailedException|ProcessTimedOutException|TransportExceptionInterface $exception) {
             report($exception);
 
-            abort(502, 'No se pudo completar el envío de la tarjeta QSL. Inténtalo de nuevo.');
+            abort(502, __('No se pudo completar el envío de la tarjeta QSL. Inténtalo de nuevo.'));
         } finally {
             $bloqueo->release();
         }
@@ -234,7 +234,7 @@ class TarjetaQslController extends Controller
     {
         $contacto = ctype_digit($id) ? $request->user()->contactos()->find((int) $id) : null;
 
-        abort_if($contacto === null, 404, 'El contacto no existe o no pertenece a tu libro de guardia.');
+        abort_if($contacto === null, 404, __('El contacto no existe o no pertenece a tu libro de guardia.'));
 
         return $contacto;
     }

@@ -48,7 +48,7 @@ class PerfilController extends Controller
             if ($user->isDirty('email')) {
                 if ($user->two_factor_email_enabled) {
                     throw ValidationException::withMessages([
-                        'email' => 'Desactiva la verificación por correo en Seguridad antes de cambiar tu dirección.',
+                        'email' => __('Desactiva la verificación por correo en Seguridad antes de cambiar tu dirección.'),
                     ]);
                 }
 

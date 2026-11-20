@@ -72,7 +72,7 @@ class SolicitudConfirmacionController extends Controller
             $this->confirmador->sincronizar($miContacto);
         });
 
-        return response()->json(['mensaje' => "Contacto con {$otraEstacion->indicativo} agregado a tu libro y confirmado para los dos."]);
+        return response()->json(['mensaje' => __('Contacto con :indicativo agregado a tu libro y confirmado para los dos.', ['indicativo' => $otraEstacion->indicativo])]);
     }
 
     /**
@@ -85,7 +85,7 @@ class SolicitudConfirmacionController extends Controller
         $solicitud->rechazado_por_contraparte_at = now();
         $solicitud->save();
 
-        return response()->json(['mensaje' => "Solicitud de {$solicitud->user->indicativo} rechazada."]);
+        return response()->json(['mensaje' => __('Solicitud de :indicativo rechazada.', ['indicativo' => $solicitud->user->indicativo])]);
     }
 
     /**
@@ -97,7 +97,7 @@ class SolicitudConfirmacionController extends Controller
             ? $request->user()->solicitudesPendientes()->with('user.visibilidad')->find((int) $id)
             : null;
 
-        abort_if($solicitud === null, 404, 'La solicitud no existe o ya fue respondida.');
+        abort_if($solicitud === null, 404, __('La solicitud no existe o ya fue respondida.'));
 
         return $solicitud;
     }

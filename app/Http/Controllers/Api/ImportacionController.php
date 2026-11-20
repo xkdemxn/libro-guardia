@@ -32,8 +32,8 @@ class ImportacionController extends Controller
         $request->validate([
             'archivo' => ['required', File::default()->max(5 * 1024)],
         ], [
-            'archivo.required' => 'Elige un archivo ADIF (.adi o .adif).',
-            'archivo.max' => 'El archivo no puede pesar más de 5 MB.',
+            'archivo.required' => __('Elige un archivo ADIF (.adi o .adif).'),
+            'archivo.max' => __('El archivo no puede pesar más de 5 MB.'),
         ]);
 
         $archivo = $request->file('archivo');
@@ -41,7 +41,7 @@ class ImportacionController extends Controller
         $contenido = (string) file_get_contents($archivo->getRealPath());
 
         if (! in_array($extension, ['adi', 'adif'], true) || $this->importador->analizar($request->user(), $contenido) === []) {
-            throw ValidationException::withMessages(['archivo' => 'El archivo no tiene un formato ADIF válido o no contiene contactos.']);
+            throw ValidationException::withMessages(['archivo' => __('El archivo no tiene un formato ADIF válido o no contiene contactos.')]);
         }
 
         $this->borrarArchivoPendiente($request);
@@ -72,7 +72,7 @@ class ImportacionController extends Controller
     {
         $pendiente = $this->archivoPendiente($request);
 
-        abort_if($pendiente === null, 404, 'No hay ninguna importación pendiente.');
+        abort_if($pendiente === null, 404, __('No hay ninguna importación pendiente.'));
 
         $filas = $this->importador->analizar($request->user(), Storage::disk('local')->get($pendiente['ruta']));
         $importados = $this->importador->importar($request->user(), $filas);
@@ -103,7 +103,7 @@ class ImportacionController extends Controller
     {
         $pendiente = $this->archivoPendiente($request);
 
-        abort_if($pendiente === null, 404, 'No hay ninguna importación pendiente.');
+        abort_if($pendiente === null, 404, __('No hay ninguna importación pendiente.'));
 
         $filas = $this->importador->analizar($request->user(), Storage::disk('local')->get($pendiente['ruta']));
         $conteo = collect($filas)->countBy('estado');

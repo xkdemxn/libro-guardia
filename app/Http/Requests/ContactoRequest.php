@@ -69,17 +69,17 @@ class ContactoRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'estacion_llamada' => 'indicativo',
-            'hora_inicio' => 'hora de inicio',
-            'hora_fin' => 'hora de fin',
-            'frecuencia_mhz' => 'frecuencia',
-            'modo_id' => 'modo',
-            'reporte_enviado' => 'reporte enviado',
-            'reporte_recibido' => 'reporte recibido',
-            'potencia_w' => 'potencia',
-            'grid_locator' => 'grid locator',
-            'nombre_operador' => 'nombre del operador',
-            'activacion' => 'activación',
+            'estacion_llamada' => __('indicativo'),
+            'hora_inicio' => __('hora de inicio'),
+            'hora_fin' => __('hora de fin'),
+            'frecuencia_mhz' => __('frecuencia'),
+            'modo_id' => __('modo'),
+            'reporte_enviado' => __('reporte enviado'),
+            'reporte_recibido' => __('reporte recibido'),
+            'potencia_w' => __('potencia'),
+            'grid_locator' => __('grid locator'),
+            'nombre_operador' => __('nombre del operador'),
+            'activacion' => __('activación'),
         ];
     }
 
@@ -89,9 +89,9 @@ class ContactoRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'grid_locator.regex' => 'El grid locator debe tener el formato FI09 o FI09AA.',
-            'fecha.after_or_equal' => 'La fecha no puede ser anterior a hoy ('.now('UTC')->toDateString().' UTC).',
-            'fecha.before_or_equal' => 'La fecha no puede ser posterior a hoy ('.now('UTC')->toDateString().' UTC).',
+            'grid_locator.regex' => __('El grid locator debe tener el formato FI09 o FI09AA.'),
+            'fecha.after_or_equal' => __('La fecha no puede ser anterior a hoy (:hoy UTC).', ['hoy' => now('UTC')->toDateString()]),
+            'fecha.before_or_equal' => __('La fecha no puede ser posterior a hoy (:hoy UTC).', ['hoy' => now('UTC')->toDateString()]),
         ];
     }
 
@@ -124,7 +124,7 @@ class ContactoRequest extends FormRequest
         $this->banda = Banda::paraFrecuencia((float) $this->input('frecuencia_mhz'));
 
         if ($this->banda === null) {
-            $validator->errors()->add('frecuencia_mhz', 'La frecuencia está fuera de las bandas de radioaficionados.');
+            $validator->errors()->add('frecuencia_mhz', __('La frecuencia está fuera de las bandas de radioaficionados.'));
         }
     }
 
@@ -136,7 +136,7 @@ class ContactoRequest extends FormRequest
             if (! $tipoReporte->esValido((string) $this->input($campo))) {
                 $validator->errors()->add(
                     $campo,
-                    "En este modo el reporte es {$tipoReporte->value} (ej. {$tipoReporte->ejemplo()}).",
+                    __('En este modo el reporte es :tipo (ej. :ejemplo).', ['tipo' => $tipoReporte->value, 'ejemplo' => $tipoReporte->ejemplo()]),
                 );
             }
         }
@@ -147,7 +147,7 @@ class ContactoRequest extends FormRequest
         $fin = $this->finUtc();
 
         if ($fin !== null && $fin->lessThan($this->inicioUtc())) {
-            $validator->errors()->add('hora_fin', 'La hora de fin no puede ser menor que la hora de inicio.');
+            $validator->errors()->add('hora_fin', __('La hora de fin no puede ser menor que la hora de inicio.'));
         }
     }
 
@@ -166,8 +166,10 @@ class ContactoRequest extends FormRequest
         if ($duplicado !== null) {
             $validator->errors()->add(
                 'duplicado',
-                "Ya registraste un contacto con {$duplicado->estacion_llamada} en la misma banda y modo el "
-                .$duplicado->inicio_utc->format('Y-m-d H:i').' UTC. ¿Quieres guardarlo de todos modos?',
+                __('Ya registraste un contacto con :indicativo en la misma banda y modo el :fecha UTC. ¿Quieres guardarlo de todos modos?', [
+                    'indicativo' => $duplicado->estacion_llamada,
+                    'fecha' => $duplicado->inicio_utc->format('Y-m-d H:i'),
+                ]),
             );
         }
     }

@@ -23,6 +23,6 @@ class EnlaceRestablecimientoController extends Controller
 
         Password::sendResetLink($request->only('email'));
 
-        return response()->json(['mensaje' => self::MENSAJE_NEUTRO]);
+        return response()->json(['mensaje' => __(self::MENSAJE_NEUTRO)]);
     }
 }

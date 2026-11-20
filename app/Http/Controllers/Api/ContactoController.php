@@ -88,15 +88,18 @@ class ContactoController extends Controller
         $this->confirmador->desvincular($contactoEncontrado);
         $contactoEncontrado->delete();
 
-        return response()->json(['mensaje' => "Contacto con {$contactoEncontrado->estacion_llamada} eliminado."]);
+        return response()->json(['mensaje' => __('Contacto con :indicativo eliminado.', ['indicativo' => $contactoEncontrado->estacion_llamada])]);
     }
 
     private function respuestaGuardado(Contacto $contacto, string $accion, bool $confirmado, int $estado = 200): JsonResponse
     {
-        $mensaje = "Contacto con {$contacto->estacion_llamada} {$accion}.";
+        $reemplazos = ['indicativo' => $contacto->estacion_llamada];
+        $mensaje = $accion === 'guardado'
+            ? __('Contacto con :indicativo guardado.', $reemplazos)
+            : __('Contacto con :indicativo actualizado.', $reemplazos);
 
         if ($confirmado) {
-            $mensaje .= " {$contacto->estacion_llamada} también lo registró en su libro: quedó confirmado automáticamente.";
+            $mensaje .= ' '.__(':indicativo también lo registró en su libro: quedó confirmado automáticamente.', $reemplazos);
         }
 
         $contacto->load(['user', 'banda', 'modo', 'prefijoPais', 'confirmacionesQsl']);
@@ -137,7 +140,7 @@ class ContactoController extends Controller
             ? $request->user()->contactos()->with(['user', 'banda', 'modo', 'prefijoPais', 'confirmacionesQsl'])->find((int) $id)
             : null;
 
-        abort_if($contacto === null, 404, 'El contacto no existe o no pertenece a tu libro de guardia.');
+        abort_if($contacto === null, 404, __('El contacto no existe o no pertenece a tu libro de guardia.'));
 
         return $contacto;
     }

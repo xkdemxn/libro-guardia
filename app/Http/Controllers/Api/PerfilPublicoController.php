@@ -28,7 +28,7 @@ class PerfilPublicoController extends Controller
             $prefijo = PrefijoPais::paraIndicativo($indicativo);
 
             return response()->json([
-                'message' => 'Este indicativo no está registrado.',
+                'message' => __('Este indicativo no está registrado.'),
                 'buscado' => $indicativo,
                 'prefijo' => $prefijo ? ['pais' => $prefijo->pais, 'codigo_bandera' => $prefijo->codigo_bandera] : null,
             ], 404);

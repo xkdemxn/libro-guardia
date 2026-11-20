@@ -98,9 +98,9 @@ class ProfileUpdateRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'pais' => 'país',
-            'equipo_radio' => 'equipo de radio',
-            'biografia' => 'biografía',
+            'pais' => __('país'),
+            'equipo_radio' => __('equipo de radio'),
+            'biografia' => __('biografía'),
         ];
     }
 
@@ -110,14 +110,14 @@ class ProfileUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'foto.mimes' => 'La foto debe ser JPG, PNG o WEBP.',
-            'foto.max' => 'La foto no puede pesar más de 2 MB.',
-            'portada.mimes' => 'La portada debe ser JPG, PNG o WEBP.',
-            'portada.max' => 'La portada no puede pesar más de 4 MB.',
-            'portada_estilo.in' => 'Elige «Degradado» o «Tarjeta completa».',
-            'portada_opacidad.between' => 'La opacidad debe estar entre 10 % y 50 %.',
-            'provincia.in' => 'Elige una provincia de la lista.',
-            'grid_locator.regex' => 'El grid locator debe tener el formato FI09 o FI09AA.',
+            'foto.mimes' => __('La foto debe ser JPG, PNG o WEBP.'),
+            'foto.max' => __('La foto no puede pesar más de 2 MB.'),
+            'portada.mimes' => __('La portada debe ser JPG, PNG o WEBP.'),
+            'portada.max' => __('La portada no puede pesar más de 4 MB.'),
+            'portada_estilo.in' => __('Elige «Degradado» o «Tarjeta completa».'),
+            'portada_opacidad.between' => __('La opacidad debe estar entre 10 % y 50 %.'),
+            'provincia.in' => __('Elige una provincia de la lista.'),
+            'grid_locator.regex' => __('El grid locator debe tener el formato FI09 o FI09AA.'),
         ];
     }
 
@@ -151,7 +151,7 @@ class ProfileUpdateRequest extends FormRequest
     {
         return function (string $atributo, mixed $valor, Closure $fallar) use ($opciones, $guardado): void {
             if (! in_array($valor, $opciones, true) && $valor !== $guardado) {
-                $fallar('Elige '.($atributo === 'pais' ? 'un país' : 'una ciudad').' de la lista.');
+                $fallar($atributo === 'pais' ? __('Elige un país de la lista.') : __('Elige una ciudad de la lista.'));
             }
         };
     }

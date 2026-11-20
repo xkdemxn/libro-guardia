@@ -14,11 +14,11 @@ class VerificacionCorreoController extends Controller
     public function store(Request $request): JsonResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return response()->json(['mensaje' => 'Tu correo ya está verificado.']);
+            return response()->json(['mensaje' => __('Tu correo ya está verificado.')]);
         }
 
         $request->user()->sendEmailVerificationNotification();
 
-        return response()->json(['mensaje' => 'Te enviamos un nuevo enlace de verificación.'], 202);
+        return response()->json(['mensaje' => __('Te enviamos un nuevo enlace de verificación.')], 202);
     }
 }

@@ -36,7 +36,7 @@ class FiltroContactosRequest extends FormRequest
     public static function mensajes(): array
     {
         return [
-            'hasta.after_or_equal' => 'La fecha de inicio no puede ser mayor que la fecha de fin.',
+            'hasta.after_or_equal' => __('La fecha de inicio no puede ser mayor que la fecha de fin.'),
         ];
     }
 

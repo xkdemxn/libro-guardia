@@ -21,6 +21,6 @@ class ContrasenaController extends Controller
 
         $request->user()->update(['password' => $validado['password']]);
 
-        return response()->json(['mensaje' => 'Contraseña actualizada.']);
+        return response()->json(['mensaje' => __('Contraseña actualizada.')]);
     }
 }

@@ -125,11 +125,11 @@ class SegundoFactor
     public function enviarCodigoCorreo(Request $request, User $user, array $desafio): ?string
     {
         if (! $this->envioCorreoDisponible()) {
-            return 'El envío de correo no está disponible. Usa la app o un código de recuperación.';
+            return __('El envío de correo no está disponible. Usa la app o un código de recuperación.');
         }
 
         if (RateLimiter::increment('two-factor:correo:'.$user->getKey(), 60) > 1) {
-            return 'Espera un minuto antes de pedir otro código.';
+            return __('Espera un minuto antes de pedir otro código.');
         }
 
         do {
@@ -144,7 +144,7 @@ class SegundoFactor
         } catch (TransportExceptionInterface $exception) {
             report($exception);
 
-            return 'No se pudo enviar el código. Puedes volver a intentarlo en un minuto.';
+            return __('No se pudo enviar el código. Puedes volver a intentarlo en un minuto.');
         }
 
         $desafio['correo_firma'] = $firma;

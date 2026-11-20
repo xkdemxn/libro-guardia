@@ -50,8 +50,8 @@ class ConfirmacionQslRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'qsl.*.fecha_envio.required_if_accepted' => 'Indica la fecha de envío.',
-            'qsl.*.fecha_recepcion.required_if_accepted' => 'Indica la fecha de recepción.',
+            'qsl.*.fecha_envio.required_if_accepted' => __('Indica la fecha de envío.'),
+            'qsl.*.fecha_recepcion.required_if_accepted' => __('Indica la fecha de recepción.'),
         ];
     }
 

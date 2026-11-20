@@ -25,7 +25,7 @@ class ExportacionController extends Controller
             ->orderBy('inicio_utc')
             ->get();
 
-        abort_if($contactos->isEmpty(), 422, 'No hay contactos para exportar con esos filtros.');
+        abort_if($contactos->isEmpty(), 422, __('No hay contactos para exportar con esos filtros.'));
 
         $formato = $request->validated('formato');
 
@@ -38,7 +38,7 @@ class ExportacionController extends Controller
         } catch (Throwable $error) {
             report($error);
 
-            abort(500, 'No se pudo generar el archivo. Inténtalo de nuevo.');
+            abort(500, __('No se pudo generar el archivo. Inténtalo de nuevo.'));
         }
 
         $nombreArchivo = sprintf(

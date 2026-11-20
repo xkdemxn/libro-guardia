@@ -19,7 +19,7 @@ class CodigoCorreoSegundoFactorController extends Controller
         $desafio = $request->session()->get(SegundoFactor::DESAFIO);
         $user = $desafio ? User::find($desafio['usuario']) : null;
 
-        abort_unless($desafio && $segundoFactor->vigente($user, $desafio), 404, 'No hay un inicio de sesión pendiente.');
+        abort_unless($desafio && $segundoFactor->vigente($user, $desafio), 404, __('No hay un inicio de sesión pendiente.'));
         abort_unless($segundoFactor->correoDisponible($user), 403);
 
         $error = $segundoFactor->enviarCodigoCorreo($request, $user, $desafio);
@@ -28,6 +28,6 @@ class CodigoCorreoSegundoFactorController extends Controller
             throw ValidationException::withMessages(['codigo' => $error]);
         }
 
-        return response()->json(['mensaje' => 'Enviamos un código a tu correo verificado.'], 202);
+        return response()->json(['mensaje' => __('Enviamos un código a tu correo verificado.')], 202);
     }
 }

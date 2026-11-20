@@ -42,7 +42,7 @@ class RegistroRequest extends FormRequest
      */
     public function messages(): array
     {
-        return ['indicativo.unique' => 'Este indicativo ya está registrado.'];
+        return ['indicativo.unique' => __('Este indicativo ya está registrado.')];
     }
 
     /**

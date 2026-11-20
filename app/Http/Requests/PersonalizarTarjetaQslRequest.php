@@ -44,12 +44,12 @@ class PersonalizarTarjetaQslRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'qsl_foto.mimes' => 'La foto debe ser JPG, PNG o WEBP.',
-            'qsl_foto.max' => 'La foto no puede pesar más de 4 MB.',
-            'qsl_foto_estilo.in' => 'Elige «Foto a la derecha» o «Fondo completo».',
-            'qsl_foto_opacidad.between' => 'La opacidad debe estar entre 10 % y 100 %.',
-            'qsl_diseno.in' => 'Elige uno de los diseños de la tarjeta.',
-            'qsl_mensaje.max' => 'El mensaje puede tener hasta '.self::MENSAJE_MAXIMO.' caracteres.',
+            'qsl_foto.mimes' => __('La foto debe ser JPG, PNG o WEBP.'),
+            'qsl_foto.max' => __('La foto no puede pesar más de 4 MB.'),
+            'qsl_foto_estilo.in' => __('Elige «Foto a la derecha» o «Fondo completo».'),
+            'qsl_foto_opacidad.between' => __('La opacidad debe estar entre 10 % y 100 %.'),
+            'qsl_diseno.in' => __('Elige uno de los diseños de la tarjeta.'),
+            'qsl_mensaje.max' => __('El mensaje puede tener hasta :maximo caracteres.', ['maximo' => self::MENSAJE_MAXIMO]),
         ];
     }
 }

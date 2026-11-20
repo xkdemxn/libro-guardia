@@ -34,7 +34,7 @@ class EstadisticasController extends Controller
             'desde' => ['nullable', 'date_format:Y-m-d'],
             'hasta' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:desde'],
         ], [
-            'hasta.after_or_equal' => 'La fecha de inicio no puede ser mayor que la fecha de fin.',
+            'hasta.after_or_equal' => __('La fecha de inicio no puede ser mayor que la fecha de fin.'),
         ]);
 
         $operador = $request->user();
@@ -59,7 +59,7 @@ class EstadisticasController extends Controller
             ],
             'por_banda' => $this->contar($contactos, fn (Contacto $c): string => $c->banda->nombre),
             'por_modo' => $this->contar($contactos, fn (Contacto $c): string => $c->modo->etiqueta),
-            'por_pais' => $this->contar($contactos, fn (Contacto $c): string => $c->prefijoPais?->pais ?? 'Desconocido')
+            'por_pais' => $this->contar($contactos, fn (Contacto $c): string => $c->prefijoPais?->pais ?? __('Desconocido'))
                 ->take(self::PAISES_EN_RANKING),
             'dxcc' => ['confirmados' => $paisesConfirmados->count(), 'meta' => self::META_DXCC],
             'continentes' => collect(self::CONTINENTES)->map(fn (string $nombre, string $codigo): array => [

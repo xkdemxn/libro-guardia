@@ -32,7 +32,7 @@ class SesionController extends Controller
             $user = User::query()->lockForUpdate()->find($validado->getKey());
 
             if (! $user || ! hash_equals($validado->getAuthPassword(), $user->getAuthPassword())) {
-                throw ValidationException::withMessages(['login' => 'Indicativo o contraseña incorrectos.']);
+                throw ValidationException::withMessages(['login' => __('Indicativo o contraseña incorrectos.')]);
             }
 
             if (config('hashing.rehash_on_login', true)) {

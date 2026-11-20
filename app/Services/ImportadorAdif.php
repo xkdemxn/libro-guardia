@@ -126,40 +126,40 @@ class ImportadorAdif
         $indicativo = IndicativoValido::normalizar($registro['CALL'] ?? '');
 
         if (! IndicativoValido::esValido($indicativo)) {
-            $errores[] = $indicativo === '' ? 'Falta el indicativo (CALL).' : "Indicativo inválido: {$indicativo}.";
+            $errores[] = $indicativo === '' ? __('Falta el indicativo (CALL).') : __('Indicativo inválido: :indicativo.', ['indicativo' => $indicativo]);
         }
 
         $inicio = $this->fechaHora($registro['QSO_DATE'] ?? null, $registro['TIME_ON'] ?? null);
         if ($inicio === null) {
-            $errores[] = 'Fecha u hora de inicio inválida (QSO_DATE / TIME_ON).';
+            $errores[] = __('Fecha u hora de inicio inválida (QSO_DATE / TIME_ON).');
         }
 
         $fin = isset($registro['TIME_OFF'])
             ? $this->fechaHora($registro['QSO_DATE_OFF'] ?? $registro['QSO_DATE'] ?? null, $registro['TIME_OFF'])
             : null;
         if ($inicio !== null && $fin !== null && $fin->lessThan($inicio)) {
-            $errores[] = 'La hora de fin es menor que la de inicio.';
+            $errores[] = __('La hora de fin es menor que la de inicio.');
         }
 
         $frecuencia = isset($registro['FREQ']) && is_numeric($registro['FREQ']) ? (float) $registro['FREQ'] : null;
         $banda = $frecuencia !== null ? $this->bandaPara($frecuencia) : null;
         if ($frecuencia === null) {
-            $errores[] = 'Falta la frecuencia (FREQ).';
+            $errores[] = __('Falta la frecuencia (FREQ).');
         } elseif ($banda === null) {
-            $errores[] = "La frecuencia {$frecuencia} MHz está fuera de las bandas de radioaficionados.";
+            $errores[] = __('La frecuencia :frecuencia MHz está fuera de las bandas de radioaficionados.', ['frecuencia' => $frecuencia]);
         }
 
         $modo = $this->modoPara($registro, $frecuencia);
         if ($modo === null) {
-            $errores[] = 'Modo no reconocido: '.trim(($registro['MODE'] ?? '').' '.($registro['SUBMODE'] ?? '')).'.';
+            $errores[] = __('Modo no reconocido: :modo.', ['modo' => trim(($registro['MODE'] ?? '').' '.($registro['SUBMODE'] ?? ''))]);
         }
 
         foreach (['RST_SENT' => 'enviado', 'RST_RCVD' => 'recibido'] as $campo => $nombre) {
             $reporte = $registro[$campo] ?? '';
             if ($modo !== null && ! $modo->tipo_reporte->esValido($reporte)) {
                 $errores[] = $reporte === ''
-                    ? "Falta el reporte {$nombre} ({$campo})."
-                    : "El reporte {$nombre} «{$reporte}» no corresponde al modo {$modo->nombre}.";
+                    ? __('Falta el reporte :nombre (:campo).', ['nombre' => __($nombre), 'campo' => $campo])
+                    : __('El reporte :nombre «:reporte» no corresponde al modo :modo.', ['nombre' => __($nombre), 'reporte' => $reporte, 'modo' => $modo->nombre]);
             }
         }
 
