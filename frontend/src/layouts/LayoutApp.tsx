@@ -6,26 +6,29 @@ import { Emblema } from '@/componentes/Emblema';
 import { PiePagina } from '@/componentes/PiePagina';
 import { Icono, type NombreIcono } from '@/componentes/Icono';
 import { RelojUtc } from '@/componentes/RelojUtc';
+import { SelectorIdioma } from '@/componentes/SelectorIdioma';
 import { SelectorTema } from '@/componentes/SelectorTema';
 import { useCerrarSesion } from '@/hooks/useCerrarSesion';
 import { useSolicitudes } from '@/hooks/useSolicitudes';
 import type { Usuario } from '@/lib/tipos';
+import { useTranslation } from 'react-i18next';
+import { tx } from '@/i18n';
 
 const SECCIONES: { ruta: string; titulo: string; fin?: boolean }[] = [
-    { ruta: '/contactos', titulo: 'Libro', fin: true },
-    { ruta: '/contactos/nuevo', titulo: 'Nuevo contacto' },
-    { ruta: '/estadisticas', titulo: 'Estadísticas' },
-    { ruta: '/indicativos', titulo: 'Directorio' },
-    { ruta: '/perfil', titulo: 'Perfil' },
+    { ruta: '/contactos', titulo: tx('Libro'), fin: true },
+    { ruta: '/contactos/nuevo', titulo: tx('Nuevo contacto') },
+    { ruta: '/estadisticas', titulo: tx('Estadísticas') },
+    { ruta: '/indicativos', titulo: tx('Directorio') },
+    { ruta: '/perfil', titulo: tx('Perfil') },
 ];
 
 const ACCESOS_CELULAR: { ruta: string; titulo: string; icono: NombreIcono }[] = [
-    { ruta: '/contactos', titulo: 'Libro', icono: 'libro' },
-    { ruta: '/solicitudes', titulo: 'Solicitudes', icono: 'campana' },
-    { ruta: '/estadisticas', titulo: 'Estadísticas', icono: 'grafico' },
-    { ruta: '/indicativos', titulo: 'Directorio', icono: 'lupa' },
-    { ruta: '/contactos/importar', titulo: 'Importar ADIF', icono: 'importar' },
-    { ruta: '/contactos/exportar', titulo: 'Exportar', icono: 'exportar' },
+    { ruta: '/contactos', titulo: tx('Libro'), icono: 'libro' },
+    { ruta: '/solicitudes', titulo: tx('Solicitudes'), icono: 'campana' },
+    { ruta: '/estadisticas', titulo: tx('Estadísticas'), icono: 'grafico' },
+    { ruta: '/indicativos', titulo: tx('Directorio'), icono: 'lupa' },
+    { ruta: '/contactos/importar', titulo: tx('Importar ADIF'), icono: 'importar' },
+    { ruta: '/contactos/exportar', titulo: tx('Exportar'), icono: 'exportar' },
 ];
 
 /** Páginas con sesión: barra superior flotante de vidrio y el contenido debajo. */
@@ -51,6 +54,7 @@ export function LayoutApp({ usuario }: { usuario: Usuario }) {
 }
 
 function BarraSuperior({ usuario }: { usuario: Usuario }) {
+    const { t } = useTranslation();
     const [menuAbierto, setMenuAbierto] = useState(false);
     const pendientes = useSolicitudes().data?.length ?? 0;
     const [desplazado, setDesplazado] = useState(() => window.scrollY > 4);
@@ -76,8 +80,8 @@ function BarraSuperior({ usuario }: { usuario: Usuario }) {
                         <Link to="/contactos" className="flex items-center gap-2.5 rounded-full pe-2 text-white">
                             <Emblema className="h-10 w-10" />
                             <span className="whitespace-nowrap leading-tight lg:hidden xl:block">
-                                <span className="block font-display text-sm font-semibold tracking-tight">Libro de Guardia</span>
-                                <span className="block text-[0.6875rem] font-medium uppercase tracking-[0.18em] text-amber-300/90">DX Ecuador</span>
+                                <span className="block font-display text-sm font-semibold tracking-tight">{t('Libro de Guardia')}</span>
+                                <span className="block text-[0.6875rem] font-medium uppercase tracking-[0.18em] text-amber-300/90">{t('DX Ecuador')}</span>
                             </span>
                         </Link>
 
@@ -94,7 +98,7 @@ function BarraSuperior({ usuario }: { usuario: Usuario }) {
                                             : 'inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium text-slate-400 transition hover:text-white'
                                     }
                                 >
-                                    {seccion.titulo}
+                                    {t(seccion.titulo)}
                                 </NavLink>
                             ))}
                         </div>
@@ -102,11 +106,12 @@ function BarraSuperior({ usuario }: { usuario: Usuario }) {
 
                     <div className="hidden shrink-0 items-center gap-3 lg:flex">
                         <RelojUtc />
+                        <SelectorIdioma />
                         <SelectorTema />
                         <NavLink
                             to="/solicitudes"
-                            title="Solicitudes de confirmación"
-                            aria-label={`Solicitudes de confirmación${pendientes ? `: ${pendientes} pendientes` : ''}`}
+                            title={t('Solicitudes de confirmación')}
+                            aria-label={pendientes ? t('Solicitudes de confirmación: {{n}} pendientes', { n: pendientes }) : t('Solicitudes de confirmación')}
                             className={({ isActive }) =>
                                 `relative grid h-9 w-9 place-items-center rounded-full text-slate-300 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-white ${isActive ? 'bg-white/10 text-white' : ''}`
                             }
@@ -127,7 +132,7 @@ function BarraSuperior({ usuario }: { usuario: Usuario }) {
                         onClick={() => setMenuAbierto((abierto) => !abierto)}
                         className="relative grid h-9 w-9 place-items-center rounded-full text-slate-300 ring-1 ring-white/10 transition hover:bg-white/10 lg:hidden"
                         aria-expanded={menuAbierto}
-                        aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
+                        aria-label={menuAbierto ? t('Cerrar menú') : t('Abrir menú')}
                     >
                         <svg className="h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                             {menuAbierto ? (
@@ -147,6 +152,7 @@ function BarraSuperior({ usuario }: { usuario: Usuario }) {
 }
 
 function MenuUsuario({ usuario }: { usuario: Usuario }) {
+    const { t } = useTranslation();
     const [abierto, setAbierto] = useState(false);
     const contenedor = useRef<HTMLDivElement>(null);
     const cerrarSesion = useCerrarSesion();
@@ -199,7 +205,7 @@ function MenuUsuario({ usuario }: { usuario: Usuario }) {
                         </div>
                     </div>
 
-                    <p className="px-3 pb-1 pt-3 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-slate-500">Cuenta</p>
+                    <p className="px-3 pb-1 pt-3 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-slate-500">{t('Cuenta')}</p>
                     <Link role="menuitem" to="/perfil#datos" className={enlace}>
                         <Icono nombre="usuario" className="h-4 w-4 text-slate-400" /> Mi perfil
                     </Link>
@@ -228,6 +234,7 @@ function MenuUsuario({ usuario }: { usuario: Usuario }) {
 
 /** Menú en celular: compacto, con accesos en cuadrícula en lugar de una lista larga. */
 function MenuCelular({ usuario, pendientes }: { usuario: Usuario; pendientes: number }) {
+    const { t } = useTranslation();
     const cerrarSesion = useCerrarSesion();
 
     return (
@@ -242,7 +249,8 @@ function MenuCelular({ usuario, pendientes }: { usuario: Usuario; pendientes: nu
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
                     <RelojUtc />
-                    <SelectorTema />
+                    <SelectorIdioma />
+                        <SelectorTema />
                 </div>
             </div>
 
@@ -253,7 +261,7 @@ function MenuCelular({ usuario, pendientes }: { usuario: Usuario; pendientes: nu
                 <Icono nombre="mas" className="h-4 w-4" /> Nuevo contacto
             </Link>
 
-            <nav className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Secciones">
+            <nav className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label={t('Secciones')}>
                 {ACCESOS_CELULAR.map((acceso) => (
                     <NavLink
                         key={acceso.ruta}
@@ -268,7 +276,7 @@ function MenuCelular({ usuario, pendientes }: { usuario: Usuario; pendientes: nu
                         {({ isActive }) => (
                             <>
                                 <Icono nombre={acceso.icono} className={`h-[18px] w-[18px] ${isActive ? 'text-acento-300' : 'text-slate-500'}`} />
-                                <span className="truncate">{acceso.titulo}</span>
+                                <span className="truncate">{t(acceso.titulo)}</span>
                                 {acceso.ruta === '/solicitudes' && pendientes > 0 && (
                                     <span className="ms-auto grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-rose-500 px-1 text-[0.75rem] font-bold text-blanco">{pendientes}</span>
                                 )}

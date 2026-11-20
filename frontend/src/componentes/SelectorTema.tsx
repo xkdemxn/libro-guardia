@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { aplicarTema, temaClaroActivo } from '@/lib/tema';
+import { useTranslation } from 'react-i18next';
 
 /** Botón para cambiar entre modo claro y oscuro. Se sincroniza si hay varios en la página. */
 export function SelectorTema({ className = '' }: { className?: string }) {
+    const { t } = useTranslation();
     const [claro, setClaro] = useState(temaClaroActivo);
 
     useEffect(() => {
@@ -12,7 +14,7 @@ export function SelectorTema({ className = '' }: { className?: string }) {
         return () => window.removeEventListener('tema-cambiado', alCambiar);
     }, []);
 
-    const etiqueta = claro ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
+    const etiqueta = claro ? t('Cambiar a modo oscuro') : t('Cambiar a modo claro');
 
     return (
         <button

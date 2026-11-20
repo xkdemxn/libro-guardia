@@ -1,6 +1,7 @@
 import { useId, useMemo, useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { ErrorCampo, Etiqueta } from '@/componentes/Formulario';
 import { evaluarContrasena } from '@/lib/seguridadContrasena';
+import { useTranslation } from 'react-i18next';
 
 interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
     id: string;
@@ -18,6 +19,7 @@ interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
  * qué tan segura es mientras se escribe.
  */
 export function CampoContrasena({ id, etiqueta, errores, extra, medirSeguridad = false, datosPersonales, className = '', onChange, ...props }: Props) {
+    const { t } = useTranslation();
     const [visible, setVisible] = useState(false);
     const [valor, setValor] = useState('');
 
@@ -51,10 +53,10 @@ export function CampoContrasena({ id, etiqueta, errores, extra, medirSeguridad =
                 <button
                     type="button"
                     onClick={() => setVisible((actual) => !actual)}
-                    aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    aria-label={visible ? t('Ocultar contraseña') : t('Mostrar contraseña')}
                     aria-pressed={visible}
                     aria-controls={id}
-                    title={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    title={visible ? t('Ocultar contraseña') : t('Mostrar contraseña')}
                     className="absolute inset-y-0 right-1.5 my-auto grid h-9 w-9 place-items-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-acento-400/50"
                 >
                     {visible ? <OjoTachado /> : <Ojo />}
@@ -71,6 +73,7 @@ const TEXTOS = ['', 'text-rose-400', 'text-orange-400', 'text-amber-300', 'text-
 
 /** Barra de 5 segmentos que se llena y cambia de color según la seguridad, y lo que falta por cumplir. */
 export function BarraSeguridad({ id, contrasena, datosPersonales }: { id?: string; contrasena: string; datosPersonales?: string[] }) {
+    const { t } = useTranslation();
     const idInterno = useId();
     const seguridad = useMemo(() => evaluarContrasena(contrasena, datosPersonales), [contrasena, datosPersonales]);
 
@@ -79,11 +82,11 @@ export function BarraSeguridad({ id, contrasena, datosPersonales }: { id?: strin
             <div
                 className="flex gap-1.5"
                 role="meter"
-                aria-label="Seguridad de la contraseña"
+                aria-label={t('Seguridad de la contraseña')}
                 aria-valuemin={0}
                 aria-valuemax={5}
                 aria-valuenow={seguridad.nivel}
-                aria-valuetext={seguridad.etiqueta || 'Sin escribir'}
+                aria-valuetext={seguridad.etiqueta ? t(seguridad.etiqueta) : t('Sin escribir')}
             >
                 {[1, 2, 3, 4, 5].map((segmento) => (
                     <span
@@ -103,12 +106,12 @@ export function BarraSeguridad({ id, contrasena, datosPersonales }: { id?: strin
                             ) : (
                                 <span className="punto mx-1 bg-slate-600" aria-hidden="true" />
                             )}
-                            {requisito.texto}
-                            <span className="sr-only">{requisito.cumplido ? ': cumplido' : ': falta'}</span>
+                            {t(requisito.texto)}
+                            <span className="sr-only">{requisito.cumplido ? t(': cumplido') : t(': falta')}</span>
                         </li>
                     ))}
                 </ul>
-                {seguridad.etiqueta && <span className={`text-xs font-semibold ${TEXTOS[seguridad.nivel]}`}>{seguridad.etiqueta}</span>}
+                {seguridad.etiqueta && <span className={`text-xs font-semibold ${TEXTOS[seguridad.nivel]}`}>{t(seguridad.etiqueta)}</span>}
             </div>
         </div>
     );

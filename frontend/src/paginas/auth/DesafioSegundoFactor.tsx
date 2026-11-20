@@ -9,11 +9,13 @@ import { LayoutInvitado } from '@/layouts/LayoutInvitado';
 import { api, erroresDeValidacion, esEstado, mensajeDeError, type ErroresValidacion } from '@/lib/api';
 import type { MetodosSegundoFactor, Usuario } from '@/lib/tipos';
 import type { EstadoNavegacion } from '@/paginas/auth/IniciarSesion';
+import { useTranslation } from 'react-i18next';
 
 type Metodo = 'app' | 'correo' | 'recuperacion';
 
 /** Segundo paso del inicio de sesión: código de la app, del correo o de recuperación. */
 export function DesafioSegundoFactor() {
+    const { t } = useTranslation();
     const navegar = useNavigate();
     const { state } = useLocation() as { state: (EstadoNavegacion & { metodos?: MetodosSegundoFactor }) | null };
     const fijarUsuario = useFijarUsuario();
@@ -41,7 +43,7 @@ export function DesafioSegundoFactor() {
     }, [metodos?.app, metodos?.correo, metodos?.correo_enviado]);
 
     if (desafio.isError && esEstado(desafio.error, 404)) {
-        return <Navigate to="/iniciar-sesion" replace state={{ estado: 'El inicio de sesión venció. Vuelve a ingresar tu contraseña.' }} />;
+        return <Navigate to="/iniciar-sesion" replace state={{ estado: t('El inicio de sesión venció. Vuelve a ingresar tu contraseña.') }} />;
     }
 
     if (!metodos) {
@@ -75,7 +77,7 @@ export function DesafioSegundoFactor() {
             navegar(state?.desde ?? '/contactos', { replace: true });
         } catch (error) {
             if (esEstado(error, 404)) {
-                navegar('/iniciar-sesion', { replace: true, state: { estado: 'El inicio de sesión venció. Vuelve a ingresar tu contraseña.' } });
+                navegar('/iniciar-sesion', { replace: true, state: { estado: t('El inicio de sesión venció. Vuelve a ingresar tu contraseña.') } });
 
                 return;
             }
@@ -87,28 +89,28 @@ export function DesafioSegundoFactor() {
     }
 
     const opciones: { valor: Metodo; texto: string; visible: boolean }[] = [
-        { valor: 'app', texto: 'App autenticadora', visible: metodos.app },
-        { valor: 'correo', texto: 'Código por correo', visible: metodos.correo && metodos.correo_enviado },
-        { valor: 'recuperacion', texto: 'Código de recuperación', visible: true },
+        { valor: 'app', texto: t('App autenticadora'), visible: metodos.app },
+        { valor: 'correo', texto: t('Código por correo'), visible: metodos.correo && metodos.correo_enviado },
+        { valor: 'recuperacion', texto: t('Código de recuperación'), visible: true },
     ];
 
     return (
         <LayoutInvitado>
-            <Ceja className="mb-6">Verificación en dos pasos</Ceja>
-            <h2 className="font-display text-2xl font-semibold text-white">Confirma que eres tú</h2>
-            <p className="mt-1.5 text-sm text-slate-400">Confirma tu identidad para acceder a tu bitácora.</p>
+            <Ceja className="mb-6">{t('Verificación en dos pasos')}</Ceja>
+            <h2 className="font-display text-2xl font-semibold text-white">{t('Confirma que eres tú')}</h2>
+            <p className="mt-1.5 text-sm text-slate-400">{t('Confirma tu identidad para acceder a tu bitácora.')}</p>
 
             {estado && <Aviso className="mt-6">{estado}</Aviso>}
 
             {metodos.correo && (
                 <BotonSecundario className="mt-6 w-full" onClick={pedirCodigoCorreo} disabled={!metodos.envio_correo_disponible}>
-                    {metodos.correo_enviado ? 'Reenviar código por correo' : 'Enviar un código a mi correo'}
+                    {metodos.correo_enviado ? t('Reenviar código por correo') : t('Enviar un código a mi correo')}
                 </BotonSecundario>
             )}
 
             <form onSubmit={verificar} className="mt-6 space-y-5" noValidate>
                 <div>
-                    <Etiqueta htmlFor="metodo">Método</Etiqueta>
+                    <Etiqueta htmlFor="metodo">{t('Método')}</Etiqueta>
                     <select id="metodo" className="campo" value={metodo} onChange={(evento) => setMetodo(evento.target.value as Metodo)}>
                         {opciones
                             .filter((opcion) => opcion.visible)
@@ -122,7 +124,7 @@ export function DesafioSegundoFactor() {
 
                 <Campo
                     id="codigo"
-                    etiqueta="Código"
+                    etiqueta={t('Código')}
                     className="font-mono tracking-widest"
                     autoComplete="one-time-code"
                     inputMode={metodo === 'recuperacion' ? 'text' : 'numeric'}
@@ -133,13 +135,13 @@ export function DesafioSegundoFactor() {
                 />
 
                 <BotonPrimario className="w-full !py-3" disabled={enviando}>
-                    {enviando ? 'Verificando…' : 'Verificar'}
+                    {enviando ? t('Verificando…') : t('Verificar')}
                 </BotonPrimario>
             </form>
 
             <p className="mt-6 text-center text-sm">
                 <Link to="/iniciar-sesion" className="text-acento-300 transition hover:text-acento-200">
-                    Volver al inicio de sesión
+                    {t('Volver al inicio de sesión')}
                 </Link>
             </p>
         </LayoutInvitado>

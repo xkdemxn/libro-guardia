@@ -7,9 +7,11 @@ import { useFijarUsuario } from '@/hooks/useUsuario';
 import { LayoutInvitado } from '@/layouts/LayoutInvitado';
 import { api, erroresDeValidacion, mensajeDeError, type ErroresValidacion } from '@/lib/api';
 import type { Usuario } from '@/lib/tipos';
+import { useTranslation } from 'react-i18next';
 
 /** Registro de un nuevo operador con su indicativo (US-01). */
 export function Registro() {
+    const { t } = useTranslation();
     const navegar = useNavigate();
     const fijarUsuario = useFijarUsuario();
     const [errores, setErrores] = useState<ErroresValidacion>({});
@@ -40,9 +42,9 @@ export function Registro() {
 
     return (
         <LayoutInvitado>
-            <Ceja className="mb-6">Nuevo operador</Ceja>
-            <h2 className="font-display text-2xl font-semibold text-white">Crear cuenta</h2>
-            <p className="mt-1.5 text-sm text-slate-400">Regístrate con tu indicativo para tener tu propio libro de guardia.</p>
+            <Ceja className="mb-6">{t('Nuevo operador')}</Ceja>
+            <h2 className="font-display text-2xl font-semibold text-white">{t('Crear cuenta')}</h2>
+            <p className="mt-1.5 text-sm text-slate-400">{t('Regístrate con tu indicativo para tener tu propio libro de guardia.')}</p>
 
             {errorGeneral && (
                 <Aviso tipo="error" className="mt-6">
@@ -64,7 +66,7 @@ export function Registro() {
             >
                 <Campo
                     id="indicativo"
-                    etiqueta="Indicativo"
+                    etiqueta={t('Indicativo')}
                     className="font-mono text-lg uppercase tracking-wider"
                     required
                     autoFocus
@@ -74,15 +76,15 @@ export function Registro() {
                 />
 
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <Campo id="nombres" etiqueta="Nombres" required autoComplete="given-name" errores={errores.nombres} />
-                    <Campo id="apellidos" etiqueta="Apellidos" required autoComplete="family-name" errores={errores.apellidos} />
+                    <Campo id="nombres" etiqueta={t('Nombres')} required autoComplete="given-name" errores={errores.nombres} />
+                    <Campo id="apellidos" etiqueta={t('Apellidos')} required autoComplete="family-name" errores={errores.apellidos} />
                 </div>
 
-                <Campo id="email" etiqueta="Correo electrónico" type="email" required autoComplete="username" errores={errores.email} />
+                <Campo id="email" etiqueta={t('Correo electrónico')} type="email" required autoComplete="username" errores={errores.email} />
 
                 <CampoContrasena
                     id="password"
-                    etiqueta="Contraseña"
+                    etiqueta={t('Contraseña')}
                     required
                     autoComplete="new-password"
                     medirSeguridad
@@ -91,21 +93,21 @@ export function Registro() {
                 />
                 <CampoContrasena
                     id="password_confirmation"
-                    etiqueta="Confirmar contraseña"
+                    etiqueta={t('Confirmar contraseña')}
                     required
                     autoComplete="new-password"
                     errores={errores.password_confirmation}
                 />
 
                 <BotonPrimario className="w-full !py-3" disabled={enviando}>
-                    {enviando ? 'Creando…' : 'Crear mi cuenta'}
+                    {enviando ? t('Creando…') : t('Crear mi cuenta')}
                 </BotonPrimario>
             </form>
 
             <p className="mt-6 text-center text-sm text-slate-400">
-                ¿Ya tienes cuenta?{' '}
+                {t('¿Ya tienes cuenta?')}{' '}
                 <Link className="font-medium text-acento-300 transition hover:text-acento-200" to="/iniciar-sesion">
-                    Inicia sesión
+                    {t('Inicia sesión')}
                 </Link>
             </p>
         </LayoutInvitado>

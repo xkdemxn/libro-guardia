@@ -44,7 +44,7 @@ class FichaIndicativoController extends Controller
             'contactos_previos' => (clone $previos)->count(),
             'ultimo' => $ultimo === null ? null : [
                 'fecha' => $ultimo->inicio_utc->format('Y-m-d'),
-                'hace' => $ultimo->inicio_utc->locale('es')->diffForHumans(),
+                'hace' => $ultimo->inicio_utc->locale(app()->getLocale())->diffForHumans(),
                 'banda' => $ultimo->banda->nombre,
                 'modo' => $ultimo->modo->nombre,
             ],

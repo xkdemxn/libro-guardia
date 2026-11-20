@@ -10,9 +10,12 @@ import { useContacto } from '@/hooks/useContacto';
 import { api, erroresDeValidacion, mensajeDeError, type ErroresValidacion } from '@/lib/api';
 import type { ConfirmacionQsl, ContactoDetalle, TipoQslManual } from '@/lib/tipos';
 import { fechaUtc } from '@/lib/utc';
+import { useTranslation } from 'react-i18next';
+import { configuracionRegional } from '@/i18n';
 
 /** Detalle del contacto con el panel de confirmaciones QSL (US-10). */
 export function DetalleContacto() {
+    const { t } = useTranslation();
     const { id } = useParams();
     const consulta = useContacto(id);
 
@@ -26,17 +29,17 @@ export function DetalleContacto() {
 
     const contacto = consulta.data;
     const datos: [string, string, boolean][] = [
-        ['Fecha', contacto.fecha, false],
-        ['Hora UTC', contacto.hora_inicio + (contacto.hora_fin ? ` → ${contacto.hora_fin}` : ''), true],
-        ['Frecuencia', `${contacto.frecuencia_mhz.toFixed(3)} MHz`, true],
-        ['Modo', contacto.modo.etiqueta, false],
-        ['Reporte env / rec', `${contacto.reporte_enviado} / ${contacto.reporte_recibido}`, true],
-        ['Potencia', contacto.potencia_w ? `${contacto.potencia_w} W` : '—', false],
-        ['Grid locator', contacto.grid_locator ?? '—', true],
-        ['Operador', contacto.nombre_operador ?? '—', false],
-        ['Equipo', contacto.equipo ?? '—', false],
-        ['Activación', contacto.activacion ?? '—', true],
-        ['Distancia', contacto.distancia_km !== null ? `≈ ${contacto.distancia_km.toLocaleString('es')} km` : '—', true],
+        [t('Fecha'), contacto.fecha, false],
+        [t('Hora UTC'), contacto.hora_inicio + (contacto.hora_fin ? ` → ${contacto.hora_fin}` : ''), true],
+        [t('Frecuencia'), `${contacto.frecuencia_mhz.toFixed(3)} MHz`, true],
+        [t('Modo'), contacto.modo.etiqueta, false],
+        [t('Reporte env / rec'), `${contacto.reporte_enviado} / ${contacto.reporte_recibido}`, true],
+        [t('Potencia'), contacto.potencia_w ? `${contacto.potencia_w} W` : '—', false],
+        [t('Grid locator'), contacto.grid_locator ?? '—', true],
+        [t('Operador'), contacto.nombre_operador ?? '—', false],
+        [t('Equipo'), contacto.equipo ?? '—', false],
+        [t('Activación'), contacto.activacion ?? '—', true],
+        [t('Distancia'), contacto.distancia_km !== null ? `≈ ${contacto.distancia_km.toLocaleString(configuracionRegional())} km` : '—', true],
     ];
 
     return (
@@ -50,7 +53,7 @@ export function DetalleContacto() {
                         <h1 className="font-mono text-4xl font-semibold tracking-wide text-white">{contacto.estacion_llamada}</h1>
                         <p className="mt-1 inline-flex items-center gap-2 text-slate-400">
                             <Bandera codigo={contacto.pais?.codigo_bandera} pais={contacto.pais?.nombre} className="h-4 w-[1.35rem]" />
-                            {contacto.pais?.nombre ?? 'País desconocido'}
+                            {contacto.pais?.nombre ?? t('País desconocido')}
                         </p>
                         {contacto.zona && (
                             <p className="mt-2">
@@ -67,7 +70,7 @@ export function DetalleContacto() {
                                 to={`/indicativos/${contacto.estacion_llamada}`}
                                 className="rounded-full bg-acento-400/10 px-4 py-2 text-sm font-medium text-acento-300 ring-1 ring-acento-400/25 transition hover:bg-acento-400/20"
                             >
-                                Ver perfil
+                                {t('Ver perfil')}
                             </Link>
                         )}
                         <EstadoQsl estado={contacto.estado_qsl} />
@@ -75,20 +78,20 @@ export function DetalleContacto() {
                             to={`/contactos/${contacto.id}/tarjeta`}
                             className="rounded-full bg-gradient-to-b from-marca-400 to-marca-600 px-4 py-2 text-sm font-semibold text-blanco shadow-boton transition hover:brightness-110"
                         >
-                            Tarjeta QSL
+                            {t('Tarjeta QSL')}
                         </Link>
                         <Link to={`/contactos/${contacto.id}/editar`} className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/10">
-                            Editar
+                            {t('Editar')}
                         </Link>
                     </div>
                 </div>
             </header>
 
             <div className="mx-auto box-content max-w-4xl space-y-6 px-4 pt-8 sm:px-6 lg:px-8">
-                <Panel ceja="Datos del contacto">
+                <Panel ceja={t('Datos del contacto')}>
                     <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
                         <div>
-                            <dt className="text-xs text-slate-500">Banda</dt>
+                            <dt className="text-xs text-slate-500">{t('Banda')}</dt>
                             <dd className="mt-1">
                                 <ChipBanda banda={contacto.banda.nombre} />
                             </dd>
@@ -112,6 +115,7 @@ export function DetalleContacto() {
 }
 
 function PanelQsl({ contacto }: { contacto: ContactoDetalle }) {
+    const { t } = useTranslation();
     const cliente = useQueryClient();
     const [estado, setEstado] = useState(contacto.confirmaciones);
     const [errores, setErrores] = useState<ErroresValidacion>({});
@@ -157,7 +161,7 @@ function PanelQsl({ contacto }: { contacto: ContactoDetalle }) {
     }
 
     return (
-        <Panel ceja="Confirmación QSL">
+        <Panel ceja={t('Confirmación QSL')}>
             <p className="-mt-2 mb-5 text-center text-xs text-slate-500">
                 Marca por separado si enviaste y si recibiste la confirmación. La fecha no puede ser anterior al contacto ({contacto.fecha}).
             </p>
@@ -192,8 +196,8 @@ function PanelQsl({ contacto }: { contacto: ContactoDetalle }) {
                             </p>
                             {(
                                 [
-                                    ['enviada', 'Enviada', 'fecha_envio'],
-                                    ['recibida', 'Recibida', 'fecha_recepcion'],
+                                    ['enviada', t('Enviada'), 'fecha_envio'],
+                                    ['recibida', t('Recibida'), 'fecha_recepcion'],
                                 ] as const
                             ).map(([marca, etiqueta, campoFecha]) => (
                                 <div key={marca}>
@@ -229,7 +233,7 @@ function PanelQsl({ contacto }: { contacto: ContactoDetalle }) {
                 </div>
 
                 <div className="mt-6 flex justify-end">
-                    <BotonPrimario disabled={enviando}>{enviando ? 'Guardando…' : 'Guardar QSL'}</BotonPrimario>
+                    <BotonPrimario disabled={enviando}>{enviando ? t('Guardando…') : t('Guardar QSL')}</BotonPrimario>
                 </div>
             </form>
         </Panel>
@@ -237,10 +241,11 @@ function PanelQsl({ contacto }: { contacto: ContactoDetalle }) {
 }
 
 export function ContactoNoEncontrado() {
+    const { t } = useTranslation();
     return (
         <div className="mx-auto max-w-xl px-4 pt-16">
             <div className="vidrio p-8 text-center">
-                <h1 className="font-display text-xl font-semibold text-white">El contacto no existe o no pertenece a tu libro de guardia.</h1>
+                <h1 className="font-display text-xl font-semibold text-white">{t('El contacto no existe o no pertenece a tu libro de guardia.')}</h1>
                 <Link to="/contactos" className="mt-6 inline-block text-sm font-medium text-acento-300 hover:text-acento-200">
                     Volver al libro &rsaquo;
                 </Link>

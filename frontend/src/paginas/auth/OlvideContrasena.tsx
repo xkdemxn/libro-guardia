@@ -4,9 +4,11 @@ import { Ceja } from '@/componentes/Ceja';
 import { Aviso, BotonPrimario, Campo } from '@/componentes/Formulario';
 import { LayoutInvitado } from '@/layouts/LayoutInvitado';
 import { api, erroresDeValidacion, mensajeDeError, type ErroresValidacion } from '@/lib/api';
+import { useTranslation } from 'react-i18next';
 
 /** Pide el enlace para restablecer la contraseña (US-18). */
 export function OlvideContrasena() {
+    const { t } = useTranslation();
     const [errores, setErrores] = useState<ErroresValidacion>({});
     const [estado, setEstado] = useState<string | null>(null);
     const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
@@ -37,9 +39,9 @@ export function OlvideContrasena() {
 
     return (
         <LayoutInvitado>
-            <Ceja className="mb-6">Recuperar acceso</Ceja>
-            <h2 className="font-display text-2xl font-semibold text-white">¿Olvidaste tu contraseña?</h2>
-            <p className="mt-1.5 text-sm text-slate-400">Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva.</p>
+            <Ceja className="mb-6">{t('Recuperar acceso')}</Ceja>
+            <h2 className="font-display text-2xl font-semibold text-white">{t('¿Olvidaste tu contraseña?')}</h2>
+            <p className="mt-1.5 text-sm text-slate-400">{t('Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva.')}</p>
 
             {estado && <Aviso className="mt-6">{estado}</Aviso>}
             {errorGeneral && (
@@ -49,15 +51,15 @@ export function OlvideContrasena() {
             )}
 
             <form onSubmit={enviar} className="mt-6 space-y-5" noValidate>
-                <Campo id="email" etiqueta="Correo electrónico" type="email" required autoFocus autoComplete="email" errores={errores.email} />
+                <Campo id="email" etiqueta={t('Correo electrónico')} type="email" required autoFocus autoComplete="email" errores={errores.email} />
                 <BotonPrimario className="w-full !py-3" disabled={enviando}>
-                    {enviando ? 'Enviando…' : 'Enviar enlace'}
+                    {enviando ? t('Enviando…') : t('Enviar enlace')}
                 </BotonPrimario>
             </form>
 
             <p className="mt-6 text-center text-sm">
                 <Link to="/iniciar-sesion" className="text-acento-300 transition hover:text-acento-200">
-                    Volver al inicio de sesión
+                    {t('Volver al inicio de sesión')}
                 </Link>
             </p>
         </LayoutInvitado>

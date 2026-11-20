@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { BotonPrimario, Etiqueta } from '@/componentes/Formulario';
+import { useTranslation } from 'react-i18next';
 
 /** Número de QSO (impreso al pie de la tarjeta) + indicativo de quien la recibió. */
 export function FormularioConsultaQsl({ qso = '', indicativo = '', compacto = false }: { qso?: string; indicativo?: string; compacto?: boolean }) {
+    const { t } = useTranslation();
     const navegar = useNavigate();
     const [numero, setNumero] = useState(qso);
     const [miIndicativo, setMiIndicativo] = useState(indicativo);
@@ -33,7 +35,7 @@ export function FormularioConsultaQsl({ qso = '', indicativo = '', compacto = fa
                     </div>
                 </div>
                 <div>
-                    <Etiqueta htmlFor="consulta-indicativo">Tu indicativo</Etiqueta>
+                    <Etiqueta htmlFor="consulta-indicativo">{t('Tu indicativo')}</Etiqueta>
                     <input
                         id="consulta-indicativo"
                         required
@@ -46,8 +48,8 @@ export function FormularioConsultaQsl({ qso = '', indicativo = '', compacto = fa
                 </div>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs text-slate-500">El número va al pie de la tarjeta: «QSO #61».</p>
-                <BotonPrimario className={compacto ? '!py-2' : ''}>Consultar</BotonPrimario>
+                <p className="text-xs text-slate-500">{t('El número va al pie de la tarjeta: «QSO #61».')}</p>
+                <BotonPrimario className={compacto ? '!py-2' : ''}>{t('Consultar')}</BotonPrimario>
             </div>
         </form>
     );

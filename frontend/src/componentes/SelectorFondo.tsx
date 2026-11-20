@@ -2,6 +2,7 @@ import { ErrorCampo } from '@/componentes/Formulario';
 import { Icono } from '@/componentes/Icono';
 import { reducirImagen } from '@/lib/imagenes';
 import type { EstiloFondo } from '@/lib/tipos';
+import { useTranslation } from 'react-i18next';
 
 export interface EstadoFondo {
     previa: string | null;
@@ -38,9 +39,10 @@ export function SelectorFondo({
     lado,
     opacidadMinima = 10,
     opacidadMaxima = 50,
-    textoOpacidad = 'Máximo 50 %, para que tu indicativo y tus datos se sigan leyendo bien.',
+    textoOpacidad,
     errores,
 }: Props) {
+    const { t } = useTranslation();
     const sinImagen = !fondo.previa || fondo.quitar;
 
     async function elegir(archivo: File | undefined) {
@@ -57,7 +59,7 @@ export function SelectorFondo({
             <div className="mt-6 flex flex-wrap items-center gap-3">
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10">
                     <Icono nombre="imagen" className="h-4 w-4" />
-                    {fondo.previa ? 'Cambiar imagen' : 'Subir imagen'}
+                    {fondo.previa ? t('Cambiar imagen') : t('Subir imagen')}
                     <input
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
@@ -79,12 +81,12 @@ export function SelectorFondo({
                         {quitarTexto}
                     </label>
                 )}
-                <span className="text-xs text-slate-500">JPG, PNG o WEBP · se ajusta sola al tamaño de la tarjeta</span>
+                <span className="text-xs text-slate-500">{t('JPG, PNG o WEBP · se ajusta sola al tamaño de la tarjeta')}</span>
             </div>
             <ErrorCampo mensajes={errores[campo]} />
 
             <fieldset className={`mt-7 ${sinImagen ? 'opacity-50' : ''}`} disabled={sinImagen}>
-                <legend className="mb-3 text-sm font-medium text-slate-300">Estilo</legend>
+                <legend className="mb-3 text-sm font-medium text-slate-300">{t('Estilo')}</legend>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {(Object.entries(estilos) as [EstiloFondo, [string, string]][]).map(([estilo, [titulo, detalle]]) => (
                         <label
@@ -119,7 +121,7 @@ export function SelectorFondo({
                     <div className="mt-5">
                         <div className="flex items-center justify-between">
                             <label htmlFor={`${campo}_opacidad`} className="text-sm font-medium text-slate-300">
-                                Opacidad
+                                {t('Opacidad')}
                             </label>
                             <span className="font-mono text-sm text-acento-300">{fondo.opacidad} %</span>
                         </div>
@@ -133,7 +135,7 @@ export function SelectorFondo({
                             onChange={(evento) => onCambiar({ ...fondo, opacidad: Number(evento.target.value) })}
                             className="mt-2 h-1.5 w-full cursor-pointer accent-marca-500"
                         />
-                        <p className="mt-1 text-xs text-slate-500">{textoOpacidad}</p>
+                        <p className="mt-1 text-xs text-slate-500">{textoOpacidad ?? t('Máximo 50 %, para que tu indicativo y tus datos se sigan leyendo bien.')}</p>
                         <ErrorCampo mensajes={errores[`${campo}_opacidad`]} />
                     </div>
                 )}

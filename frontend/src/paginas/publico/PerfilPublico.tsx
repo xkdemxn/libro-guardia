@@ -9,9 +9,11 @@ import { Portada } from '@/componentes/Portada';
 import { api, mensajeDeError } from '@/lib/api';
 import type { PerfilPublico as Datos } from '@/lib/tipos';
 import { BuscarIndicativo, type NoRegistrado } from '@/paginas/publico/BuscarIndicativo';
+import { useTranslation } from 'react-i18next';
 
 /** Perfil público de un operador (US-15). Solo muestra lo que el operador decidió hacer público. */
 export function PerfilPublico() {
+    const { t } = useTranslation();
     const { indicativo = '' } = useParams();
     const consulta = useQuery({
         queryKey: ['perfil-publico', indicativo],
@@ -59,7 +61,7 @@ export function PerfilPublico() {
                             {perfil.nombre && <p className="mt-1 text-lg text-slate-200">{perfil.nombre}</p>}
                             <p className="mt-1 inline-flex items-center gap-2 text-slate-400">
                                 <Bandera codigo={perfil.bandera} pais={perfil.pais} className="h-4 w-[1.35rem]" />
-                                {lugar || 'País desconocido'}
+                                {lugar || t('País desconocido')}
                             </p>
                             {perfil.zona && (
                                 <p className="mt-2">
@@ -77,17 +79,17 @@ export function PerfilPublico() {
                     <div className="space-y-6 border-t border-white/5 p-6">
                         {(perfil.equipo_radio || perfil.antena) && (
                             <div>
-                                <Ceja className="mb-4">Estación</Ceja>
+                                <Ceja className="mb-4">{t('Estación')}</Ceja>
                                 <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     {perfil.equipo_radio && (
                                         <div>
-                                            <dt className="text-xs text-slate-500">Equipo</dt>
+                                            <dt className="text-xs text-slate-500">{t('Equipo')}</dt>
                                             <dd className="mt-1 text-slate-100">{perfil.equipo_radio}</dd>
                                         </div>
                                     )}
                                     {perfil.antena && (
                                         <div>
-                                            <dt className="text-xs text-slate-500">Antena</dt>
+                                            <dt className="text-xs text-slate-500">{t('Antena')}</dt>
                                             <dd className="mt-1 text-slate-100">{perfil.antena}</dd>
                                         </div>
                                     )}
@@ -96,7 +98,7 @@ export function PerfilPublico() {
                         )}
                         {perfil.biografia && (
                             <div>
-                                <Ceja className="mb-4">Sobre mí</Ceja>
+                                <Ceja className="mb-4">{t('Sobre mí')}</Ceja>
                                 <p className="whitespace-pre-line leading-relaxed text-slate-300">{perfil.biografia}</p>
                             </div>
                         )}
@@ -106,9 +108,9 @@ export function PerfilPublico() {
 
             {perfil.es_propio && (
                 <p className="mt-4 text-center text-sm text-slate-500">
-                    Así ven tu perfil los demás.{' '}
+                    {t('Así ven tu perfil los demás.')}{' '}
                     <Link to="/perfil#privacidad" className="text-acento-300 hover:text-acento-200">
-                        Cambiar qué se muestra
+                        {t('Cambiar qué se muestra')}
                     </Link>
                 </p>
             )}

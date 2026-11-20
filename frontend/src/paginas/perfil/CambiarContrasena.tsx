@@ -3,8 +3,10 @@ import { CampoContrasena } from '@/componentes/CampoContrasena';
 import { Aviso, BotonPrimario } from '@/componentes/Formulario';
 import { api, erroresDeValidacion, mensajeDeError, type ErroresValidacion } from '@/lib/api';
 import type { Perfil } from '@/lib/tipos';
+import { useTranslation } from 'react-i18next';
 
 export function CambiarContrasena({ perfil }: { perfil: Perfil }) {
+    const { t } = useTranslation();
     const [errores, setErrores] = useState<ErroresValidacion>({});
     const [estado, setEstado] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
     const [enviando, setEnviando] = useState(false);
@@ -35,8 +37,8 @@ export function CambiarContrasena({ perfil }: { perfil: Perfil }) {
     return (
         <section>
             <header>
-                <h2 className="font-display text-lg font-semibold text-white">Cambiar contraseña</h2>
-                <p className="mt-1 text-sm text-slate-400">Usa al menos 8 caracteres, con letras y números. Una contraseña larga es más segura.</p>
+                <h2 className="font-display text-lg font-semibold text-white">{t('Cambiar contraseña')}</h2>
+                <p className="mt-1 text-sm text-slate-400">{t('Usa al menos 8 caracteres, con letras y números. Una contraseña larga es más segura.')}</p>
             </header>
 
             {estado && (
@@ -46,19 +48,19 @@ export function CambiarContrasena({ perfil }: { perfil: Perfil }) {
             )}
 
             <form key={version} onSubmit={guardar} className="mt-6 space-y-6" noValidate>
-                <CampoContrasena id="current_password" etiqueta="Contraseña actual" autoComplete="current-password" errores={errores.current_password} />
+                <CampoContrasena id="current_password" etiqueta={t('Contraseña actual')} autoComplete="current-password" errores={errores.current_password} />
                 <CampoContrasena
                     id="password"
-                    etiqueta="Nueva contraseña"
+                    etiqueta={t('Nueva contraseña')}
                     autoComplete="new-password"
                     medirSeguridad
                     datosPersonales={[perfil.indicativo, perfil.nombres, perfil.apellidos, perfil.email.split('@')[0]]}
                     errores={errores.password}
                 />
-                <CampoContrasena id="password_confirmation" etiqueta="Repite la nueva contraseña" autoComplete="new-password" errores={errores.password_confirmation} />
+                <CampoContrasena id="password_confirmation" etiqueta={t('Repite la nueva contraseña')} autoComplete="new-password" errores={errores.password_confirmation} />
 
                 <BotonPrimario className="!px-7" disabled={enviando}>
-                    {enviando ? 'Guardando…' : 'Guardar contraseña'}
+                    {enviando ? t('Guardando…') : t('Guardar contraseña')}
                 </BotonPrimario>
             </form>
         </section>

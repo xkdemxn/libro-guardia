@@ -10,6 +10,8 @@ import { useCatalogos } from '@/hooks/useCatalogos';
 import { api, erroresDeValidacion, mensajeDeError, type ErroresValidacion } from '@/lib/api';
 import type { BandaCatalogo, ContactoDetalle, Ficha, ModoCatalogo } from '@/lib/tipos';
 import { fechaUtc, horaUtc } from '@/lib/utc';
+import { useTranslation } from 'react-i18next';
+import { tx } from '@/i18n';
 
 export interface ValoresContacto {
     estacion_llamada: string;
@@ -32,7 +34,7 @@ type Lado = 'enviado' | 'recibido';
 type Rango = 'HF' | 'VHF' | 'UHF';
 
 const RANGOS: [Rango, string][] = [
-    ['HF', 'HF · onda corta'],
+    ['HF', tx('HF · onda corta')],
     ['VHF', 'VHF'],
     ['UHF', 'UHF'],
 ];
@@ -104,6 +106,7 @@ function Formulario({
     bandas,
     modos,
 }: Props & { fechaMinima: string; hoy: string; bandas: BandaCatalogo[]; modos: ModoCatalogo[] }) {
+    const { t } = useTranslation();
     const navegar = useNavigate();
     const cliente = useQueryClient();
     const [valores, setValores] = useState(inicial);
@@ -222,7 +225,7 @@ function Formulario({
                         <div className="flex gap-3">
                             <span className="punto mt-1.5 h-2 w-2 bg-amber-400 shadow-[0_0_10px_rgb(251_191_36)]" />
                             <div>
-                                <p className="font-semibold text-amber-200">Posible contacto repetido</p>
+                                <p className="font-semibold text-amber-200">{t('Posible contacto repetido')}</p>
                                 <p className="mt-1 text-sm text-amber-100/80">{errores.duplicado[0]}</p>
                                 <label className="mt-4 flex items-center gap-2.5 text-sm text-amber-100">
                                     <input
@@ -231,19 +234,19 @@ function Formulario({
                                         onChange={(evento) => setConfirmarDuplicado(evento.target.checked)}
                                         className="h-4 w-4 rounded border-amber-300/40 bg-white/5 text-amber-500 focus:ring-amber-400/30 focus:ring-offset-0"
                                     />
-                                    Sí, no es un duplicado: guardarlo de todos modos
+                                    {t('Sí, no es un duplicado: guardarlo de todos modos')}
                                 </label>
                             </div>
                         </div>
                     </div>
                 )}
 
-                <Panel ceja="01 · Estación y horario">
+                <Panel ceja={t('01 · Estación y horario')}>
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-6">
                         <div className="flex flex-col gap-5 sm:col-span-6 md:flex-row md:items-end">
                             <div className="min-w-0 flex-1">
                                 <label htmlFor="estacion_llamada" className="mb-1.5 block text-base font-semibold text-slate-200">
-                                    Indicativo
+                                    {t('Indicativo')}
                                 </label>
                                 <input
                                     id="estacion_llamada"
@@ -267,10 +270,10 @@ function Formulario({
                         <FichaIndicativo indicativo={valores.estacion_llamada} />
 
                         <div className="sm:col-span-6 lg:col-span-2">
-                            <Campo id="fecha" etiqueta="Fecha (UTC)" type="date" required min={fechaMinima} max={hoy} value={valores.fecha} onChange={(e) => cambiar('fecha', e.target.value)} errores={errores.fecha} />
+                            <Campo id="fecha" etiqueta={t('Fecha (UTC)')} type="date" required min={fechaMinima} max={hoy} value={valores.fecha} onChange={(e) => cambiar('fecha', e.target.value)} errores={errores.fecha} />
                         </div>
                         <div className="sm:col-span-3 lg:col-span-2">
-                            <Etiqueta htmlFor="hora_inicio">Hora de inicio (UTC)</Etiqueta>
+                            <Etiqueta htmlFor="hora_inicio">{t('Hora de inicio (UTC)')}</Etiqueta>
                             <div className="flex gap-2">
                                 <input id="hora_inicio" type="time" required className="campo" value={valores.hora_inicio} onChange={(e) => cambiar('hora_inicio', e.target.value)} />
                                 <BotonAhora onClick={() => ponerAhora('inicio')} />
@@ -279,7 +282,7 @@ function Formulario({
                         </div>
                         <div className="sm:col-span-3 lg:col-span-2">
                             <Etiqueta htmlFor="hora_fin">
-                                Hora de fin (UTC) <span className="font-normal text-slate-500">· opcional</span>
+                                Hora de fin (UTC) <span className="font-normal text-slate-500">{t('· opcional')}</span>
                             </Etiqueta>
                             <div className="flex gap-2">
                                 <input id="hora_fin" type="time" className="campo" value={valores.hora_fin} onChange={(e) => cambiar('hora_fin', e.target.value)} />
@@ -290,9 +293,9 @@ function Formulario({
                     </div>
                 </Panel>
 
-                <Panel ceja="02 · Banda y frecuencia">
+                <Panel ceja={t('02 · Banda y frecuencia')}>
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center gap-1 rounded-full bg-black/25 p-1 ring-1 ring-white/5" role="tablist" aria-label="Rango de frecuencias">
+                        <div className="flex items-center gap-1 rounded-full bg-black/25 p-1 ring-1 ring-white/5" role="tablist" aria-label={t('Rango de frecuencias')}>
                             {RANGOS.map(([rango, etiqueta]) => (
                                 <button
                                     key={rango}
@@ -302,14 +305,14 @@ function Formulario({
                                     onClick={() => setRangoVisible(rango)}
                                     className={`rounded-full px-4 py-1.5 text-sm transition ${rangoVisible === rango ? 'bg-white/10 font-semibold text-white ring-1 ring-white/10' : 'text-slate-400 hover:text-white'}`}
                                 >
-                                    {etiqueta}
+                                    {t(etiqueta)}
                                 </button>
                             ))}
                         </div>
                         <p className="text-xs text-slate-500">HF: 1.8–30 MHz · VHF: 30–300 MHz · UHF: 300–3000 MHz</p>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5" role="radiogroup" aria-label="Banda">
+                    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5" role="radiogroup" aria-label={t('Banda')}>
                         {bandasDelRango.map((opcion) => {
                             const elegida = bandaActual?.nombre === opcion.nombre;
 
@@ -335,7 +338,7 @@ function Formulario({
 
                     <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-6">
                         <div className="sm:col-span-2">
-                            <Etiqueta htmlFor="frecuencia_mhz">Frecuencia (MHz)</Etiqueta>
+                            <Etiqueta htmlFor="frecuencia_mhz">{t('Frecuencia (MHz)')}</Etiqueta>
                             <input
                                 id="frecuencia_mhz"
                                 inputMode="decimal"
@@ -347,7 +350,7 @@ function Formulario({
                             />
                             <p className="mt-1.5 flex h-5 items-center gap-2 text-xs" aria-live="polite">
                                 {mhz === null ? (
-                                    <span className="text-slate-500">Elige una banda o escribe la frecuencia.</span>
+                                    <span className="text-slate-500">{t('Elige una banda o escribe la frecuencia.')}</span>
                                 ) : bandaActual ? (
                                     <span className="inline-flex items-center gap-2 text-slate-400">
                                         Banda <span className="chip border-sky-400/25 bg-sky-400/10 font-mono text-sky-300">{bandaActual.nombre}</span>
@@ -356,7 +359,7 @@ function Formulario({
                                 ) : (
                                     <span className="inline-flex items-center gap-2 text-rose-400">
                                         <span className="punto bg-rose-400" />
-                                        Fuera de las bandas de radioaficionados
+                                        {t('Fuera de las bandas de radioaficionados')}
                                     </span>
                                 )}
                             </p>
@@ -392,9 +395,9 @@ function Formulario({
                     </div>
                 </Panel>
 
-                <Panel ceja="03 · Modo y señal">
-                    <Etiqueta htmlFor="modo">Modo</Etiqueta>
-                    <div id="modo" className="flex flex-wrap gap-2" role="radiogroup" aria-label="Modo">
+                <Panel ceja={t('03 · Modo y señal')}>
+                    <Etiqueta htmlFor="modo">{t('Modo')}</Etiqueta>
+                    <div id="modo" className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('Modo')}>
                         {botonesModo.map((nombre) =>
                             nombre === 'SSB' ? (
                                 <div
@@ -411,11 +414,11 @@ function Formulario({
                                         SSB
                                     </button>
                                     {esSsb && (
-                                        <div className="flex items-center gap-0.5 pe-1" role="radiogroup" aria-label="Banda lateral de SSB">
+                                        <div className="flex items-center gap-0.5 pe-1" role="radiogroup" aria-label={t('Banda lateral de SSB')}>
                                             {(
                                                 [
-                                                    ['USB', 'Banda lateral superior'],
-                                                    ['LSB', 'Banda lateral inferior'],
+                                                    ['USB', t('Banda lateral superior')],
+                                                    ['LSB', t('Banda lateral inferior')],
                                                 ] as const
                                             ).map(([lateral, descripcion]) => (
                                                 <button
@@ -456,12 +459,12 @@ function Formulario({
 
                     {esSsb && (
                         <p className="mt-2.5 text-xs text-slate-500">
-                            {modoActual?.nombre === 'LSB' ? 'LSB: banda lateral inferior.' : 'USB: banda lateral superior (la más usada; queda por defecto si no eliges otra).'}{' '}
+                            {modoActual?.nombre === 'LSB' ? t('LSB: banda lateral inferior.') : t('USB: banda lateral superior (la más usada; queda por defecto si no eliges otra).')}{' '}
                             {sugiereLsb && (
                                 <span className="text-amber-300/90">
-                                    En 160, 80 y 40 m lo habitual es LSB.{' '}
+                                    {t('En 160, 80 y 40 m lo habitual es LSB.')}{' '}
                                     <button type="button" className="font-medium text-acento-300 hover:text-acento-200" onClick={() => elegirModo('LSB')}>
-                                        Usar LSB
+                                        {t('Usar LSB')}
                                     </button>
                                 </span>
                             )}
@@ -472,8 +475,8 @@ function Formulario({
                         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
                             {(
                                 [
-                                    ['enviado', 'Reporte enviado'],
-                                    ['recibido', 'Reporte recibido'],
+                                    ['enviado', t('Reporte enviado')],
+                                    ['recibido', t('Reporte recibido')],
                                 ] as const
                             ).map(([lado, etiqueta]) => (
                                 <Reporte
@@ -492,26 +495,26 @@ function Formulario({
                     )}
 
                     <div className="mt-6 sm:w-1/3">
-                        <Campo id="potencia_w" etiqueta="Potencia (W)" type="number" step="0.1" min="0" placeholder="100" value={valores.potencia_w} onChange={(e) => cambiar('potencia_w', e.target.value)} errores={errores.potencia_w} />
+                        <Campo id="potencia_w" etiqueta={t('Potencia (W)')} type="number" step="0.1" min="0" placeholder="100" value={valores.potencia_w} onChange={(e) => cambiar('potencia_w', e.target.value)} errores={errores.potencia_w} />
                     </div>
                 </Panel>
 
                 <details className="vidrio group p-5 sm:p-6" open={opcionales.some((campo) => errores[campo] || inicial[campo]) || undefined}>
                     <summary className="flex cursor-pointer list-none items-center gap-4 [&::-webkit-details-marker]:hidden">
                         <span className="h-px flex-1 bg-gradient-to-r from-transparent to-white/15" />
-                        <span className="text-[0.75rem] font-medium uppercase tracking-[0.28em] text-slate-400">04 · Datos opcionales</span>
+                        <span className="text-[0.75rem] font-medium uppercase tracking-[0.28em] text-slate-400">{t('04 · Datos opcionales')}</span>
                         <svg className="h-4 w-4 text-slate-500 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fillRule="evenodd" clipRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" />
                         </svg>
                         <span className="h-px flex-1 bg-gradient-to-l from-transparent to-white/15" />
                     </summary>
                     <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <Campo id="nombre_operador" etiqueta="Nombre del operador" maxLength={100} value={valores.nombre_operador} onChange={(e) => cambiar('nombre_operador', e.target.value)} errores={errores.nombre_operador} />
-                        <Campo id="equipo" etiqueta="Equipo de la otra estación" maxLength={255} value={valores.equipo} onChange={(e) => cambiar('equipo', e.target.value)} errores={errores.equipo} />
-                        <Campo id="grid_locator" etiqueta="Grid locator" className="font-mono uppercase" maxLength={6} placeholder="FI09" value={valores.grid_locator} onChange={(e) => cambiar('grid_locator', e.target.value)} errores={errores.grid_locator} />
-                        <Campo id="activacion" etiqueta="Activación (POTA / SOTA)" className="font-mono uppercase" maxLength={30} placeholder="HC-0001" value={valores.activacion} onChange={(e) => cambiar('activacion', e.target.value)} errores={errores.activacion} />
+                        <Campo id="nombre_operador" etiqueta={t('Nombre del operador')} maxLength={100} value={valores.nombre_operador} onChange={(e) => cambiar('nombre_operador', e.target.value)} errores={errores.nombre_operador} />
+                        <Campo id="equipo" etiqueta={t('Equipo de la otra estación')} maxLength={255} value={valores.equipo} onChange={(e) => cambiar('equipo', e.target.value)} errores={errores.equipo} />
+                        <Campo id="grid_locator" etiqueta={t('Grid locator')} className="font-mono uppercase" maxLength={6} placeholder="FI09" value={valores.grid_locator} onChange={(e) => cambiar('grid_locator', e.target.value)} errores={errores.grid_locator} />
+                        <Campo id="activacion" etiqueta={t('Activación (POTA / SOTA)')} className="font-mono uppercase" maxLength={30} placeholder="HC-0001" value={valores.activacion} onChange={(e) => cambiar('activacion', e.target.value)} errores={errores.activacion} />
                         <div className="sm:col-span-2">
-                            <Etiqueta htmlFor="observaciones">Observaciones</Etiqueta>
+                            <Etiqueta htmlFor="observaciones">{t('Observaciones')}</Etiqueta>
                             <textarea id="observaciones" rows={3} maxLength={2000} className="campo" value={valores.observaciones} onChange={(e) => cambiar('observaciones', e.target.value)} />
                             <ErrorCampo mensajes={errores.observaciones} />
                         </div>
@@ -521,10 +524,10 @@ function Formulario({
 
             <div className="mt-8 flex items-center justify-end gap-3">
                 <Link to={idContacto ? `/contactos/${idContacto}` : '/contactos'} className="rounded-full px-5 py-2.5 text-sm font-medium text-slate-400 transition hover:text-white">
-                    Cancelar
+                    {t('Cancelar')}
                 </Link>
                 <BotonPrimario className="!px-7 !py-3" disabled={enviando}>
-                    {enviando ? 'Guardando…' : textoBoton}
+                    {enviando ? t('Guardando…') : textoBoton}
                 </BotonPrimario>
             </div>
         </form>
@@ -532,23 +535,24 @@ function Formulario({
 }
 
 function BotonAhora({ onClick }: { onClick: () => void }) {
+    const { t } = useTranslation();
     return (
         <button
             type="button"
             onClick={onClick}
             className="shrink-0 rounded-xl border border-acento-400/30 bg-acento-400/10 px-3.5 text-sm font-semibold text-acento-300 transition hover:bg-acento-400/20 active:scale-95"
         >
-            Ahora
+            {t('Ahora')}
         </button>
     );
 }
 
 const LEGIBILIDAD: [number, string][] = [
-    [5, 'perfecta'],
-    [4, 'casi sin dificultad'],
-    [3, 'con dificultad'],
-    [2, 'apenas'],
-    [1, 'ilegible'],
+    [5, tx('perfecta')],
+    [4, tx('casi sin dificultad')],
+    [3, tx('con dificultad')],
+    [2, tx('apenas')],
+    [1, tx('ilegible')],
 ];
 const NUEVE_A_UNO = [9, 8, 7, 6, 5, 4, 3, 2, 1];
 
@@ -572,12 +576,13 @@ function Reporte({
     onCambiar: (valor: string) => void;
     errores?: string[];
 }) {
+    const { t } = useTranslation();
     const valido = /^[1-5][1-9][1-9]?$/.test(valor);
     const r = valido ? Number(valor[0]) : 5;
     const s = valido ? Number(valor[1]) : 9;
-    const t = valido && valor[2] ? Number(valor[2]) : 9;
+    const tono = valido && valor[2] ? Number(valor[2]) : 9;
     const componer = (nuevo: { r?: number; s?: number; t?: number }) => {
-        const partes = { r, s, t, ...nuevo };
+        const partes = { r, s, t: tono, ...nuevo };
         onCambiar(tipo === 'RST' ? `${partes.r}${partes.s}${partes.t}` : `${partes.r}${partes.s}`);
     };
 
@@ -616,41 +621,41 @@ function Reporte({
                             manual ? 'border-amber-400/50 bg-amber-400/10 text-amber-200' : 'border-white/10 bg-white/[0.02] text-slate-300 hover:bg-white/[0.06]'
                         }`}
                     >
-                        Otro
+                        {t('Otro')}
                     </button>
                 </div>
                 {manual && (
                     <>
                         <div className={`mt-2 grid gap-2 ${tipo === 'RST' ? 'grid-cols-3' : 'grid-cols-2'}`}>
                             <label className="text-[0.75rem] text-slate-500">
-                                R · legibilidad
+                                {t('R · legibilidad')}
                                 <select className="campo mt-1 !py-2 font-mono" value={r} onChange={(e) => componer({ r: Number(e.target.value) })}>
                                     {LEGIBILIDAD.map(([numero, texto]) => (
                                         <option key={numero} value={numero}>
-                                            {numero} · {texto}
+                                            {numero} · {t(texto)}
                                         </option>
                                     ))}
                                 </select>
                             </label>
                             <label className="text-[0.75rem] text-slate-500">
-                                S · fuerza
+                                {t('S · fuerza')}
                                 <select className="campo mt-1 !py-2 font-mono" value={s} onChange={(e) => componer({ s: Number(e.target.value) })}>
                                     {NUEVE_A_UNO.map((numero) => (
                                         <option key={numero} value={numero}>
                                             {numero}
-                                            {numero === 9 ? ' · muy fuerte' : numero === 1 ? ' · apenas perceptible' : ''}
+                                            {numero === 9 ? t(' · muy fuerte') : numero === 1 ? t(' · apenas perceptible') : ''}
                                         </option>
                                     ))}
                                 </select>
                             </label>
                             {tipo === 'RST' && (
                                 <label className="text-[0.75rem] text-slate-500">
-                                    T · tono
-                                    <select className="campo mt-1 !py-2 font-mono" value={t} onChange={(e) => componer({ t: Number(e.target.value) })}>
+                                    {t('T · tono')}
+                                    <select className="campo mt-1 !py-2 font-mono" value={tono} onChange={(e) => componer({ t: Number(e.target.value) })}>
                                         {NUEVE_A_UNO.map((numero) => (
                                             <option key={numero} value={numero}>
                                                 {numero}
-                                                {numero === 9 ? ' · puro' : numero === 1 ? ' · muy áspero' : ''}
+                                                {numero === 9 ? t(' · puro') : numero === 1 ? t(' · muy áspero') : ''}
                                             </option>
                                         ))}
                                     </select>
@@ -677,6 +682,7 @@ function Reporte({
 
 /** Ficha rápida que aparece al escribir un indicativo (innovación 3). */
 function FichaIndicativo({ indicativo }: { indicativo: string }) {
+    const { t } = useTranslation();
     const [ficha, setFicha] = useState<Extract<Ficha, { valido: true }> | null>(null);
     const ultimaBusqueda = useRef('');
 
@@ -717,7 +723,7 @@ function FichaIndicativo({ indicativo }: { indicativo: string }) {
                         </p>
                         <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400">
                             <Bandera codigo={ficha.codigo_bandera} pais={ficha.pais} className="h-3 w-4" />
-                            <span>{[ficha.perfil?.ciudad, ficha.pais].filter(Boolean).join(', ') || 'País desconocido'}</span>
+                            <span>{[ficha.perfil?.ciudad, ficha.pais].filter(Boolean).join(', ') || t('País desconocido')}</span>
                             {ficha.zona && <span className="text-amber-300/90">· {ficha.zona}</span>}
                         </p>
                     </div>
@@ -725,12 +731,14 @@ function FichaIndicativo({ indicativo }: { indicativo: string }) {
                         {ficha.contactos_previos > 0 && ficha.ultimo ? (
                             <p className="inline-flex items-center gap-2 text-amber-200">
                                 <span className="punto h-2 w-2 bg-amber-400" />
-                                Ya hablaste {ficha.contactos_previos} {ficha.contactos_previos === 1 ? 'vez' : 'veces'} con esta estación · última {ficha.ultimo.hace} en {ficha.ultimo.banda} {ficha.ultimo.modo}
+                                {ficha.contactos_previos === 1
+                                    ? t('Ya hablaste 1 vez con esta estación · última {{hace}} en {{banda}} {{modo}}', { hace: ficha.ultimo.hace, banda: ficha.ultimo.banda, modo: ficha.ultimo.modo })
+                                    : t('Ya hablaste {{n}} veces con esta estación · última {{hace}} en {{banda}} {{modo}}', { n: ficha.contactos_previos, hace: ficha.ultimo.hace, banda: ficha.ultimo.banda, modo: ficha.ultimo.modo })}
                             </p>
                         ) : (
                             <p className="inline-flex items-center gap-2 text-emerald-200">
                                 <span className="punto h-2 w-2 bg-emerald-400" />
-                                Primer contacto con esta estación
+                                {t('Primer contacto con esta estación')}
                             </p>
                         )}
                     </div>
@@ -740,7 +748,7 @@ function FichaIndicativo({ indicativo }: { indicativo: string }) {
                             target="_blank"
                             className="ms-auto inline-flex items-center gap-1.5 rounded-full bg-acento-400/10 px-3 py-1 text-xs font-medium text-acento-300 ring-1 ring-acento-400/25 hover:bg-acento-400/20"
                         >
-                            Usa Libro de Guardia · ver perfil
+                            {t('Usa Libro de Guardia · ver perfil')}
                         </Link>
                     )}
                 </div>

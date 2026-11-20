@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { fechaUtc, horaUtc } from '@/lib/utc';
+import { useTranslation } from 'react-i18next';
 
 /** Reloj UTC en vivo con aspecto de display de radio. En radioafición todo se anota en UTC. */
 export function RelojUtc({ grande = false, className = '' }: { grande?: boolean; className?: string }) {
+    const { t } = useTranslation();
     const [ahora, setAhora] = useState(() => new Date());
 
     useEffect(() => {
@@ -19,7 +21,7 @@ export function RelojUtc({ grande = false, className = '' }: { grande?: boolean;
             <span
                 className={`${grande ? 'text-3xl' : 'text-sm'} font-semibold tabular-nums tracking-wider [text-shadow:0_0_12px_rgb(255_184_74/0.45)]`}
                 role="timer"
-                aria-label="Hora UTC actual"
+                aria-label={t('Hora UTC actual')}
             >
                 {horaUtc(ahora, true)}
             </span>

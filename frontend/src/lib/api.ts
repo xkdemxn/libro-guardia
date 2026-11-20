@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import i18n from '@/i18n';
 
 /**
  * Cliente HTTP de la API de Laravel. La sesión viaja en la cookie de Laravel y
@@ -24,6 +25,9 @@ export async function asegurarCsrf(): Promise<void> {
 }
 
 api.interceptors.request.use(async (config) => {
+    // Laravel responde sus mensajes en el idioma elegido en la SPA.
+    config.headers.set('Accept-Language', i18n.language);
+
     if (config.method && config.method.toLowerCase() !== 'get') {
         await asegurarCsrf();
     }
@@ -48,11 +52,11 @@ export function mensajeDeError(error: unknown): string {
         if (error.response?.status === 419) {
             cookieCsrfPedida = false;
 
-            return 'La página expiró. Vuelve a intentarlo.';
+            return i18n.t('La página expiró. Vuelve a intentarlo.');
         }
 
         if (error.response?.status === 429) {
-            return 'Demasiados intentos. Espera un momento antes de volver a intentarlo.';
+            return i18n.t('Demasiados intentos. Espera un momento antes de volver a intentarlo.');
         }
 
         const mensaje = (error.response?.data as { message?: string } | undefined)?.message;
@@ -62,7 +66,7 @@ export function mensajeDeError(error: unknown): string {
         }
     }
 
-    return 'Algo salió mal. Revisa tu conexión e inténtalo de nuevo.';
+    return i18n.t('Algo salió mal. Revisa tu conexión e inténtalo de nuevo.');
 }
 
 export function esEstado(error: unknown, estado: number): boolean {

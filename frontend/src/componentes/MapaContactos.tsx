@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import { useTranslation } from 'react-i18next';
 import { temaClaroActivo } from '@/lib/tema';
 import type { Estadisticas } from '@/lib/tipos';
 
@@ -11,6 +12,7 @@ const escapar = (texto: string) => texto.replace(/[&<>"']/g, (c) => `&#${c.charC
 
 /** Mapa mundial de contactos (innovación 2): un punto por ubicación, más grande cuantos más contactos. */
 export function MapaContactos({ origen, puntos }: Pick<Estadisticas, 'origen' | 'puntos'>) {
+    const { t } = useTranslation();
     const contenedor = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -48,7 +50,7 @@ export function MapaContactos({ origen, puntos }: Pick<Estadisticas, 'origen' | 
                 fillOpacity: 0.9,
             })
                 .bindTooltip(
-                    `<strong>${escapar(punto.lugar)}</strong><br>${punto.cantidad} ${punto.cantidad === 1 ? 'contacto' : 'contactos'}<br><span style="font-family:monospace">${escapar(punto.indicativos.join(', '))}</span>`,
+                    `<strong>${escapar(punto.lugar)}</strong><br>${punto.cantidad === 1 ? t('1 contacto') : t('{{n}} contactos', { n: punto.cantidad })}<br><span style="font-family:monospace">${escapar(punto.indicativos.join(', '))}</span>`,
                     { direction: 'top', offset: [0, -6] },
                 )
                 .addTo(mapa);
@@ -58,7 +60,7 @@ export function MapaContactos({ origen, puntos }: Pick<Estadisticas, 'origen' | 
 
         if (origen) {
             L.circleMarker([origen.lat, origen.lon], { radius: 7, color: '#070e1c', weight: 2, fillColor: '#ffb84a', fillOpacity: 1 })
-                .bindTooltip('Mi estación', { direction: 'top', offset: [0, -6] })
+                .bindTooltip(t('Mi estación'), { direction: 'top', offset: [0, -6] })
                 .addTo(mapa);
             limites.push([origen.lat, origen.lon]);
         }
@@ -71,14 +73,14 @@ export function MapaContactos({ origen, puntos }: Pick<Estadisticas, 'origen' | 
             window.removeEventListener('tema-cambiado', alCambiarTema);
             mapa.remove();
         };
-    }, [origen, puntos]);
+    }, [origen, puntos, t]);
 
     return (
         <div
             ref={contenedor}
             className="h-[26rem] w-full border-y border-white/5 bg-noche-950"
             role="img"
-            aria-label={`Mapa mundial con ${puntos.length} ubicaciones contactadas`}
+            aria-label={t('Mapa mundial con {{n}} ubicaciones contactadas', { n: puntos.length })}
         />
     );
 }

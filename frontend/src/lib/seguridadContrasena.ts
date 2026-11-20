@@ -1,3 +1,5 @@
+import { tx } from '@/i18n';
+
 /**
  * Qué tan segura es una contraseña, calculado en el navegador mientras se escribe.
  *
@@ -19,7 +21,7 @@ export interface Seguridad {
     valida: boolean;
 }
 
-const ETIQUETAS = ['', 'Muy débil', 'Débil', 'Aceptable', 'Fuerte', 'Muy fuerte'] as const;
+const ETIQUETAS = ['', tx('Muy débil'), tx('Débil'), tx('Aceptable'), tx('Fuerte'), tx('Muy fuerte')] as const;
 
 const COMUNES = ['password', 'contrasena', 'contraseña', '12345678', 'qwerty', 'abc123', 'admin', 'radio', 'libro', 'guardia', '73'];
 
@@ -27,9 +29,9 @@ export function evaluarContrasena(contrasena: string, datosPersonales: string[] 
     const tieneLetras = /\p{L}/u.test(contrasena);
     const tieneNumeros = /\d/.test(contrasena);
     const requisitos: Requisito[] = [
-        { texto: 'Al menos 8 caracteres', cumplido: contrasena.length >= 8 },
-        { texto: 'Letras', cumplido: tieneLetras },
-        { texto: 'Números', cumplido: tieneNumeros },
+        { texto: tx('Al menos 8 caracteres'), cumplido: contrasena.length >= 8 },
+        { texto: tx('Letras'), cumplido: tieneLetras },
+        { texto: tx('Números'), cumplido: tieneNumeros },
     ];
     const valida = requisitos.every((requisito) => requisito.cumplido);
 

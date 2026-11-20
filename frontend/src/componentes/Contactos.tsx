@@ -1,5 +1,7 @@
 import { Link } from 'react-router';
 import type { EstadoQsl as Estado } from '@/lib/tipos';
+import { useTranslation } from 'react-i18next';
+import { tx } from '@/i18n';
 
 const COLORES_BANDA: Record<string, string> = {
     '160 m': 'border-fuchsia-400/25 bg-fuchsia-400/10 text-fuchsia-300',
@@ -26,25 +28,27 @@ export function ChipBanda({ banda }: { banda: string }) {
 }
 
 const ESTADOS: Record<Estado, [string, string, string]> = {
-    confirmado: ['bg-emerald-400 shadow-[0_0_8px_rgb(52_211_153)]', 'text-emerald-300', 'Confirmado'],
-    enviada: ['bg-amber-400 shadow-[0_0_8px_rgb(251_191_36)]', 'text-amber-300', 'Enviada'],
-    pendiente: ['bg-slate-500', 'text-slate-400', 'Pendiente'],
+    confirmado: ['bg-emerald-400 shadow-[0_0_8px_rgb(52_211_153)]', 'text-emerald-300', tx('Confirmado')],
+    enviada: ['bg-amber-400 shadow-[0_0_8px_rgb(251_191_36)]', 'text-amber-300', tx('Enviada')],
+    pendiente: ['bg-slate-500', 'text-slate-400', tx('Pendiente')],
 };
 
 /** Estado de confirmación QSL con un puntito luminoso. */
 export function EstadoQsl({ estado }: { estado: Estado }) {
+    const { t } = useTranslation();
     const [punto, texto, etiqueta] = ESTADOS[estado];
 
     return (
         <span className={`inline-flex items-center gap-2 text-xs font-medium ${texto}`}>
             <span className={`punto h-2 w-2 ${punto}`} />
-            {etiqueta}
+            {t(etiqueta)}
         </span>
     );
 }
 
 /** Paginación de vidrio: anterior, páginas cercanas y siguiente. */
 export function Paginacion({ actual, ultima, enlace }: { actual: number; ultima: number; enlace: (pagina: number) => string }) {
+    const { t } = useTranslation();
     if (ultima <= 1) {
         return null;
     }
@@ -53,13 +57,13 @@ export function Paginacion({ actual, ultima, enlace }: { actual: number; ultima:
     const boton = 'grid h-9 min-w-9 place-items-center rounded-full px-3 text-sm transition';
 
     return (
-        <nav className="flex flex-wrap items-center justify-between gap-3" aria-label="Paginación">
+        <nav className="flex flex-wrap items-center justify-between gap-3" aria-label={t('Paginación')}>
             <p className="text-sm text-slate-500">
                 Página {actual} de {ultima}
             </p>
             <div className="flex items-center gap-1">
                 {actual > 1 && (
-                    <Link to={enlace(actual - 1)} className={`${boton} text-slate-300 hover:bg-white/10`} aria-label="Página anterior">
+                    <Link to={enlace(actual - 1)} className={`${boton} text-slate-300 hover:bg-white/10`} aria-label={t('Página anterior')}>
                         &lsaquo;
                     </Link>
                 )}
@@ -76,7 +80,7 @@ export function Paginacion({ actual, ultima, enlace }: { actual: number; ultima:
                     </span>
                 ))}
                 {actual < ultima && (
-                    <Link to={enlace(actual + 1)} className={`${boton} text-slate-300 hover:bg-white/10`} aria-label="Página siguiente">
+                    <Link to={enlace(actual + 1)} className={`${boton} text-slate-300 hover:bg-white/10`} aria-label={t('Página siguiente')}>
                         &rsaquo;
                     </Link>
                 )}

@@ -13,6 +13,7 @@ import { api, erroresDeValidacion, mensajeDeError, type ErroresValidacion } from
 import type { Perfil, Ubicaciones, Usuario, Visibilidad } from '@/lib/tipos';
 import { EditorFoto } from '@/paginas/perfil/EditorFoto';
 import { Ubicacion, esEcuador } from '@/paginas/perfil/Ubicacion';
+import { useTranslation } from 'react-i18next';
 
 export type SeccionFormulario = 'datos' | 'estacion' | 'portada' | 'privacidad';
 
@@ -64,6 +65,7 @@ const portadaDe = (perfil: Perfil): EstadoFondo => ({
  * portada y privacidad. Es un solo formulario: al guardar se envían todas, así ningún dato se pierde.
  */
 export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; seccion: string; irA: (seccion: SeccionFormulario) => void }) {
+    const { t } = useTranslation();
     const cliente = useQueryClient();
     const ubicaciones = useQuery({
         queryKey: ['ubicaciones'],
@@ -134,7 +136,7 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
             cliente.setQueryData(['perfil'], data.data);
             cliente.setQueryData<Usuario | null>(CLAVE_USUARIO, data.data);
             setFotoOriginal(null);
-            setEstado({ tipo: 'exito', texto: 'Perfil actualizado.' });
+            setEstado({ tipo: 'exito', texto: t('Perfil actualizado.') });
         } catch (error) {
             const validacion = erroresDeValidacion(error);
             setErrores(validacion);
@@ -142,7 +144,7 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
             if (primerCampo && SECCION_DEL_CAMPO[primerCampo]) {
                 irA(SECCION_DEL_CAMPO[primerCampo]);
             }
-            setEstado({ tipo: 'error', texto: primerCampo ? 'Revisa los campos marcados.' : mensajeDeError(error) });
+            setEstado({ tipo: 'error', texto: primerCampo ? t('Revisa los campos marcados.') : mensajeDeError(error) });
         } finally {
             setEnviando(false);
         }
@@ -163,12 +165,12 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
             {seccion === 'datos' && (
                 <Panel className="sm:!p-8">
                     {avisos}
-                    <Encabezado titulo="Datos personales" detalle="Cómo te identifican los demás operadores." />
+                    <Encabezado titulo={t('Datos personales')} detalle={t('Cómo te identifican los demás operadores.')} />
 
                     <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
                         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-3xl bg-gradient-to-br from-marca-400 to-marca-600 ring-1 ring-white/10">
                             {fotoVisible ? (
-                                <img src={fotoVisible} alt="Foto de perfil" className="h-full w-full object-cover" />
+                                <img src={fotoVisible} alt={t('Foto de perfil')} className="h-full w-full object-cover" />
                             ) : (
                                 <span className="grid h-full w-full place-items-center font-display text-2xl font-semibold text-blanco">{iniciales}</span>
                             )}
@@ -178,10 +180,10 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
                             <p className="flex items-center gap-2.5 font-mono text-2xl font-semibold tracking-wide text-white">
                                 {perfil.indicativo} <Bandera codigo={perfil.codigo_bandera} pais={perfil.pais} className="h-4 w-[1.35rem]" />
                             </p>
-                            <p className="text-xs text-slate-500">El indicativo no se puede cambiar.</p>
+                            <p className="text-xs text-slate-500">{t('El indicativo no se puede cambiar.')}</p>
                             <div className="mt-3 flex flex-wrap items-center gap-3">
                                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10">
-                                    Cambiar foto
+                                    {t('Cambiar foto')}
                                     <input
                                         type="file"
                                         accept="image/jpeg,image/png,image/webp"
@@ -203,7 +205,7 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
                                         onClick={() => setEditorAbierto(fotoOriginal ?? (perfil.foto_url ? new URL(perfil.foto_url, window.location.href).pathname : null))}
                                         className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-acento-300 transition hover:bg-acento-400/10"
                                     >
-                                        Recortar y mover
+                                        {t('Recortar y mover')}
                                     </button>
                                 )}
                                 {perfil.tiene_foto && (
@@ -214,21 +216,21 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
                                             onChange={(evento) => setFoto({ ...foto, quitar: evento.target.checked })}
                                             className="h-4 w-4 rounded border-white/20 bg-white/5 text-rose-500 focus:ring-rose-400/30 focus:ring-offset-0"
                                         />
-                                        Quitar foto
+                                        {t('Quitar foto')}
                                     </label>
                                 )}
-                                <span className="text-xs text-slate-500">JPG, PNG o WEBP · la puedes recortar antes de guardar</span>
+                                <span className="text-xs text-slate-500">{t('JPG, PNG o WEBP · la puedes recortar antes de guardar')}</span>
                             </div>
                             <ErrorCampo mensajes={errores.foto} />
                         </div>
                     </div>
 
                     <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <Campo id="nombres" etiqueta="Nombres" value={valores.nombres} onChange={(e) => cambiar('nombres', e.target.value)} required autoComplete="given-name" errores={errores.nombres} />
-                        <Campo id="apellidos" etiqueta="Apellidos" value={valores.apellidos} onChange={(e) => cambiar('apellidos', e.target.value)} required autoComplete="family-name" errores={errores.apellidos} />
+                        <Campo id="nombres" etiqueta={t('Nombres')} value={valores.nombres} onChange={(e) => cambiar('nombres', e.target.value)} required autoComplete="given-name" errores={errores.nombres} />
+                        <Campo id="apellidos" etiqueta={t('Apellidos')} value={valores.apellidos} onChange={(e) => cambiar('apellidos', e.target.value)} required autoComplete="family-name" errores={errores.apellidos} />
                         <div className="sm:col-span-2">
-                            <Campo id="email" etiqueta="Correo electrónico" type="email" value={valores.email} onChange={(e) => cambiar('email', e.target.value)} required autoComplete="username" errores={errores.email} />
-                            <p className="mt-1.5 text-xs text-slate-500">Nunca se muestra en tu perfil público.</p>
+                            <Campo id="email" etiqueta={t('Correo electrónico')} type="email" value={valores.email} onChange={(e) => cambiar('email', e.target.value)} required autoComplete="username" errores={errores.email} />
+                            <p className="mt-1.5 text-xs text-slate-500">{t('Nunca se muestra en tu perfil público.')}</p>
                             {!perfil.correo_verificado && <ReenviarVerificacion />}
                         </div>
                         <Ubicacion
@@ -250,20 +252,20 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
             {seccion === 'estacion' && (
                 <Panel className="sm:!p-8">
                     {avisos}
-                    <Encabezado titulo="Mi estación" detalle="Tu ubicación por grid se usa para calcular las distancias del mapa." />
+                    <Encabezado titulo={t('Mi estación')} detalle={t('Tu ubicación por grid se usa para calcular las distancias del mapa.')} />
 
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                        <Campo id="grid_locator" etiqueta="Grid locator" className="font-mono uppercase" maxLength={6} placeholder="FI09" value={valores.grid_locator} onChange={(e) => cambiar('grid_locator', e.target.value)} errores={errores.grid_locator} />
-                        <Campo id="equipo_radio" etiqueta="Equipo de radio" placeholder="Yaesu FT-991A" value={valores.equipo_radio} onChange={(e) => cambiar('equipo_radio', e.target.value)} errores={errores.equipo_radio} />
-                        <Campo id="antena" etiqueta="Antena" placeholder="Dipolo 40 m" value={valores.antena} onChange={(e) => cambiar('antena', e.target.value)} errores={errores.antena} />
+                        <Campo id="grid_locator" etiqueta={t('Grid locator')} className="font-mono uppercase" maxLength={6} placeholder="FI09" value={valores.grid_locator} onChange={(e) => cambiar('grid_locator', e.target.value)} errores={errores.grid_locator} />
+                        <Campo id="equipo_radio" etiqueta={t('Equipo de radio')} placeholder={t('Yaesu FT-991A')} value={valores.equipo_radio} onChange={(e) => cambiar('equipo_radio', e.target.value)} errores={errores.equipo_radio} />
+                        <Campo id="antena" etiqueta={t('Antena')} placeholder={t('Dipolo 40 m')} value={valores.antena} onChange={(e) => cambiar('antena', e.target.value)} errores={errores.antena} />
                         <div className="sm:col-span-3">
-                            <Etiqueta htmlFor="biografia">Biografía</Etiqueta>
+                            <Etiqueta htmlFor="biografia">{t('Biografía')}</Etiqueta>
                             <textarea
                                 id="biografia"
                                 rows={5}
                                 maxLength={1000}
                                 className="campo"
-                                placeholder="Cuéntale a otros operadores sobre ti y tu estación."
+                                placeholder={t('Cuéntale a otros operadores sobre ti y tu estación.')}
                                 value={valores.biografia}
                                 onChange={(e) => cambiar('biografia', e.target.value)}
                             />
@@ -279,7 +281,7 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
             {seccion === 'portada' && (
                 <Panel className="sm:!p-8">
                     {avisos}
-                    <Encabezado titulo="Portada" detalle="Una imagen de fondo para la tarjeta de tu perfil público." margen="mb-6" />
+                    <Encabezado titulo={t('Portada')} detalle={t('Una imagen de fondo para la tarjeta de tu perfil público.')} margen="mb-6" />
 
                     {/* Vista previa: la misma tarjeta que ven los demás */}
                     <div className="relative isolate overflow-hidden rounded-3xl bg-white/[0.03] ring-1 ring-white/10">
@@ -297,12 +299,12 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
                                 <p className="mt-1 text-slate-200">{perfil.nombre_completo}</p>
                                 <p className="mt-1 inline-flex items-center gap-2 text-sm text-slate-400">
                                     <Bandera codigo={perfil.codigo_bandera} pais={perfil.pais} />
-                                    {perfil.pais_publico ?? 'País desconocido'}
+                                    {perfil.pais_publico ?? t('País desconocido')}
                                 </p>
                             </div>
                         </div>
                         <span className="absolute right-3 top-3 rounded-full bg-noche-950/60 px-2.5 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-slate-300 backdrop-blur">
-                            Vista previa
+                            {t('Vista previa')}
                         </span>
                     </div>
 
@@ -311,17 +313,17 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
                         fondo={portada}
                         onCambiar={setPortada}
                         guardada={perfil.portada.url !== null}
-                        quitarTexto="Quitar portada"
+                        quitarTexto={t('Quitar portada')}
                         lado={1800}
                         estilos={{
-                            degradado: ['Degradado', 'La imagen se desvanece hasta la mitad de la tarjeta.'],
-                            completa: ['Tarjeta completa', 'Cubre toda la tarjeta, con la transparencia que elijas.'],
+                            degradado: [t('Degradado'), t('La imagen se desvanece hasta la mitad de la tarjeta.')],
+                            completa: [t('Tarjeta completa'), t('Cubre toda la tarjeta, con la transparencia que elijas.')],
                         }}
                         errores={errores}
                     />
 
                     <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-                        <EnlacePerfilPublico indicativo={perfil.indicativo}>Ver mi perfil público</EnlacePerfilPublico>
+                        <EnlacePerfilPublico indicativo={perfil.indicativo}>{t('Ver mi perfil público')}</EnlacePerfilPublico>
                         {botonGuardar}
                     </div>
                 </Panel>
@@ -331,15 +333,15 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
             {seccion === 'privacidad' && (
                 <Panel className="sm:!p-8">
                     {avisos}
-                    <Encabezado titulo="Privacidad" detalle="Tu indicativo y tu país siempre son visibles. Tu correo y tus contactos nunca lo son." margen="mb-6" />
+                    <Encabezado titulo={t('Privacidad')} detalle={t('Tu indicativo y tu país siempre son visibles. Tu correo y tus contactos nunca lo son.')} margen="mb-6" />
 
                     <div className="divide-y divide-white/5">
                         {(
                             [
-                                ['mostrar_nombre', 'Nombre y apellidos'],
-                                ['mostrar_pais_ciudad', 'Ciudad'],
-                                ['mostrar_equipo', 'Equipo y antena'],
-                                ['mostrar_biografia_foto', 'Biografía y foto'],
+                                ['mostrar_nombre', t('Nombre y apellidos')],
+                                ['mostrar_pais_ciudad', t('Ciudad')],
+                                ['mostrar_equipo', t('Equipo y antena')],
+                                ['mostrar_biografia_foto', t('Biografía y foto')],
                             ] as [keyof Visibilidad, string][]
                         ).map(([campo, etiqueta]) => (
                             <Interruptor
@@ -353,7 +355,7 @@ export function FormularioPerfil({ perfil, seccion, irA }: { perfil: Perfil; sec
                     </div>
 
                     <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-                        <EnlacePerfilPublico indicativo={perfil.indicativo}>Ver cómo queda mi perfil público</EnlacePerfilPublico>
+                        <EnlacePerfilPublico indicativo={perfil.indicativo}>{t('Ver cómo queda mi perfil público')}</EnlacePerfilPublico>
                         {botonGuardar}
                     </div>
                 </Panel>
@@ -382,6 +384,7 @@ function Encabezado({ titulo, detalle, margen = 'mb-8' }: { titulo: string; deta
 
 /** «Guardar cambios»: deshabilitado mientras el formulario no tenga cambios. */
 function BotonGuardar({ hayCambios, enviando }: { hayCambios: boolean; enviando: boolean }) {
+    const { t } = useTranslation();
     return (
         <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
             {!hayCambios && (
@@ -389,15 +392,15 @@ function BotonGuardar({ hayCambios, enviando }: { hayCambios: boolean; enviando:
                     <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fillRule="evenodd" clipRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" />
                     </svg>
-                    No hay cambios por guardar
+                    {t('No hay cambios por guardar')}
                 </p>
             )}
             <BotonPrimario
                 className="whitespace-nowrap !px-7 disabled:cursor-not-allowed disabled:!brightness-100 disabled:active:!scale-100"
                 disabled={!hayCambios || enviando}
-                title={hayCambios ? undefined : 'Modifica algún dato para poder guardar'}
+                title={hayCambios ? undefined : t('Modifica algún dato para poder guardar')}
             >
-                {enviando ? 'Guardando…' : 'Guardar cambios'}
+                {enviando ? t('Guardando…') : t('Guardar cambios')}
             </BotonPrimario>
         </div>
     );
@@ -413,11 +416,12 @@ function EnlacePerfilPublico({ indicativo, children }: { indicativo: string; chi
 }
 
 function ReenviarVerificacion() {
+    const { t } = useTranslation();
     const [estado, setEstado] = useState<string | null>(null);
 
     return (
         <p className="mt-2 text-sm text-slate-300">
-            Tu correo no está verificado.{' '}
+            {t('Tu correo no está verificado.')}{' '}
             {estado ?? (
                 <button
                     type="button"
@@ -430,7 +434,7 @@ function ReenviarVerificacion() {
                         }
                     }}
                 >
-                    Reenviar el enlace de verificación
+                    {t('Reenviar el enlace de verificación')}
                 </button>
             )}
         </p>

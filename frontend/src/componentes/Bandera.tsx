@@ -1,5 +1,8 @@
+import { useTranslation } from 'react-i18next';
+
 /** Bandera del país (public/banderas de Laravel, de flag-icons). Sin código no muestra nada. */
 export function Bandera({ codigo, pais, className = 'h-3.5 w-[1.15rem]' }: { codigo: string | null | undefined; pais?: string | null; className?: string }) {
+    const { t } = useTranslation();
     if (!codigo) {
         return null;
     }
@@ -7,7 +10,7 @@ export function Bandera({ codigo, pais, className = 'h-3.5 w-[1.15rem]' }: { cod
     return (
         <img
             src={`/banderas/${codigo}.svg`}
-            alt={`Bandera de ${pais ?? codigo.toUpperCase()}`}
+            alt={t('Bandera de {{pais}}', { pais: pais ?? codigo.toUpperCase() })}
             title={pais ?? undefined}
             loading="lazy"
             width={20}

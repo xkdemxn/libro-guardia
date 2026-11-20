@@ -9,12 +9,15 @@ import { Icono } from '@/componentes/Icono';
 import { Panel } from '@/componentes/Panel';
 import { api, erroresDeValidacion, esEstado, mensajeDeError, type ErroresValidacion } from '@/lib/api';
 import type { FilaImportacion, ResultadoImportacion, VistaPreviaImportacion } from '@/lib/tipos';
+import { useTranslation } from 'react-i18next';
+import { tx } from '@/i18n';
 
 /**
  * Importar contactos desde ADIF (US-14) en tres pasos: subir el archivo, revisar la vista previa
  * (nuevos, duplicados y con errores) y ver el resumen.
  */
 export function Importar() {
+    const { t } = useTranslation();
     const cliente = useQueryClient();
     const [resultado, setResultado] = useState<ResultadoImportacion | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -75,8 +78,8 @@ export function Importar() {
                 <Link to="/contactos" className="inline-flex items-center gap-1.5 text-sm text-slate-400 transition hover:text-white">
                     &lsaquo; Volver al libro
                 </Link>
-                <h1 className="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">Importar contactos</h1>
-                <p className="mt-1 text-slate-400">Trae tus contactos antiguos desde otro programa de log con un archivo ADIF.</p>
+                <h1 className="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">{t('Importar contactos')}</h1>
+                <p className="mt-1 text-slate-400">{t('Trae tus contactos antiguos desde otro programa de log con un archivo ADIF.')}</p>
             </header>
 
             <div className="mx-auto box-content max-w-3xl space-y-6 px-4 pt-8 sm:px-6 lg:px-8">
@@ -91,6 +94,7 @@ export function Importar() {
 }
 
 function SubirArchivo({ onVistaPrevia }: { onVistaPrevia: (datos: VistaPreviaImportacion) => void }) {
+    const { t } = useTranslation();
     const [archivo, setArchivo] = useState<File | null>(null);
     const [errores, setErrores] = useState<ErroresValidacion>({});
     const [enviando, setEnviando] = useState(false);
@@ -98,7 +102,7 @@ function SubirArchivo({ onVistaPrevia }: { onVistaPrevia: (datos: VistaPreviaImp
     async function subir(evento: FormEvent) {
         evento.preventDefault();
         if (!archivo) {
-            setErrores({ archivo: ['Elige un archivo ADIF (.adi o .adif).'] });
+            setErrores({ archivo: [t('Elige un archivo ADIF (.adi o .adif).')] });
 
             return;
         }
@@ -119,23 +123,23 @@ function SubirArchivo({ onVistaPrevia }: { onVistaPrevia: (datos: VistaPreviaImp
     }
 
     return (
-        <Panel ceja="Subir archivo ADIF">
+        <Panel ceja={t('Subir archivo ADIF')}>
             <form onSubmit={subir} className="space-y-5" noValidate>
                 <label className="flex cursor-pointer flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-white/15 bg-white/[0.02] px-6 py-12 text-center transition hover:border-acento-400/50 hover:bg-acento-400/[0.04]">
                     <span className="grid h-14 w-14 place-items-center rounded-2xl bg-acento-400/10 text-acento-300 ring-1 ring-acento-400/25">
                         <Icono nombre="importar" className="h-7 w-7" />
                     </span>
                     <span className="font-medium text-white">{archivo?.name ?? 'Elige tu archivo .adi o .adif'}</span>
-                    <span className="text-xs text-slate-500">Máximo 5 MB. Antes de importar verás una vista previa.</span>
+                    <span className="text-xs text-slate-500">{t('Máximo 5 MB. Antes de importar verás una vista previa.')}</span>
                     <input type="file" accept=".adi,.adif" className="sr-only" onChange={(evento) => setArchivo(evento.target.files?.[0] ?? null)} />
                 </label>
                 <ErrorCampo mensajes={errores.archivo} />
 
                 <ul className="space-y-1.5 text-xs text-slate-500">
                     {[
-                        'Se aplican las mismas reglas que al registrar un contacto: frecuencia dentro de una banda y reporte según el modo.',
-                        'Los contactos que ya están en tu libro se omiten como duplicados.',
-                        'Las horas se conservan en UTC, tal como vienen en el archivo.',
+                        t('Se aplican las mismas reglas que al registrar un contacto: frecuencia dentro de una banda y reporte según el modo.'),
+                        t('Los contactos que ya están en tu libro se omiten como duplicados.'),
+                        t('Las horas se conservan en UTC, tal como vienen en el archivo.'),
                     ].map((regla) => (
                         <li key={regla} className="flex gap-2">
                             <span className="punto mt-1.5 bg-slate-500" />
@@ -144,21 +148,22 @@ function SubirArchivo({ onVistaPrevia }: { onVistaPrevia: (datos: VistaPreviaImp
                     ))}
                 </ul>
 
-                <BotonPrimario disabled={enviando}>{enviando ? 'Leyendo el archivo…' : 'Ver vista previa'}</BotonPrimario>
+                <BotonPrimario disabled={enviando}>{enviando ? t('Leyendo el archivo…') : t('Ver vista previa')}</BotonPrimario>
             </form>
         </Panel>
     );
 }
 
 function Resumen({ resultado }: { resultado: ResultadoImportacion }) {
+    const { t } = useTranslation();
     return (
-        <Panel ceja="Resumen de la importación">
+        <Panel ceja={t('Resumen de la importación')}>
             <div className="grid grid-cols-3 gap-4 text-center">
                 {(
                     [
-                        ['Importados', resultado.importados, 'bg-emerald-400'],
-                        ['Omitidos (duplicados)', resultado.omitidos, 'bg-amber-400'],
-                        ['Con errores', resultado.fallidos, 'bg-rose-400'],
+                        [t('Importados'), resultado.importados, 'bg-emerald-400'],
+                        [t('Omitidos (duplicados)'), resultado.omitidos, 'bg-amber-400'],
+                        [t('Con errores'), resultado.fallidos, 'bg-rose-400'],
                     ] as const
                 ).map(([etiqueta, valor, punto]) => (
                     <div key={etiqueta}>
@@ -172,7 +177,7 @@ function Resumen({ resultado }: { resultado: ResultadoImportacion }) {
             </div>
             {resultado.errores.length > 0 && (
                 <div className="mt-6">
-                    <p className="mb-3 text-sm font-medium text-slate-300">Registros que no se importaron</p>
+                    <p className="mb-3 text-sm font-medium text-slate-300">{t('Registros que no se importaron')}</p>
                     <ul className="space-y-2 text-sm">
                         {resultado.errores.map((fila) => (
                             <li key={fila.numero} className="rounded-xl bg-rose-500/[0.06] px-4 py-2.5 ring-1 ring-rose-400/15">
@@ -205,13 +210,14 @@ function VistaPrevia({
     onConfirmar: () => void;
     onCancelar: () => void;
 }) {
+    const { t } = useTranslation();
     return (
         <>
             <header className="mx-auto max-w-5xl px-4 pt-10 sm:px-6 lg:px-8">
                 <button type="button" onClick={onCancelar} className="inline-flex items-center gap-1.5 text-sm text-slate-400 transition hover:text-white">
                     &lsaquo; Elegir otro archivo
                 </button>
-                <h1 className="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">Vista previa</h1>
+                <h1 className="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">{t('Vista previa')}</h1>
                 <p className="mt-1 font-mono text-sm text-slate-400">
                     {datos.nombre_archivo} · {datos.total_filas} {datos.total_filas === 1 ? 'registro' : 'registros'}
                 </p>
@@ -223,15 +229,15 @@ function VistaPrevia({
                 <div className="grid grid-cols-3 gap-4">
                     {(
                         [
-                            ['Se importarán', datos.nuevos, 'bg-emerald-400 shadow-[0_0_8px_rgb(52_211_153)]'],
-                            ['Duplicados', datos.duplicados, 'bg-amber-400'],
-                            ['Con errores', datos.errores, 'bg-rose-400'],
+                            [t('Se importarán'), datos.nuevos, 'bg-emerald-400 shadow-[0_0_8px_rgb(52_211_153)]'],
+                            [t('Duplicados'), datos.duplicados, 'bg-amber-400'],
+                            [t('Con errores'), datos.errores, 'bg-rose-400'],
                         ] as const
                     ).map(([etiqueta, valor, punto]) => (
                         <div key={etiqueta} className="vidrio p-5">
                             <p className="inline-flex items-center gap-2 text-xs text-slate-400">
                                 <span className={`punto h-2 w-2 ${punto}`} />
-                                {etiqueta}
+                                {t(etiqueta)}
                             </p>
                             <p className="mt-2 font-display text-3xl font-semibold tabular-nums text-white">{valor}</p>
                         </div>
@@ -240,18 +246,18 @@ function VistaPrevia({
 
                 <section className="vidrio overflow-hidden !p-0">
                     <div className="px-6 pb-4 pt-6">
-                        <Ceja>Registros del archivo</Ceja>
+                        <Ceja>{t('Registros del archivo')}</Ceja>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="min-w-full text-sm">
                             <thead>
                                 <tr className="border-y border-white/5 text-left text-[0.75rem] font-medium uppercase tracking-[0.18em] text-slate-500">
                                     <th scope="col" className="py-3 pl-6 pr-3 font-medium">#</th>
-                                    <th scope="col" className="px-3 py-3 font-medium">Estado</th>
-                                    <th scope="col" className="px-3 py-3 font-medium">Estación</th>
-                                    <th scope="col" className="px-3 py-3 font-medium">Fecha · UTC</th>
-                                    <th scope="col" className="px-3 py-3 font-medium">Banda</th>
-                                    <th scope="col" className="py-3 pl-3 pr-6 font-medium">Modo / detalle</th>
+                                    <th scope="col" className="px-3 py-3 font-medium">{t('Estado')}</th>
+                                    <th scope="col" className="px-3 py-3 font-medium">{t('Estación')}</th>
+                                    <th scope="col" className="px-3 py-3 font-medium">{t('Fecha · UTC')}</th>
+                                    <th scope="col" className="px-3 py-3 font-medium">{t('Banda')}</th>
+                                    <th scope="col" className="py-3 pl-3 pr-6 font-medium">{t('Modo / detalle')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -270,10 +276,10 @@ function VistaPrevia({
 
                 <div className="flex flex-wrap items-center justify-end gap-3">
                     <button type="button" onClick={onCancelar} disabled={procesando} className="rounded-full px-5 py-2.5 text-sm font-medium text-slate-400 transition hover:text-white">
-                        Cancelar
+                        {t('Cancelar')}
                     </button>
                     <BotonPrimario type="button" className="!px-7 !py-3" disabled={datos.nuevos === 0 || procesando} onClick={onConfirmar}>
-                        {procesando ? 'Importando…' : datos.nuevos === 0 ? 'No hay contactos nuevos' : `Importar ${datos.nuevos} ${datos.nuevos === 1 ? 'contacto' : 'contactos'}`}
+                        {procesando ? t('Importando…') : datos.nuevos === 0 ? t('No hay contactos nuevos') : datos.nuevos === 1 ? t('Importar 1 contacto') : t('Importar {{n}} contactos', { n: datos.nuevos })}
                     </BotonPrimario>
                 </div>
             </div>
@@ -282,12 +288,13 @@ function VistaPrevia({
 }
 
 const ESTADOS_FILA = {
-    nuevo: ['text-emerald-300', 'bg-emerald-400', 'Nuevo'],
-    duplicado: ['text-amber-300', 'bg-amber-400', 'Duplicado'],
-    error: ['text-rose-300', 'bg-rose-400', 'Error'],
+    nuevo: ['text-emerald-300', 'bg-emerald-400', tx('Nuevo')],
+    duplicado: ['text-amber-300', 'bg-amber-400', tx('Duplicado')],
+    error: ['text-rose-300', 'bg-rose-400', tx('Error')],
 } as const;
 
 function FilaVistaPrevia({ fila }: { fila: FilaImportacion }) {
+    const { t } = useTranslation();
     const [texto, punto, etiqueta] = ESTADOS_FILA[fila.estado];
 
     return (
@@ -296,7 +303,7 @@ function FilaVistaPrevia({ fila }: { fila: FilaImportacion }) {
             <td className="whitespace-nowrap px-3 py-3">
                 <span className={`inline-flex items-center gap-2 text-xs font-medium ${texto}`}>
                     <span className={`punto h-2 w-2 ${punto}`} />
-                    {etiqueta}
+                    {t(etiqueta)}
                 </span>
             </td>
             <td className="whitespace-nowrap px-3 py-3 font-mono font-semibold text-white">{fila.indicativo || '—'}</td>

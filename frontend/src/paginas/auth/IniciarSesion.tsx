@@ -7,6 +7,7 @@ import { useFijarUsuario } from '@/hooks/useUsuario';
 import { LayoutInvitado } from '@/layouts/LayoutInvitado';
 import { api, erroresDeValidacion, mensajeDeError, type ErroresValidacion } from '@/lib/api';
 import type { RespuestaInicioSesion } from '@/lib/tipos';
+import { useTranslation } from 'react-i18next';
 
 export interface EstadoNavegacion {
     /** Página privada que el operador quería ver antes de que le pidieran iniciar sesión. */
@@ -16,6 +17,7 @@ export interface EstadoNavegacion {
 }
 
 export function IniciarSesion() {
+    const { t } = useTranslation();
     const navegar = useNavigate();
     const { state } = useLocation() as { state: EstadoNavegacion | null };
     const fijarUsuario = useFijarUsuario();
@@ -57,9 +59,9 @@ export function IniciarSesion() {
 
     return (
         <LayoutInvitado>
-            <Ceja className="mb-6">Acceso de operadores</Ceja>
-            <h2 className="font-display text-2xl font-semibold text-white">Iniciar sesión</h2>
-            <p className="mt-1.5 text-sm text-slate-400">Entra a tu libro de guardia.</p>
+            <Ceja className="mb-6">{t('Acceso de operadores')}</Ceja>
+            <h2 className="font-display text-2xl font-semibold text-white">{t('Iniciar sesión')}</h2>
+            <p className="mt-1.5 text-sm text-slate-400">{t('Entra a tu libro de guardia.')}</p>
 
             {state?.estado && <Aviso className="mt-6">{state.estado}</Aviso>}
             {errorGeneral && (
@@ -69,16 +71,16 @@ export function IniciarSesion() {
             )}
 
             <form onSubmit={enviar} className="mt-6 space-y-5" noValidate>
-                <Campo id="login" etiqueta="Indicativo o correo" type="text" required autoFocus autoComplete="username" placeholder="HC1QRC" errores={errores.login} />
+                <Campo id="login" etiqueta={t('Indicativo o correo')} type="text" required autoFocus autoComplete="username" placeholder="HC1QRC" errores={errores.login} />
                 <CampoContrasena
                     id="password"
-                    etiqueta="Contraseña"
+                    etiqueta={t('Contraseña')}
                     required
                     autoComplete="current-password"
                     errores={errores.password}
                     extra={
                         <Link className="text-[0.8125rem] text-acento-300 transition hover:text-acento-200" to="/olvide-contrasena">
-                            ¿La olvidaste?
+                            {t('¿La olvidaste?')}
                         </Link>
                     }
                 />
@@ -90,18 +92,18 @@ export function IniciarSesion() {
                         name="remember"
                         className="h-4 w-4 rounded border-white/20 bg-white/5 text-acento-500 focus:ring-acento-400/30 focus:ring-offset-0"
                     />
-                    Recordarme en este equipo
+                    {t('Recordarme en este equipo')}
                 </label>
 
                 <BotonPrimario className="w-full !py-3" disabled={enviando}>
-                    {enviando ? 'Entrando…' : 'Entrar'}
+                    {enviando ? t('Entrando…') : t('Entrar')}
                 </BotonPrimario>
             </form>
 
             <p className="mt-6 text-center text-sm text-slate-400">
-                ¿No tienes cuenta?{' '}
+                {t('¿No tienes cuenta?')}{' '}
                 <Link className="font-medium text-acento-300 transition hover:text-acento-200" to="/registro">
-                    Regístrate con tu indicativo
+                    {t('Regístrate con tu indicativo')}
                 </Link>
             </p>
             <p className="mt-2 text-center text-sm">
