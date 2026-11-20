@@ -5,7 +5,7 @@ import type { Idioma } from '@/i18n';
 import { Lista, PaginaInformativa, Seccion } from '@/paginas/informacion/PaginaInformativa';
 
 /** Integrantes del proyecto (usuarios de GitHub). */
-const EQUIPO = ['xkdemxn', 'juanpcoba-wq', 'emilyvelasco-art', 'Dorian1741'];
+const EQUIPO = ['xkdemxn', 'juanpcoba-wq', 'emilyvelasco-art', 'Dorian1741', 'sergio3200x'];
 
 interface Contenido {
     titulo: string;
@@ -102,25 +102,25 @@ export function SobreNosotros() {
             </Seccion>
 
             <Seccion numero={3} titulo={c.equipo[0]}>
-                <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <ul className="grid gap-2 sm:grid-cols-2">
                     {EQUIPO.map((usuario) => (
                         <li key={usuario}>
                             <a
                                 href={`https://github.com/${usuario}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="flex flex-col items-center gap-3 rounded-2xl bg-white/[0.03] p-4 text-center ring-1 ring-white/10 transition hover:bg-white/[0.07] hover:ring-acento-400/30"
+                                className="flex items-center gap-3 rounded-xl bg-white/[0.03] px-3 py-2 ring-1 ring-white/10 transition hover:bg-white/[0.07] hover:ring-acento-400/30"
                             >
                                 <img
-                                    src={`https://github.com/${usuario}.png?size=160`}
+                                    src={`https://github.com/${usuario}.png?size=80`}
                                     alt=""
                                     loading="lazy"
-                                    width={80}
-                                    height={80}
-                                    className="h-20 w-20 rounded-full bg-noche-800 object-cover ring-2 ring-white/10"
+                                    width={36}
+                                    height={36}
+                                    className="h-9 w-9 shrink-0 rounded-full bg-noche-800 object-cover ring-1 ring-white/10"
                                 />
-                                <span className="break-all font-mono text-sm font-semibold text-slate-100">@{usuario}</span>
-                                <span className="text-xs text-slate-500">{c.equipo[1]}</span>
+                                <span className="min-w-0 flex-1 truncate font-mono text-sm font-semibold text-slate-100">@{usuario}</span>
+                                <span className="shrink-0 text-xs text-slate-500">{c.equipo[1]}</span>
                             </a>
                         </li>
                     ))}

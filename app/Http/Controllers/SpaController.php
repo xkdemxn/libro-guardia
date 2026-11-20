@@ -20,7 +20,10 @@ class SpaController extends Controller
         $indice = config('app.spa_index');
 
         if (is_file($indice)) {
-            return response(file_get_contents($indice), 200, [
+            // Las vistas previas al compartir enlaces exigen direcciones absolutas: se usa el dominio con el que se entró (túnel, servidor…).
+            $html = str_replace('__ORIGEN__', $request->getSchemeAndHttpHost(), file_get_contents($indice));
+
+            return response($html, 200, [
                 'Content-Type' => 'text/html; charset=UTF-8',
                 // El index.html cambia en cada compilación: nunca se guarda en caché (los assets sí, llevan hash).
                 'Cache-Control' => 'no-cache, private',

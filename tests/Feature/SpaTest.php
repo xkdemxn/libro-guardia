@@ -40,6 +40,17 @@ class SpaTest extends TestCase
             ->assertSee('<div id="raiz"></div>', false);
     }
 
+    public function test_share_preview_tags_use_the_domain_the_visitor_came_from(): void
+    {
+        file_put_contents($this->indice, '<meta property="og:image" content="__ORIGEN__/img/compartir.png" />');
+        config(['app.spa_index' => $this->indice]);
+
+        $this->get('https://ejemplo.trycloudflare.com/')
+            ->assertOk()
+            ->assertSee('content="https://ejemplo.trycloudflare.com/img/compartir.png"', false)
+            ->assertDontSee('__ORIGEN__');
+    }
+
     public function test_api_addresses_are_never_answered_with_the_spa(): void
     {
         config(['app.spa_index' => $this->indice]);
