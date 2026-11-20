@@ -190,3 +190,60 @@
 .leaflet-bar a {
     @apply !border-white/10 !bg-noche-800 !text-slate-200;
 }
+
+/* Antena animada del inicio de sesión: las ondas crecen y se desvanecen, la baliza parpadea. */
+.antena-animada .onda {
+    transform-box: view-box;
+    transform-origin: 60px 36px;
+    animation: onda-antena 2.4s ease-out infinite;
+    opacity: 0;
+}
+
+.antena-animada .baliza {
+    animation: baliza-antena 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 0 4px rgb(255 184 74 / 0.9));
+}
+
+@keyframes onda-antena {
+    0% {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    20% {
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(1.9);
+        opacity: 0;
+    }
+}
+
+@keyframes baliza-antena {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.25;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .antena-animada .onda {
+        animation: none;
+        opacity: 0.6;
+    }
+
+    .antena-animada .onda:nth-child(2) {
+        transform: scale(1.35);
+        opacity: 0.35;
+    }
+
+    .antena-animada .onda:nth-child(3) {
+        display: none;
+    }
+
+    .antena-animada .baliza {
+        animation: none;
+    }
+}

@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\FichaIndicativoController;
 use App\Http\Controllers\Api\ImportacionController;
 use App\Http\Controllers\Api\PerfilController;
 use App\Http\Controllers\Api\PerfilPublicoController;
+use App\Http\Controllers\Api\PrefijosController;
 use App\Http\Controllers\Api\SolicitudConfirmacionController;
 use App\Http\Controllers\Api\TarjetaQslController;
 use App\Http\Controllers\Api\UbicacionesController;
@@ -44,6 +45,7 @@ Route::post('contrasena/restablecer', [ContrasenaRestablecidaController::class, 
 // Perfil público por indicativo: no necesita sesión (US-15).
 Route::get('indicativos/{indicativo}', [PerfilPublicoController::class, 'show'])->name('api.perfil-publico.show');
 Route::get('ubicaciones', UbicacionesController::class)->name('api.ubicaciones');
+Route::get('prefijos', PrefijosController::class)->name('api.prefijos');
 // «Consulta una QSL» sin sesión: número de QSO + indicativo contactado. Limitada para no adivinar números.
 Route::get('qsl/verificar', VerificacionQslController::class)->middleware('throttle:15,1')->name('api.qsl.verificar');
 

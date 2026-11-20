@@ -1,4 +1,16 @@
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Bandera } from '@/componentes/Bandera';
+import { Icono } from '@/componentes/Icono';
+import { api } from '@/lib/api';
 import { Lista, PaginaInformativa, Seccion } from '@/paginas/informacion/PaginaInformativa';
+
+interface PaisConPrefijos {
+    pais: string;
+    codigo_bandera: string | null;
+    continente: string | null;
+    prefijos: string[];
+}
 
 export function QueEsQsl() {
     return (
@@ -34,7 +46,15 @@ export function QueEsQsl() {
                 </p>
             </Seccion>
 
-            <Seccion numero={2} titulo="El QSO">
+            <Seccion numero={2} titulo="Prefijos por país">
+                <p>
+                    Estos son los prefijos que reconoce Libro de Guardia. Si un indicativo empieza con varios prefijos posibles, gana el más largo: <span className="font-mono text-amber-200">HC8</span> es
+                    Galápagos aunque <span className="font-mono text-amber-200">HC</span> sea Ecuador.
+                </p>
+                <ListaPrefijos />
+            </Seccion>
+
+            <Seccion numero={3} titulo="El QSO">
                 <p>
                     Un <strong>QSO</strong> es un contacto: una conversación por radio entre dos estaciones. Cada operador lo anota en su <strong>libro de guardia</strong> (el log) con:
                 </p>
@@ -50,7 +70,7 @@ export function QueEsQsl() {
                 />
             </Seccion>
 
-            <Seccion numero={3} titulo="La QSL: confirmar el contacto">
+            <Seccion numero={4} titulo="La QSL: confirmar el contacto">
                 <p>
                     Que tú anotes un QSO no prueba que ocurrió: la otra estación tiene que <strong>confirmarlo</strong>. Esa confirmación es la QSL, y es la que cuenta para los diplomas
                     como el DXCC (contactar 100 países) o el WAC (los 6 continentes).
@@ -74,5 +94,76 @@ export function QueEsQsl() {
                 </p>
             </Seccion>
         </PaginaInformativa>
+    );
+}
+
+/** Prefijos de la base de datos, agrupados por continente y con buscador por país o prefijo. */
+function ListaPrefijos() {
+    const [busqueda, setBusqueda] = useState('');
+    const consulta = useQuery({
+        queryKey: ['prefijos'],
+        queryFn: async () => (await api.get<{ data: PaisConPrefijos[] }>('/prefijos')).data.data,
+        staleTime: Infinity,
+    });
+
+    const continentes = useMemo(() => {
+        const texto = busqueda.trim().toLowerCase();
+        const coincide = (pais: PaisConPrefijos) =>
+            !texto || pais.pais.toLowerCase().includes(texto) || pais.prefijos.some((prefijo) => prefijo.toLowerCase().startsWith(texto) || texto.startsWith(prefijo.toLowerCase()));
+        const grupos = new Map<string, PaisConPrefijos[]>();
+
+        for (const pais of (consulta.data ?? []).filter(coincide)) {
+            const continente = pais.continente ?? 'Otros';
+            grupos.set(continente, [...(grupos.get(continente) ?? []), pais]);
+        }
+
+        return [...grupos.entries()];
+    }, [consulta.data, busqueda]);
+
+    return (
+        <div>
+            <label htmlFor="buscar-prefijo" className="sr-only">
+                Buscar país o prefijo
+            </label>
+            <div className="relative">
+                <Icono nombre="lupa" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <input
+                    id="buscar-prefijo"
+                    type="search"
+                    value={busqueda}
+                    onChange={(evento) => setBusqueda(evento.target.value)}
+                    placeholder="Busca un país o escribe un indicativo: Argentina, HC5EV…"
+                    className="campo !pl-10"
+                />
+            </div>
+
+            {consulta.isPending && <p className="mt-4 text-sm text-slate-500">Cargando prefijos…</p>}
+            {consulta.data && continentes.length === 0 && <p className="mt-4 text-sm text-slate-500">Ningún país coincide con «{busqueda}».</p>}
+
+            <div className="mt-5 max-h-[32rem] space-y-6 overflow-y-auto pe-1">
+                {continentes.map(([continente, paises]) => (
+                    <div key={continente}>
+                        <p className="mb-2 text-[0.75rem] font-medium uppercase tracking-[0.2em] text-slate-500">{continente}</p>
+                        <ul className="divide-y divide-white/5 rounded-2xl bg-white/[0.02] ring-1 ring-white/10">
+                            {paises.map((pais) => (
+                                <li key={pais.pais} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-start sm:gap-4">
+                                    <span className="flex w-48 shrink-0 items-center gap-2 text-sm font-medium text-slate-100">
+                                        <Bandera codigo={pais.codigo_bandera} pais={pais.pais} />
+                                        {pais.pais}
+                                    </span>
+                                    <span className="flex flex-wrap gap-1.5">
+                                        {pais.prefijos.map((prefijo) => (
+                                            <span key={prefijo} className="rounded-md bg-amber-400/10 px-2 py-0.5 font-mono text-xs text-amber-200 ring-1 ring-amber-400/20">
+                                                {prefijo}
+                                            </span>
+                                        ))}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }

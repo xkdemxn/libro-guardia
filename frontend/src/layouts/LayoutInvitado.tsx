@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { Ceja } from '@/componentes/Ceja';
 import { Icono } from '@/componentes/Icono';
 import { Emblema } from '@/componentes/Emblema';
-import { FormularioConsultaQsl } from '@/componentes/FormularioConsultaQsl';
+import { AntenaAnimada } from '@/componentes/AntenaAnimada';
 import { RelojUtc } from '@/componentes/RelojUtc';
 import { SelectorTema } from '@/componentes/SelectorTema';
 import { PAGINAS_INFORMATIVAS } from '@/paginas/informacion/PaginaInformativa';
@@ -20,20 +20,18 @@ export function LayoutInvitado({ children }: { children: ReactNode }) {
                 <SelectorTema className="vidrio-fuerte h-10 w-10" />
             </div>
 
-            {/* Accesos informativos pegados al borde izquierdo (solo donde sobra espacio a los lados) */}
-            <nav className="fixed left-0 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 2xl:flex" aria-label="Información">
+            {/* Pestañas pegadas al borde izquierdo, con el texto en vertical, como separadores de una carpeta */}
+            <nav className="fixed left-0 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-2 xl:flex" aria-label="Información">
                 {PAGINAS_INFORMATIVAS.map((pagina) => (
                     <Link
                         key={pagina.ruta}
                         to={pagina.ruta}
-                        className="vidrio-fuerte group flex w-52 -translate-x-2 items-center gap-3 rounded-l-none rounded-r-2xl py-3.5 pl-6 pr-4 transition hover:translate-x-0 hover:bg-noche-800/80"
+                        title={pagina.detalle}
+                        className="vidrio-fuerte group flex h-44 w-12 flex-col items-center gap-3 rounded-l-none rounded-r-2xl py-4 transition-all hover:w-14 hover:bg-noche-800/80"
                     >
-                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-acento-400/10 text-acento-300 ring-1 ring-acento-400/25 transition group-hover:bg-acento-400/20">
-                            <Icono nombre={pagina.icono} className="h-[18px] w-[18px]" />
-                        </span>
-                        <span className="min-w-0">
-                            <span className="block text-sm font-semibold text-white">{pagina.titulo}</span>
-                            <span className="block truncate text-xs text-slate-400">{pagina.detalle}</span>
+                        <Icono nombre={pagina.icono} className="h-[18px] w-[18px] shrink-0 text-acento-300" />
+                        <span className="rotate-180 whitespace-nowrap text-[0.8125rem] font-semibold tracking-wide text-slate-200 [writing-mode:vertical-rl] group-hover:text-white">
+                            {pagina.titulo}
                         </span>
                     </Link>
                 ))}
@@ -61,11 +59,20 @@ export function LayoutInvitado({ children }: { children: ReactNode }) {
 
                     <RelojUtc grande className="mt-8" />
 
-                    {/* Consulta una QSL sin iniciar sesión */}
-                    <div className="vidrio mt-10 max-w-md p-5">
-                        <Ceja className="mb-4">Consulta una QSL</Ceja>
-                        <p className="mb-4 text-sm text-slate-400">¿Recibiste una tarjeta? Verifica el contacto sin crear una cuenta.</p>
-                        <FormularioConsultaQsl compacto />
+                    {/* Consulta una QSL sin iniciar sesión: lleva a la página de búsqueda */}
+                    <div className="vidrio mt-10 flex max-w-md items-center gap-5 p-5">
+                        <AntenaAnimada className="h-24 w-24 shrink-0" />
+                        <div className="min-w-0">
+                            <Ceja className="mb-3">Consulta una QSL</Ceja>
+                            <p className="text-sm text-slate-400">¿Recibiste una tarjeta? Verifica el contacto sin crear una cuenta.</p>
+                            <Link
+                                to="/qsl"
+                                className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-marca-400 to-marca-600 px-5 py-2 text-sm font-semibold text-blanco shadow-boton transition hover:brightness-110 active:scale-[0.97]"
+                            >
+                                <Icono nombre="lupa" className="h-4 w-4" />
+                                Consultar una QSL
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
@@ -86,7 +93,7 @@ export function LayoutInvitado({ children }: { children: ReactNode }) {
                     </div>
 
                     {/* En pantallas sin espacio a los lados, los mismos accesos van debajo del formulario */}
-                    <nav className="mt-6 flex flex-wrap justify-center gap-2 2xl:hidden" aria-label="Información">
+                    <nav className="mt-6 flex flex-wrap justify-center gap-2 xl:hidden" aria-label="Información">
                         {/* En el celular la columna izquierda (con la consulta) no se muestra */}
                         <Link
                             to="/qsl"
