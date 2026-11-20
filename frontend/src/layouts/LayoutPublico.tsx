@@ -2,6 +2,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { Link, Outlet } from 'react-router';
 import { Cargando } from '@/componentes/Cargando';
 import { Emblema } from '@/componentes/Emblema';
+import { Icono } from '@/componentes/Icono';
 import { RelojUtc } from '@/componentes/RelojUtc';
 import { SelectorTema } from '@/componentes/SelectorTema';
 
@@ -26,7 +27,7 @@ export function LayoutPublico() {
                 <nav className="sticky top-0 z-40 px-3 pt-3 sm:px-6">
                     <div className={`franja-desenfoque ${desplazado ? 'visible' : ''}`} aria-hidden="true" />
                     <div className="vidrio-fuerte mx-auto flex max-w-7xl items-center justify-between rounded-full px-3 py-2 sm:px-4">
-                        <Link to="/indicativos" className="flex items-center gap-2.5 text-white">
+                        <Link to="/" className="flex items-center gap-2.5 text-white" aria-label="Libro de Guardia, ir al inicio">
                             <Emblema className="h-10 w-10" />
                             <span className="leading-tight">
                                 <span className="block font-display text-sm font-semibold">Libro de Guardia</span>
@@ -36,6 +37,13 @@ export function LayoutPublico() {
                         <div className="flex items-center gap-2">
                             <RelojUtc className="hidden sm:inline-flex" />
                             <SelectorTema />
+                            <Link
+                                to="/"
+                                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-slate-300 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-white"
+                            >
+                                <Icono nombre="casa" className="h-4 w-4" />
+                                <span className="hidden sm:inline">Inicio</span>
+                            </Link>
                             <Link to="/iniciar-sesion" className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15">
                                 Iniciar sesión
                             </Link>
