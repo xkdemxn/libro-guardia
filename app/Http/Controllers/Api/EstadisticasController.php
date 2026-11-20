@@ -64,7 +64,7 @@ class EstadisticasController extends Controller
             'dxcc' => ['confirmados' => $paisesConfirmados->count(), 'meta' => self::META_DXCC],
             'continentes' => collect(self::CONTINENTES)->map(fn (string $nombre, string $codigo): array => [
                 'codigo' => $codigo,
-                'nombre' => $nombre,
+                'nombre' => __($nombre),
                 'trabajado' => $continentesTrabajados->contains($codigo),
             ])->values(),
             'zonas' => collect(ZonaEcuador::cases())->map(fn (ZonaEcuador $zona): array => [

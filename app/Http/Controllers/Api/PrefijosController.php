@@ -23,7 +23,7 @@ class PrefijosController extends Controller
             ->map(fn (Collection $prefijos, string $pais): array => [
                 'pais' => $pais,
                 'codigo_bandera' => $prefijos->first()->codigo_bandera,
-                'continente' => Ubicaciones::continente($prefijos->first()->continente),
+                'continente' => __(Ubicaciones::continente($prefijos->first()->continente) ?? 'Otros'),
                 'prefijos' => $prefijos->pluck('prefijo')->sortBy(fn (string $prefijo): array => [strlen($prefijo), $prefijo])->values(),
             ])
             ->values();
