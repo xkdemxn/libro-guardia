@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Ceja } from '@/componentes/Ceja';
 import { Icono } from '@/componentes/Icono';
 import { Emblema } from '@/componentes/Emblema';
+import { PiePagina } from '@/componentes/PiePagina';
 import { AntenaAnimada } from '@/componentes/AntenaAnimada';
 import { RelojUtc } from '@/componentes/RelojUtc';
 import { SelectorTema } from '@/componentes/SelectorTema';
@@ -42,7 +43,7 @@ export function LayoutInvitado({ children }: { children: ReactNode }) {
                 ))}
             </nav>
 
-            <div className="mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-2 lg:gap-16">
+            <div className="mx-auto grid min-h-[calc(100vh-4.25rem)] max-w-6xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-2 lg:gap-16">
                 {/* Presentación */}
                 <div className="hidden lg:block">
                     <Link to="/" className="inline-flex items-center gap-4 text-white">
@@ -120,6 +121,8 @@ export function LayoutInvitado({ children }: { children: ReactNode }) {
                     </nav>
                 </div>
             </div>
+
+            <PiePagina />
         </>
     );
 }

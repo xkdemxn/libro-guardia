@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { Avatar } from '@/componentes/Avatar';
 import { Cargando } from '@/componentes/Cargando';
 import { Emblema } from '@/componentes/Emblema';
+import { PiePagina } from '@/componentes/PiePagina';
 import { Icono, type NombreIcono } from '@/componentes/Icono';
 import { RelojUtc } from '@/componentes/RelojUtc';
 import { SelectorTema } from '@/componentes/SelectorTema';
@@ -35,14 +36,15 @@ export function LayoutApp({ usuario }: { usuario: Usuario }) {
                 <span />
             </div>
 
-            <div className="min-h-screen pb-16">
+            <div className="flex min-h-screen flex-col">
                 <BarraSuperior usuario={usuario} />
-                <main>
+                <main className="flex-1">
                     {/* Mientras se descarga una sección, la barra superior sigue visible. */}
                     <Suspense fallback={<Cargando />}>
                         <Outlet />
                     </Suspense>
                 </main>
+                <PiePagina className="mt-10" />
             </div>
         </>
     );
