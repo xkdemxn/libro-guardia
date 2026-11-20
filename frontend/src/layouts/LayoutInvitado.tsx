@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Ceja } from '@/componentes/Ceja';
+import { Icono } from '@/componentes/Icono';
 import { Emblema } from '@/componentes/Emblema';
 import { RelojUtc } from '@/componentes/RelojUtc';
 import { SelectorTema } from '@/componentes/SelectorTema';
+import { PAGINAS_INFORMATIVAS } from '@/paginas/informacion/PaginaInformativa';
 
 /** Pantallas sin sesión (iniciar sesión, registro…): presentación a la izquierda y formulario de vidrio a la derecha. */
 export function LayoutInvitado({ children }: { children: ReactNode }) {
@@ -16,6 +18,25 @@ export function LayoutInvitado({ children }: { children: ReactNode }) {
             <div className="fixed right-4 top-4 z-40">
                 <SelectorTema className="vidrio-fuerte h-10 w-10" />
             </div>
+
+            {/* Accesos informativos pegados al borde izquierdo (solo donde sobra espacio a los lados) */}
+            <nav className="fixed left-0 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 2xl:flex" aria-label="Información">
+                {PAGINAS_INFORMATIVAS.map((pagina) => (
+                    <Link
+                        key={pagina.ruta}
+                        to={pagina.ruta}
+                        className="vidrio-fuerte group flex w-52 -translate-x-2 items-center gap-3 rounded-l-none rounded-r-2xl py-3.5 pl-6 pr-4 transition hover:translate-x-0 hover:bg-noche-800/80"
+                    >
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-acento-400/10 text-acento-300 ring-1 ring-acento-400/25 transition group-hover:bg-acento-400/20">
+                            <Icono nombre={pagina.icono} className="h-[18px] w-[18px]" />
+                        </span>
+                        <span className="min-w-0">
+                            <span className="block text-sm font-semibold text-white">{pagina.titulo}</span>
+                            <span className="block truncate text-xs text-slate-400">{pagina.detalle}</span>
+                        </span>
+                    </Link>
+                ))}
+            </nav>
 
             <div className="mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-2 lg:gap-16">
                 {/* Presentación */}
@@ -76,6 +97,20 @@ export function LayoutInvitado({ children }: { children: ReactNode }) {
                     <div className="mt-6 flex justify-center lg:hidden">
                         <RelojUtc />
                     </div>
+
+                    {/* En pantallas sin espacio a los lados, los mismos accesos van debajo del formulario */}
+                    <nav className="mt-6 flex flex-wrap justify-center gap-2 2xl:hidden" aria-label="Información">
+                        {PAGINAS_INFORMATIVAS.map((pagina) => (
+                            <Link
+                                key={pagina.ruta}
+                                to={pagina.ruta}
+                                className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-sm text-slate-300 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-white"
+                            >
+                                <Icono nombre={pagina.icono} className="h-4 w-4 text-acento-300" />
+                                {pagina.titulo}
+                            </Link>
+                        ))}
+                    </nav>
                 </div>
             </div>
         </>

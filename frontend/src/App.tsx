@@ -19,6 +19,9 @@ const Importar = lazy(() => import('@/paginas/contactos/Importar').then((modulo)
 const Libro = lazy(() => import('@/paginas/contactos/Libro').then((modulo) => ({ default: modulo.Libro })));
 const NuevoContacto = lazy(() => import('@/paginas/contactos/NuevoContacto').then((modulo) => ({ default: modulo.NuevoContacto })));
 const TarjetaQsl = lazy(() => import('@/paginas/contactos/TarjetaQsl').then((modulo) => ({ default: modulo.TarjetaQsl })));
+const QueEsQsl = lazy(() => import('@/paginas/informacion/QueEsQsl').then((modulo) => ({ default: modulo.QueEsQsl })));
+const SobreNosotros = lazy(() => import('@/paginas/informacion/SobreNosotros').then((modulo) => ({ default: modulo.SobreNosotros })));
+const Privacidad = lazy(() => import('@/paginas/informacion/Privacidad').then((modulo) => ({ default: modulo.Privacidad })));
 const Estadisticas = lazy(() => import('@/paginas/Estadisticas').then((modulo) => ({ default: modulo.Estadisticas })));
 const MiPerfil = lazy(() => import('@/paginas/perfil/MiPerfil').then((modulo) => ({ default: modulo.MiPerfil })));
 const BuscarIndicativo = lazy(() => import('@/paginas/publico/BuscarIndicativo').then((modulo) => ({ default: modulo.BuscarIndicativo })));
@@ -44,6 +47,9 @@ export function App() {
                 <Route element={<LayoutSegunSesion />}>
                     <Route path="indicativos" element={<BuscarIndicativo />} />
                     <Route path="indicativos/:indicativo" element={<PerfilPublico />} />
+                    <Route path="que-es-una-qsl" element={<QueEsQsl />} />
+                    <Route path="sobre-nosotros" element={<SobreNosotros />} />
+                    <Route path="privacidad" element={<Privacidad />} />
                 </Route>
 
                 {/* Con sesión */}
