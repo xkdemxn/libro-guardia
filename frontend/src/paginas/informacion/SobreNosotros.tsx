@@ -35,7 +35,7 @@ const CONTENIDO: Record<Idioma, Contenido> = {
         equipo: ['El equipo', 'Ver en GitHub ›'],
         proyecto: [
             'El proyecto',
-            'Libro de Guardia nació como proyecto académico de la asignatura AD4, a partir de historias de usuario y diagramas del sistema, y se amplió con innovaciones propias como la confirmación automática y el mapa de contactos.',
+            'Libro de Guardia es un proyecto de la Universidad Estatal de Bolívar, desarrollado por estudiantes de la carrera de Software. Partió de historias de usuario y diagramas del sistema, y se amplió con innovaciones propias como la confirmación automática y el mapa de contactos.',
             'Es software en desarrollo: si encuentras un error o tienes una idea, cuéntanos.',
         ],
     },
@@ -56,7 +56,7 @@ const CONTENIDO: Record<Idioma, Contenido> = {
         equipo: ['The team', 'View on GitHub ›'],
         proyecto: [
             'The project',
-            'Libro de Guardia started as an academic project for the AD4 course, from user stories and system diagrams, and grew with our own additions like automatic confirmation and the contact map.',
+            'Libro de Guardia is a project of the Universidad Estatal de Bolívar (Ecuador), built by students of the Software program. It started from user stories and system diagrams, and grew with our own additions like automatic confirmation and the contact map.',
             'It’s software in progress: if you find a bug or have an idea, let us know.',
         ],
     },
@@ -77,7 +77,7 @@ const CONTENIDO: Record<Idioma, Contenido> = {
         equipo: ['A equipe', 'Ver no GitHub ›'],
         proyecto: [
             'O projeto',
-            'O Libro de Guardia nasceu como projeto acadêmico da disciplina AD4, a partir de histórias de usuário e diagramas do sistema, e cresceu com inovações próprias, como a confirmação automática e o mapa de contatos.',
+            'O Libro de Guardia é um projeto da Universidad Estatal de Bolívar (Equador), desenvolvido por estudantes do curso de Software. Partiu de histórias de usuário e diagramas do sistema e cresceu com inovações próprias, como a confirmação automática e o mapa de contatos.',
             'É um software em desenvolvimento: se encontrar um erro ou tiver uma ideia, conte para nós.',
         ],
     },
