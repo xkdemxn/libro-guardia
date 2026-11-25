@@ -54,4 +54,17 @@ class ProbarCorreoTest extends TestCase
 
         Http::assertSentCount(1);
     }
+
+    public function test_gmail_requires_an_app_password_before_attempting_to_send(): void
+    {
+        config([
+            'mail.default' => 'smtp',
+            'mail.mailers.smtp.host' => 'smtp.gmail.com',
+            'mail.mailers.smtp.username' => 'operador@example.com',
+            'mail.mailers.smtp.password' => null,
+        ]);
+
+        $this->artisan('correo:probar', ['destinatario' => 'prueba@example.com'])
+            ->expectsOutputToContain('Configura MAIL_MAILER')->assertFailed();
+    }
 }

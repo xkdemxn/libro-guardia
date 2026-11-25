@@ -33,6 +33,30 @@ Para cargar los catálogos y los operadores de demostración en una base local v
 
 Cada operador activa su propio QR. No se activa el segundo factor hasta confirmar el código; generar el QR no cambia por sí solo el acceso a la cuenta. Si acabas de usar un código, espera al siguiente antes de probar otro acceso.
 
+## Correo mediante Gmail SMTP
+
+Si la cuenta usa Gmail o Google Workspace y permite contraseñas de aplicación, configura `.env`:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtps
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USERNAME=tu-correo@tu-dominio.com
+MAIL_PASSWORD="tu_contraseña_de_aplicacion"
+MAIL_FROM_ADDRESS=tu-correo@tu-dominio.com
+MAIL_FROM_NAME="Libro de Guardia"
+```
+
+Activa la verificación en dos pasos de Google y genera una contraseña para «Libro de Guardia» en [Contraseñas de aplicación](https://myaccount.google.com/apppasswords). Añádela directamente en `MAIL_PASSWORD` de tu `.env` local. No uses la contraseña habitual de la cuenta. Las cuentas institucionales pueden tener esta opción restringida por su administrador; consulta la [ayuda de Google](https://support.google.com/accounts/answer/185833?hl=es).
+
+```sh
+php artisan config:clear
+php artisan correo:probar tu-correo@tu-dominio.com
+```
+
+El comando enviará un correo real al destinatario indicado. Con Gmail, el segundo factor por correo no se puede activar mientras falten el usuario o la contraseña de aplicación. Una vez comprobada la entrega, verifica el correo de tu cuenta en la aplicación y activa el método desde **Mi perfil → Seguridad**.
+
 ## Correo mediante la API de Brevo
 
 El transporte `brevo` usa HTTPS y la [API de correo transaccional](https://developers.brevo.com/reference/send-transac-email). También sirve para verificar direcciones, restablecer contraseñas y enviar tarjetas QSL con adjuntos.

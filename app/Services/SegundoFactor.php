@@ -31,13 +31,18 @@ class SegundoFactor
 
     public function envioCorreoDisponible(): bool
     {
-        $transporte = config('mail.mailers.'.config('mail.default').'.transport');
+        $configuracion = config('mail.mailers.'.config('mail.default'), []);
+        $transporte = $configuracion['transport'] ?? null;
 
         return match ($transporte) {
             'log', null => false,
             'array' => app()->environment('testing'),
             'brevo' => filled(config('services.brevo.key'))
                 && filter_var(config('mail.from.address'), FILTER_VALIDATE_EMAIL) !== false,
+            'smtp' => ($configuracion['host'] ?? null) !== 'smtp.gmail.com'
+                || (filled($configuracion['username'] ?? null)
+                    && filled($configuracion['password'] ?? null)
+                    && filter_var(config('mail.from.address'), FILTER_VALIDATE_EMAIL) !== false),
             default => true,
         };
     }
