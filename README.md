@@ -118,12 +118,12 @@ Las estadísticas muestran el avance hacia el **DXCC** (100 países confirmados)
 
 ## 6. Arquitectura
 
-La aplicación separa el backend (API) del frontend (SPA). En producción se sirve desde un **único dominio**: Laravel entrega la SPA compilada y la API bajo `/api`. La sesión de la SPA usa cookies de Laravel Sanctum, sin tokens en el navegador.
+El repositorio tiene dos proyectos independientes: **`backend/`** (API en Laravel) y **`frontend/`** (SPA en React). En producción se sirven desde un **único dominio**: el frontend se compila dentro de `backend/public/spa`, y Laravel entrega esa SPA y la API bajo `/api`. La sesión de la SPA usa cookies de Laravel Sanctum, sin tokens en el navegador.
 
 ```mermaid
 flowchart LR
-    U[Navegador] -->|HTML, JS| SPA[SPA React<br/>public/spa]
-    SPA -->|JSON + cookie de sesión| API[API Laravel<br/>routes/api.php]
+    U[Navegador] -->|HTML, JS| SPA[SPA React<br/>backend/public/spa]
+    SPA -->|JSON + cookie de sesión| API[API Laravel<br/>backend/routes/api.php]
     API --> DB[(PostgreSQL)]
     API --> FS[Disco público<br/>fotos y portadas]
     API -->|SMTP o HTTPS| MAIL[Gmail / Brevo]
@@ -147,6 +147,8 @@ flowchart LR
 | Correo | SMTP (Gmail) o API de Brevo (transporte propio `Mail/BrevoTransport`) |
 
 ### Organización del backend
+
+Todas las rutas de esta lista están dentro de `backend/`.
 
 - **Controladores** (`app/Http/Controllers/Api`): uno por recurso o acción, delgados.
 - **Form Requests** (`app/Http/Requests`): toda la validación de entrada.
@@ -245,7 +247,7 @@ Los catálogos (`bandas`, `modos`, `prefijos_pais`) se cargan con seeders: 16 ba
 
 ## 9. API REST
 
-Todas las rutas están en `routes/api.php`, bajo el prefijo `/api`, y responden en JSON. Las marcadas con 🔒 requieren sesión.
+Todas las rutas están en `backend/routes/api.php`, bajo el prefijo `/api`, y responden en JSON. Las marcadas con 🔒 requieren sesión.
 
 ### Autenticación y cuenta
 
@@ -306,56 +308,71 @@ Todas las rutas están en `routes/api.php`, bajo el prefijo `/api`, y responden 
 
 ## 11. Internacionalización
 
-- **Interfaz**: español (predeterminado), inglés y portugués de Brasil, con i18next. El script `npm --prefix frontend run i18n:revisar` comprueba que no falten traducciones.
-- **API**: el middleware `EstablecerIdioma` responde en el idioma de la cabecera `Accept-Language`, incluidos los mensajes de validación (`lang/`).
+- **Interfaz**: español (predeterminado), inglés y portugués de Brasil, con i18next. El script `npm run i18n:revisar`, ejecutado en `frontend/`, comprueba que no falten traducciones.
+- **API**: el middleware `EstablecerIdioma` responde en el idioma de la cabecera `Accept-Language`, incluidos los mensajes de validación (`backend/lang/`).
 
 ## 12. Estructura del repositorio
 
 ```
-app/
-  Console/Commands/     comando correo:probar
-  Enums/                TipoReporte, TipoQsl, ZonaEcuador
-  Http/Controllers/Api/ controladores de la API
-  Http/Requests/        validación de entrada
-  Http/Resources/       formato JSON de las respuestas
-  Mail/                 tarjeta QSL por correo y transporte de Brevo
-  Models/               User, Contacto, ConfirmacionQsl, Banda, Modo, PrefijoPais, VisibilidadPerfil
-  Services/             lógica de dominio
-database/
-  migrations/           esquema de la base de datos
-  seeders/              catálogos y datos de demostración
-frontend/
-  src/paginas/          pantallas (auth, contactos, perfil, público, informativas)
-  src/componentes/      componentes reutilizables
-  src/layouts/          plantillas de invitado, pública y con sesión
-  src/i18n/             traducciones (en, pt)
-public/spa/             SPA compilada (se genera con npm run build)
-routes/
-  api.php               API REST
-  web.php               enlace de verificación de correo y entrega de la SPA
+backend/                  API en Laravel
+  app/
+    Console/Commands/     comando correo:probar
+    Enums/                TipoReporte, TipoQsl, ZonaEcuador
+    Http/Controllers/Api/ controladores de la API
+    Http/Requests/        validación de entrada
+    Http/Resources/       formato JSON de las respuestas
+    Mail/                 tarjeta QSL por correo y transporte de Brevo
+    Models/               User, Contacto, ConfirmacionQsl, Banda, Modo, PrefijoPais, VisibilidadPerfil
+    Services/             lógica de dominio
+  database/
+    migrations/           esquema de la base de datos
+    seeders/              catálogos y datos de demostración
+  public/                 raíz del servidor web
+    spa/                  SPA compilada (la genera el build de frontend/)
+  routes/
+    api.php               API REST
+    web.php               enlace de verificación de correo y entrega de la SPA
+frontend/                 SPA en React
+  src/paginas/            pantallas (auth, contactos, perfil, público, informativas)
+  src/componentes/        componentes reutilizables
+  src/layouts/            plantillas de invitado, pública y con sesión
+  src/i18n/               traducciones (en, pt)
+  vite.config.ts          servidor de desarrollo y salida del build
+README.md                 este informe
+DESPLIEGUE.md             guía de despliegue en Debian
 ```
 
 ## 13. Instalación en desarrollo
 
 **Requisitos**: PHP 8.4 con las extensiones `pdo_pgsql` y `bcmath`, Composer, PostgreSQL y Node.js 22 o superior.
 
+**Backend**:
+
 ```sh
+cd backend
 composer install
 cp .env.example .env
 php artisan key:generate
 ```
 
-Configura `APP_URL` y las variables `DB_*` en `.env`. Después:
+Configura `APP_URL` y las variables `DB_*` en `backend/.env`. Después:
 
 ```sh
 php artisan migrate
 php artisan db:seed     # catálogos y operadores de demostración
 php artisan storage:link
-npm install             # instala también las dependencias de frontend/
-composer run dev        # Laravel y Vite a la vez
 ```
 
-En desarrollo, la SPA corre en el servidor de Vite (`FRONTEND_URL`, por defecto `http://localhost:5173`) y Laravel redirige allí las rutas de la interfaz.
+**Frontend**:
+
+```sh
+cd frontend
+npm install
+```
+
+**Arrancar los dos**: desde `backend/`, ejecuta `composer run dev`. Este comando levanta Laravel en el puerto 8000 y Vite en el 5173. También puedes arrancarlos por separado, con `php artisan serve` en `backend/` y `npm run dev` en `frontend/`.
+
+En desarrollo se abre `http://localhost:5173`. Vite reenvía `/api`, `/sanctum` y `/storage` a Laravel, así que el navegador ve un solo origen.
 
 **Cuentas de demostración** (solo se crean fuera de producción):
 
@@ -368,7 +385,7 @@ En desarrollo, la SPA corre en el servidor de Vite (`FRONTEND_URL`, por defecto 
 
 El correo se usa para verificar direcciones, restablecer contraseñas, enviar el código del segundo factor y enviar tarjetas QSL. Con `MAIL_MAILER=log` los correos solo se escriben en el log, y el segundo factor por correo queda deshabilitado.
 
-Para comprobar la configuración enviando un correo real:
+El correo se configura en `backend/.env`. Para comprobar la configuración enviando un correo real, desde `backend/`:
 
 ```sh
 php artisan config:clear
@@ -403,7 +420,7 @@ Usa una clave de API (no una clave SMTP) y un remitente autorizado en Brevo. Que
 
 ## 15. Despliegue en producción
 
-En el `.env` del servidor:
+La guía paso a paso para un servidor Debian con Nginx, PHP-FPM, PostgreSQL y HTTPS está en [DESPLIEGUE.md](DESPLIEGUE.md). En resumen, en el `backend/.env` del servidor:
 
 ```dotenv
 APP_ENV=production
@@ -417,17 +434,22 @@ SESSION_SECURE_COOKIE=true
 Configura también las variables `DB_*` y el correo (sección 14). `APP_URL` debe coincidir **exactamente** con la dirección pública, porque es el dominio que Sanctum acepta para la sesión de la SPA.
 
 ```sh
+cd backend
 composer install --no-dev --optimize-autoloader
 php artisan key:generate        # solo la primera vez
 php artisan migrate --force
 php artisan db:seed --force     # en producción solo carga bandas, modos y prefijos
 php artisan storage:link
-npm ci && npm run build
+
+cd ../frontend
+npm ci && npm run build         # compila dentro de backend/public/spa
+
+cd ../backend
 php artisan optimize
 ```
 
-- El servidor web debe apuntar a la carpeta `public/`.
-- PHP necesita permiso de escritura en `storage/` y `bootstrap/cache/`.
+- El servidor web debe apuntar a la carpeta `backend/public/`.
+- PHP necesita permiso de escritura en `backend/storage/` y `backend/bootstrap/cache/`.
 - La aplicación confía en el proxy (`trustProxies`), así que funciona detrás de un túnel o de un balanceador con HTTPS.
 - No necesita workers de cola ni tareas programadas.
 - Después de cada actualización, repite `composer install`, `migrate --force`, `npm run build` y `php artisan optimize`.

@@ -1,3 +1,8 @@
+# Estructura del repositorio
+
+- `backend/`: API en Laravel. Ejecuta `php artisan`, `composer` y `vendor/bin/pint` desde esta carpeta.
+- `frontend/`: SPA en React con Vite. Ejecuta `npm` desde esta carpeta; `npm run build` compila en `backend/public/spa`.
+
 <laravel-boost-guidelines>
 # Laravel Application
 

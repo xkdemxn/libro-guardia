@@ -11,10 +11,10 @@ const laravel = 'http://localhost:8000';
 
 export default defineConfig(({ command }) => ({
     plugins: [react()],
-    // En producción la SPA se compila dentro de public/spa y la sirve Laravel (SpaController).
+    // En producción la SPA se compila dentro de backend/public/spa y la sirve Laravel (SpaController).
     base: command === 'build' ? '/spa/' : '/',
     build: {
-        outDir: '../public/spa',
+        outDir: '../backend/public/spa',
         emptyOutDir: true,
     },
     resolve: {
