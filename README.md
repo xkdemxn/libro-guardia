@@ -83,14 +83,29 @@ Para probar el segundo factor, verifica primero el correo de tu cuenta desde la 
 
 Con `MAIL_MAILER=log` el segundo factor por correo permanece deshabilitado. Con Brevo también requiere una clave de API y una dirección de remitente válida. La configuración no comprueba las credenciales con el proveedor hasta intentar un envío.
 
-## Pruebas
+## Producción
 
-Crea una base PostgreSQL independiente llamada `libro_guardia_test`, accesible con las variables `DB_HOST`, `DB_PORT`, `DB_USERNAME` y `DB_PASSWORD` del entorno local. La suite recrea sus tablas; no uses una base con datos que necesites conservar.
+Requiere PHP 8.4 con `pdo_pgsql`, PostgreSQL y Node.js 22 o superior (solo para compilar). En el `.env` del servidor:
 
-```sh
-php artisan test --compact
-vendor/bin/pint --dirty --format agent
-npm run build
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://tu-dominio.com
+FRONTEND_URL=https://tu-dominio.com
+LOG_LEVEL=warning
+SESSION_SECURE_COOKIE=true
 ```
 
-Las pruebas de Brevo simulan las respuestas HTTP y no envían mensajes reales. Cubren el transporte, los adjuntos QSL, el comando de prueba, el desafío de acceso y los fallos de entrega.
+Configura también las variables `DB_*` y el correo (Gmail o Brevo, ver arriba). Si una contraseña tiene espacios, escríbela entre comillas. El dominio de `APP_URL` es el que acepta la sesión de la SPA: debe coincidir exactamente con la dirección pública.
+
+```sh
+composer install --no-dev --optimize-autoloader
+php artisan key:generate        # solo la primera vez
+php artisan migrate --force
+php artisan db:seed --force     # carga bandas, modos y prefijos; en producción no crea cuentas de demostración
+php artisan storage:link
+npm ci && npm run build
+php artisan optimize
+```
+
+El servidor web debe apuntar a la carpeta `public/`, y PHP necesita permiso de escritura en `storage/` y `bootstrap/cache/`. Después de cada actualización, repite `composer install`, `migrate --force`, `npm run build` y `php artisan optimize`.

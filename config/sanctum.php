@@ -18,12 +18,12 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
+    // El dominio de APP_URL se añade siempre, aunque SANCTUM_STATEFUL_DOMAINS esté definido: en producción basta con APP_URL.
+    'stateful' => array_values(array_unique(array_filter(explode(',', sprintf(
         '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
+        env('SANCTUM_STATEFUL_DOMAINS', 'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1'),
         Sanctum::currentApplicationUrlWithPort(),
-        // Sanctum::currentRequestHost(),
-    ))),
+    ))))),
 
     /*
     |--------------------------------------------------------------------------

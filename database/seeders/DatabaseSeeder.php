@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
      * Carga los catálogos y dos operadores de demostración (contraseña "password"):
      * HC1QRC con 60 contactos, y LU4BB, que registró el mismo QSO que HC1QRC para mostrar
      * la confirmación QSL automática.
+     *
+     * En producción solo se cargan los catálogos: los operadores de demostración tienen una
+     * contraseña conocida y sus factories necesitan Faker, que no se instala con --no-dev.
      */
     public function run(ConfirmadorQsl $confirmador): void
     {
@@ -27,6 +30,10 @@ class DatabaseSeeder extends Seeder
             ModoSeeder::class,
             PrefijoPaisSeeder::class,
         ]);
+
+        if (app()->isProduction()) {
+            return;
+        }
 
         $operador = User::factory()->create([
             'indicativo' => 'HC1QRC',
