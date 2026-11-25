@@ -17,6 +17,8 @@ En todos los comandos, cambia `tu-dominio.com`, `tu-correo@gmail.com` y `UNA_CLA
 
 Si el servidor tiene **Debian 12**, PHP 8.4 no viene incluido y antes hay que agregar el repositorio de Sury.
 
+**¿Todavía no tienes dominio?** Sigue los mismos pasos con los cambios de [Instalación en red local (sin dominio)](#instalación-en-red-local-sin-dominio).
+
 ## Paso 1. Instalar los paquetes del sistema
 
 Se instalan el servidor web, PHP con sus extensiones, PostgreSQL, Composer, Node.js y Certbot.
@@ -229,6 +231,54 @@ Después, en el navegador:
 - [ ] Subir una foto de perfil y una portada
 - [ ] Cerrar sesión y volver a entrar
 
+## Instalación en red local (sin dominio)
+
+Sin dominio, la aplicación se publica por la IP del servidor dentro de la red local, sin HTTPS. Los pasos son los mismos, con estos cambios. En los ejemplos la IP es `192.168.21.9`; usa la de tu servidor.
+
+**Paso 4: `.env`.** Usa la IP con `http` y desactiva la cookie segura:
+
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=http://192.168.21.9
+FRONTEND_URL=http://192.168.21.9
+LOG_LEVEL=warning
+SESSION_SECURE_COOKIE=false
+```
+
+`SESSION_SECURE_COOKIE` debe estar en `false`. Con `true`, el navegador solo envía la cookie de sesión por HTTPS, y nadie puede iniciar sesión (error 419).
+
+**Paso 8: Nginx.** En el bloque `server`, cambia solo estas dos líneas:
+
+```nginx
+listen 80 default_server;
+server_name 192.168.21.9;
+```
+
+**Paso 9: sin HTTPS.** No ejecutes `certbot`, porque Let's Encrypt no emite certificados para IPs privadas. En el firewall abre solo HTTP:
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx HTTP'
+sudo ufw enable
+```
+
+**Paso 10: comprobar.** Ejecuta `curl -s http://192.168.21.9/up` y abre `http://192.168.21.9` desde otra computadora de la misma red.
+
+Ten en cuenta:
+
+- **Entra siempre por `http://192.168.21.9`**, sin `https` y sin escribir `localhost`, ni siquiera desde el propio servidor. La sesión solo se acepta desde la dirección de `APP_URL`.
+- **Solo funciona dentro de la red local.** Los enlaces de los correos (verificar la cuenta, restablecer la contraseña) llevan esa IP, así que solo se abren desde la misma red.
+- **La IP debe ser fija.** Si el router la cambia, la aplicación deja de funcionar. En ese caso, actualiza `APP_URL` y `FRONTEND_URL` y ejecuta `php artisan optimize`.
+
+### Cuando tengan dominio
+
+1. Apunta el dominio a la IP pública del servidor.
+2. En `backend/.env`, cambia `APP_URL` y `FRONTEND_URL` a `https://tu-dominio.com` y pon `SESSION_SECURE_COOKIE=true`.
+3. En Nginx, cambia `server_name` por el dominio y recarga con `sudo nginx -t && sudo systemctl reload nginx`.
+4. Ejecuta el paso 9 original (`certbot` y `sudo ufw allow 'Nginx Full'`).
+5. En `backend/`, ejecuta `php artisan optimize`.
+
 ## Actualizar después de un cambio
 
 Cuando se suben cambios a GitHub, en el servidor se ejecuta:
@@ -253,7 +303,8 @@ El error real siempre queda en el registro: `tail -n 50 /var/www/libro-guardia/b
 | Síntoma | Causa probable | Solución |
 | --- | --- | --- |
 | Error 500 al registrarse o iniciar sesión | `APP_URL` no coincide con el dominio o le falta `https` | Corregir `APP_URL` y ejecutar `php artisan optimize` |
-| Error 419 (sesión expirada) | Lo mismo, o `SESSION_SECURE_COOKIE=true` sin HTTPS | Revisar `APP_URL` y completar el paso 9 |
+| Error 419 (sesión expirada) | Lo mismo, o `SESSION_SECURE_COOKIE=true` sin HTTPS | Revisar `APP_URL` y completar el paso 9; en red local, `SESSION_SECURE_COOKIE=false` |
+| El login falla entrando por IP | Se entró por una dirección distinta de `APP_URL` (otra IP, `localhost`, `https`) | Entrar exactamente por la dirección de `APP_URL` |
 | Error 413 al subir una imagen | Límite de subida de PHP o Nginx | Repetir el paso 7 y revisar `client_max_body_size` |
 | Las fotos no se ven | Falta el enlace a `storage` | `php artisan storage:link` en `backend/` |
 | Se ve "Página no encontrada" o redirige a `localhost:5173` | No se compiló el frontend | `npm ci && npm run build` en `frontend/` |
