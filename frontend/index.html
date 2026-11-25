@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#070e1c" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <title>Libro de Guardia</title>
+        <meta name="description" content="Libro de Guardia de Radioaficionados DX Ecuador: registra tus contactos, confirma QSL y conecta con radioaficionados de todo el mundo." />
+
+        <!-- Vista previa al compartir el enlace (WhatsApp, Facebook, Telegram, X…). Laravel cambia __ORIGEN__ por el dominio real. -->
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Radioaficionados DX Ecuador" />
+        <meta property="og:title" content="Libro de Guardia · Radioaficionados DX Ecuador" />
+        <meta property="og:description" content="Libro de guardia para radioaficionados: registra tus contactos, confirma QSL y conecta con estaciones de todo el mundo." />
+        <meta property="og:url" content="__ORIGEN__/" />
+        <meta property="og:image" content="__ORIGEN__/img/compartir.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Emblema de Radioaficionados DX Ecuador sobre fondo azul marino" />
+        <meta property="og:locale" content="es_EC" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Libro de Guardia · Radioaficionados DX Ecuador" />
+        <meta name="twitter:description" content="Libro de guardia para radioaficionados: registra tus contactos, confirma QSL y conecta con estaciones de todo el mundo." />
+        <meta name="twitter:image" content="__ORIGEN__/img/compartir.png" />
+
+        <!-- Aplica el tema guardado (o el del sistema) antes de pintar, para que la página no parpadee. -->
+        <script>
+            (() => {
+                let tema = null;
+                try { tema = localStorage.getItem('tema'); } catch (e) {}
+                const claro = tema ? tema === 'claro' : window.matchMedia('(prefers-color-scheme: light)').matches;
+                document.documentElement.classList.toggle('claro', claro);
+                document.querySelector('meta[name="theme-color"]').content = claro ? '#e8eef8' : '#070e1c';
+            })();
+        </script>
+
+        <link rel="preconnect" href="https://fonts.bunny.net" />
+        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700|unbounded:500,600|jetbrains-mono:500,600&display=swap" rel="stylesheet" />
+    </head>
+    <body class="font-sans">
+        <div id="raiz"></div>
+        <script type="module" src="/src/main.tsx"></script>
+    </body>
+</html>

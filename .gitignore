@@ -30,3 +30,6 @@ node_modules/
 /backend/storage/*.key
 /backend/storage/pail
 /backend/vendor
+
+# Frontend (React)
+/frontend/dist
